@@ -22,4 +22,8 @@
   --color-subtle: #7A766F;
   --color-border: #C8C3BA;
   --color-link: #B84A12;
+
+  /* Avatar theme colors (used by Avatar component) */
+  --theme-colorful: #F4F1EB;
+  --theme-contrasty: #3D3832;
 }

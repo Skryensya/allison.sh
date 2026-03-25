@@ -11,11 +11,14 @@ const { title, description, year } = Astro.props;
 ---
 
 <Base title={`${title} | Allison Peña`} description={description}>
-  <header id="site-header" class="w-full sticky top-0 z-50 transition-all duration-300">
+  <header id="site-header" class="w-full sticky top-0 z-50 transition-all duration-300 overflow-hidden">
     <nav id="site-nav" class="max-w-[58ch] mx-auto px-6 md:px-8 flex justify-between items-center py-4 md:py-8 transition-all duration-300 bg-bg md:bg-transparent">
-      <h1 class="font-sans text-xl font-medium tracking-tight"><a href="/" class="hover:text-muted transition-colors duration-200"><span class="font-light">Allison</span> Peña</a></h1>
-      <div class="flex items-center gap-6">
+      <h1 class="font-sans text-xl font-medium tracking-tight shrink-0"><a href="/" class="hover:text-muted transition-colors duration-200"><span class="font-light">Allison</span> Peña</a></h1>
+      <div class="flex items-center gap-3 md:gap-6 flex-wrap justify-end">
         <a href="/#proyectos" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">work</a>
+        <a href="/#sobre-mi" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">about</a>
+        <a href="/#contacto" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">contact</a>
+        <a href="/curriculum.pdf" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">CV</a>
         <button
           id="theme-toggle"
           class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text"

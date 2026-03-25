@@ -1,0 +1,161 @@
+---
+interface Props {
+  avatarId?: string;
+  phrases?: string[];
+  delay?: number;
+}
+
+const { avatarId = 'about-avatar', phrases = [], delay = 0 } = Astro.props;
+const bubbleId = `bubble-${Math.random().toString(36).slice(2, 8)}`;
+const phrasesJson = JSON.stringify(phrases);
+---
+
+<div
+  id={bubbleId}
+  class="speech-bubble inline-block"
+  data-avatar-id={avatarId}
+  data-phrases={phrasesJson}
+  data-delay={delay}
+>
+  <div class="speech-bubble__content font-sans text-base leading-relaxed">
+    <span class="speech-bubble__text"></span>
+  </div>
+</div>
+
+<style>
+  .speech-bubble {
+    vertical-align: top;
+    align-self: center;
+  }
+
+  .speech-bubble__content {
+    background: var(--color-bg, #F8F6F1);
+    border-radius: 8px;
+    padding: 12px 18px;
+    min-width: 240px;
+    min-height: 52px;
+    max-width: 320px;
+    position: relative;
+    opacity: 0;
+    transform: scale(0.95) translateX(4px);
+    transition: opacity 250ms ease-out, transform 250ms ease-out;
+  }
+
+  .speech-bubble__content.visible {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+
+  .speech-bubble__text {
+    display: inline;
+    color: var(--color-muted, #5E5A56);
+    font-size: 0.9375rem;
+    letter-spacing: -0.01em;
+    white-space: pre-line;
+  }
+
+  :global(html.dark) .speech-bubble__content {
+    background: var(--color-bg, #0F0F0E);
+  }
+
+  :global(html.dark) .speech-bubble__text {
+    color: var(--color-muted, #9B9590);
+  }
+</style>
+
+<script>
+  const MOUTH_STATES = ['a', 'e', 'i', 'o', 'u'] as const;
+  const VOWEL_REGEX = /[aeiouáéíóúü]/i;
+
+  function getMouthForChar(char: string): string {
+    if (VOWEL_REGEX.test(char)) {
+      const vowels = MOUTH_STATES.filter(s => s !== 'i');
+      return vowels[Math.floor(Math.random() * vowels.length)];
+    }
+    return Math.random() > 0.2 ? 'i' : MOUTH_STATES[Math.floor(Math.random() * MOUTH_STATES.length)];
+  }
+
+  function triggerMouth(avatarId: string, state: string) {
+    const avatar = document.querySelector(`[data-avatar-id="${avatarId}"]`);
+    if (!avatar) return;
+    avatar.dispatchEvent(new CustomEvent('avatar:set-mouth', {
+      detail: { state },
+      bubbles: true,
+    }));
+  }
+
+  function resetMouth(avatarId: string) {
+    const avatar = document.querySelector(`[data-avatar-id="${avatarId}"]`);
+    if (!avatar) return;
+    avatar.dispatchEvent(new CustomEvent('avatar:set-mouth', {
+      detail: { state: 'default' },
+      bubbles: true,
+    }));
+  }
+
+  function initSpeechBubble(bubble: HTMLElement) {
+    const content = bubble.querySelector('.speech-bubble__content');
+    const textEl = bubble.querySelector('.speech-bubble__text');
+    const avatarId = bubble.dataset.avatarId;
+    const phrasesData = JSON.parse(bubble.dataset.phrases || '[]');
+    const delay = parseInt(bubble.dataset.delay || '0', 10);
+
+    if (!content || !textEl || !avatarId || phrasesData.length === 0) return;
+
+    let finished = false;
+    let started = false;
+    let timeouts: ReturnType<typeof setTimeout>[] = [];
+
+    function showContent() {
+      content.classList.add('visible');
+    }
+
+    function start() {
+      if (finished || started) return;
+      started = true;
+      // Show all phrases as separate paragraphs
+      textEl.innerHTML = phrasesData.map((p: string, i: number) =>
+        i > 0 ? `<span class="block mt-2">${p}</span>` : p
+      ).join('');
+      showContent();
+      finished = true;
+    }
+
+    // Store cleanup
+    (bubble as HTMLElement & { __cleanup?: () => void }).__cleanup = () => {
+      finished = true;
+      timeouts.forEach(t => clearTimeout(t));
+      timeouts = [];
+    };
+
+    // Start when in viewport
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !started) {
+            setTimeout(start, delay);
+            observer.disconnect();
+          }
+        });
+      }, { threshold: 0.2 });
+
+      observer.observe(bubble);
+    } else {
+      setTimeout(start, delay);
+    }
+  }
+
+  function initSpeechBubbles() {
+    document.querySelectorAll('.speech-bubble').forEach((bubble) => {
+      const cleanup = (bubble as HTMLElement & { __cleanup?: () => void }).__cleanup;
+      if (cleanup) cleanup();
+    });
+
+    document.querySelectorAll('.speech-bubble').forEach((bubble) => {
+      initSpeechBubble(bubble as HTMLElement);
+    });
+  }
+
+  document.addEventListener('astro:page-load', initSpeechBubbles);
+  initSpeechBubbles();
+</script>

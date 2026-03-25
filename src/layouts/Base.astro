@@ -36,6 +36,13 @@ const { title, description } = Astro.props;
 </html>
 
 <style is:global>
+  html {
+    --avatar-black: var(--theme-contrasty);
+    --avatar-white: var(--theme-colorful);
+    --avatar-gray: color-mix(in srgb, var(--theme-colorful) 82%, var(--theme-contrasty) 18%);
+    --avatar-colorful-50: color-mix(in srgb, var(--theme-colorful) 25%, var(--theme-contrasty) 75%);
+  }
+
   html.dark {
     --color-bg: #0F0F0E;
     --color-text: #E0DDD8;
@@ -43,6 +50,7 @@ const { title, description } = Astro.props;
     --color-subtle: #858280;
     --color-border: #4A4740;
     --color-link: #FF6030;
+    /* Avatar keeps light theme colors */
   }
 
   @keyframes fade-in {
@@ -192,14 +200,32 @@ const { title, description } = Astro.props;
       const shouldExpand = scrollY > 50 && !isMobile;
       const shouldHaveBg = scrollY > 50 && isMobile;
 
-      if (shouldExpand && !isExpanded) {
-        nav.style.maxWidth = '950px';
-        nav.style.transition = 'max-width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        isExpanded = true;
-      } else if (!shouldExpand && isExpanded) {
-        nav.style.maxWidth = '58ch';
-        nav.style.transition = 'max-width 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        isExpanded = false;
+      const logo = nav.querySelector('h1');
+      const links = nav.querySelector('div');
+
+      // Only apply slide animation on desktop
+      if (!isMobile) {
+        if (shouldExpand && !isExpanded) {
+          if (logo) {
+            logo.style.transform = 'translateX(-130%)';
+            logo.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+          }
+          if (links) {
+            links.style.transform = 'translateX(95%)';
+            links.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+          }
+          isExpanded = true;
+        } else if (!shouldExpand && isExpanded) {
+          if (logo) {
+            logo.style.transform = 'translateX(0)';
+            logo.style.transition = 'transform 200ms cubic-bezier(0.4, 0, 0.6, 1)';
+          }
+          if (links) {
+            links.style.transform = 'translateX(0)';
+            links.style.transition = 'transform 200ms cubic-bezier(0.4, 0, 0.6, 1)';
+          }
+          isExpanded = false;
+        }
       }
 
       // Mobile background

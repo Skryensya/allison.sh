@@ -1,0 +1,172 @@
+---
+import {
+  avatarArtOffsetX,
+  avatarArtOffsetY,
+  avatarArtSize,
+  avatarCanvasSize,
+  avatarGrid,
+  avatarGridSize,
+  avatarHatIndices,
+  avatarOutfitIndices,
+} from '@/data/avatarSprite';
+import spriteSheetUrl from '../assets/avatar/tileset.svg?url';
+
+interface Props {
+  alt?: string;
+  className?: string;
+  id?: string;
+}
+
+const {
+  alt = 'Pixel avatar portrait',
+  className = '',
+  id = 'avatar',
+} = Astro.props;
+
+const gridScale = avatarCanvasSize / avatarArtSize;
+const gridOffsetLeft = -(avatarArtOffsetX / avatarArtSize) * 100;
+const gridOffsetTop = -(avatarArtOffsetY / avatarArtSize) * 100;
+const gridSizePercent = gridScale * 100;
+---
+
+<div
+  class={`avatar relative size-full ${className}`}
+  data-avatar-id={id}
+  data-avatar-sprite-url={spriteSheetUrl}
+>
+  <button
+    type="button"
+    class="avatar__button relative block size-full cursor-pointer overflow-hidden text-left focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-main focus-visible:outline-offset-4"
+    aria-label={alt}
+    data-haptic="confirm"
+  >
+    <div
+      class="avatar__grid"
+      style={`grid-template-columns: repeat(${avatarGridSize}, 32px); grid-template-rows: repeat(${avatarGridSize}, 32px);`}
+      aria-hidden="true"
+    >
+      {avatarGrid.flat().map((name, i) => {
+        const partClass =
+          name === 'left-eye-base'
+            ? ' avatar__part--left-eye'
+            : name === 'right-eye-base'
+              ? ' avatar__part--right-eye'
+              : name === 'mouth-rest-left'
+                ? ' avatar__part--mouth-left'
+                : name === 'mouth-rest-right'
+                  ? ' avatar__part--mouth-right'
+                  : '';
+
+        const hatClass = (avatarHatIndices as readonly number[]).includes(i) ? ' avatar__part--hat' : '';
+        const outfitClass = (avatarOutfitIndices as readonly number[]).includes(i) ? ' avatar__part--outfit' : '';
+
+        return (
+          <svg class="avatar__tile" viewBox="0 0 25 25" aria-hidden="true" focusable="false">
+            <use class={`avatar__part${partClass}${outfitClass}`} href={`${spriteSheetUrl}#avatar-sprite-${name}`}></use>
+            {hatClass && <use class={`avatar__part${hatClass}`} href={`${spriteSheetUrl}#avatar-sprite-hat-empty`}></use>}
+          </svg>
+        );
+      })}
+    </div>
+  </button>
+</div>
+
+<script>
+  let avatarModulePromise: Promise<{ setupAvatars: () => void }> | null = null;
+
+  function loadAvatarModule() {
+    avatarModulePromise ??= import('../scripts/avatar-client').then((module) => {
+      module.setupAvatars();
+      return module;
+    });
+
+    return avatarModulePromise;
+  }
+
+  function observeAvatarBoot() {
+    const avatars = document.querySelectorAll<HTMLElement>('.avatar[data-avatar-id]');
+    if (!avatars.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      void loadAvatarModule();
+      return;
+    }
+
+    const preload = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        preload.disconnect();
+        void loadAvatarModule();
+      },
+      {
+        rootMargin: '700px 0px',
+        threshold: 0.01,
+      }
+    );
+
+    avatars.forEach((avatar) => preload.observe(avatar));
+  }
+
+  observeAvatarBoot();
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', observeAvatarBoot, { once: true });
+  }
+
+  document.addEventListener('astro:page-load', observeAvatarBoot);
+</script>
+
+<style>
+  .avatar {
+    --avatar-black: var(--theme-contrasty);
+    --avatar-white: var(--theme-colorful);
+    --avatar-gray: color-mix(in srgb, var(--theme-colorful) 82%, var(--theme-contrasty) 18%);
+    --avatar-colorful-50: color-mix(in srgb, var(--theme-colorful) 25%, var(--theme-contrasty) 75%);
+    contain: layout paint style;
+    content-visibility: auto;
+    contain-intrinsic-size: 150px 150px;
+  }
+
+  .avatar,
+  .avatar__button,
+  .avatar__grid,
+  .avatar__tile {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  .avatar__button {
+    border: 0;
+    padding: 0;
+    background: var(--theme-colorful);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .avatar__grid {
+    position: absolute;
+    display: grid;
+    gap: 0;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .avatar__tile {
+    width: 32px;
+    height: 32px;
+    display: block;
+    user-select: none;
+    pointer-events: none;
+    shape-rendering: crispEdges;
+  }
+
+  @media (max-width: 640px) {
+    .avatar {
+      contain-intrinsic-size: 170px 170px;
+    }
+  }
+
+  </style>
