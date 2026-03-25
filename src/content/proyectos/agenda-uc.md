@@ -1,10 +1,10 @@
 ---
 title: "Agenda UC"
-description: "Sistema de eventos académicos y culturales."
-year: "2023"
-tech: ["Strapi", "React", "Next.js"]
+description: "Sobre cómo hacer que miles de personas encuentren algo sin perder la cabeza."
 ---
 
-Diseñé y desarrollé la Agenda UC, un sistema centralizado de eventos académicos y culturales con una API flexible en Strapi y un frontend accesible en React/Next.js.
+Una plataforma de eventos suena simple hasta que intentas que funcione para miles con necesidades distintas.
 
-La Agenda UC transformó la manera en que la comunidad universitaria descubre y organiza su vida académica y cultural. Su arquitectura flexible y su frontend accesible garantizan que miles de estudiantes y docentes puedan interactuar con la plataforma de forma inclusiva y coherente con el resto del ecosistema digital UC.
+Trabajo: una API flexible que no se rompiera cuando agregaran 200 eventos en un día. Un frontend que cargara rápido en conexiones lentas. La accesibilidad no era un extra, era el default.
+
+Lo difícil no fue construir. Fue decidir qué sacrificar cuando el tiempo no alcanzaba.

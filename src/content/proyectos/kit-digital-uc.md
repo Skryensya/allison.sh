@@ -1,10 +1,10 @@
 ---
 title: "Kit Digital UC"
-description: "Librería de componentes para 100+ sitios."
-year: "2023"
-tech: ["Vanilla JS", "Tailwind CSS", "Astro"]
+description: "100+ sitios, un solo lenguaje visual."
 ---
 
-Desarrollé y optimicé el Kit Digital UC, una librería en Vanilla JavaScript que asegura accesibilidad, coherencia y rendimiento en más de 100 sitios institucionales.
+Diseñar para muchos sitios sin que se sientan iguales es un problema que nadie te enseña.
 
-Este kit representa la evolución natural de los sistemas previos de design, integrando aprendizajes y adoptando las mejores prácticas actuales en accesibilidad, modularidad y experiencia de desarrollador.
+La librería empezó como una necesidad: dejar de repetir código y empezar a pensar en sistema. Accesibilidad, coherencia, rendimiento: cada decisión afectaba a todos los sitios que venían después.
+
+El aprendizaje: los buenos sistemas no limitan creativity, la habilitan.

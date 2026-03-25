@@ -1,10 +1,10 @@
 ---
 title: "Portal UC"
-description: "Punto de acceso digital principal."
-year: "2023"
-tech: ["Astro", "Tailwind CSS", "TypeScript"]
+description: "Mantener algo vivo cuando todos lo usan."
 ---
 
-Mejoré y mantuve el Portal UC, principal punto de acceso digital de la universidad, integrando nuevas secciones, optimizando su rendimiento y elevando su accesibilidad.
+Un portal que no puedes romper porque miles de personas dependen de él todos los días.
 
-Desde el inicio trabajé corrigiendo problemas puntuales de accesibilidad y usabilidad, pero con el tiempo mi rol se amplió hacia el diseño de soluciones técnicas de mayor impacto.
+Empecé corrigiendo problemas de accesibilidad. Terminé diseñando soluciones que duraron más que los proyectos originales.
+
+El trabajo de mantenimiento no es glamoroso. Pero teaches you qué funciona cuando nadie está mirando.

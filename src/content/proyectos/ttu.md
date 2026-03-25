@@ -1,10 +1,10 @@
 ---
 title: "TTU"
-description: "Centro cultural independiente en Concepción."
-year: "2024"
-tech: ["ProcessWire", "React", "Tailwind CSS"]
+description: "Un centro cultural que no quiere parecer uno."
 ---
 
-Implementación del sitio web de TTU (Toda la Teoría del Universo), un centro cultural independiente en Concepción.
+Flexible, experimental, accesible. El brief no tenía nada claro excepto que no querían algo genérico.
 
-El sitio debía reflejar esta identidad flexible y experimental, pero también responder a necesidades prácticas. Implementé el sitio combinando ProcessWire como CMS con widgets de React y maquetación con Tailwind CSS.
+ProcessWire + React + Tailwind. Cada tecnología porque resuelvía algo específico, no por portfólio.
+
+El resultado: un sitio que se mueve como el espacio que representa.

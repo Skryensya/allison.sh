@@ -1,10 +1,10 @@
 ---
 title: "Barrancas"
-description: "Plataforma de detección temprana."
-year: "2023"
-tech: ["React", "Node.js", "PostgreSQL"]
+description: "Identificar estudiantes en riesgo antes de que sea tarde."
 ---
 
-Desarrollé Barrancas, una plataforma de encuestas para escuelas que identifica estudiantes en riesgo y facilita intervenciones tempranas.
+Una plataforma de encuestas suena genérica. Esta empezó como una pregunta: ¿cómo detectas a alguien que necesita ayuda si nunca pide ayuda?
 
-Barrancas ha permitido a las instituciones educativas identificar estudiantes en riesgo y facilitar intervenciones tempranas. El proyecto sigue en evolución con mejoras continuas.
+El desafío técnico era simple. El humano, menos.
+
+Seguir evolucionando porque las escuelas cambian más rápido que el código.
