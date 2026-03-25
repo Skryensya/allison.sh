@@ -1,0 +1,41 @@
+---
+import { getCollection, render } from 'astro:content';
+import Project from '@/layouts/Project.astro';
+import TechChips from '@/components/TechChips.astro';
+
+export async function getStaticPaths() {
+  const proyectos = await getCollection('proyectos');
+  return proyectos.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+// Get all projects sorted chronologically for navigation
+const allProyectos = await getCollection('proyectos');
+const sorted = allProyectos.sort((a, b) => (a.data.year || '').localeCompare(b.data.year || ''));
+const currentIndex = sorted.findIndex(p => p.id === entry.id);
+const nextProject = sorted[(currentIndex + 1) % sorted.length];
+---
+
+<Project title={entry.data.title} description={entry.data.description} year={entry.data.year}>
+  <article class="space-y-6 font-mono text-[14px] leading-[1.85] text-muted">
+    <Content />
+    <TechChips tech={entry.data.tech || []} />
+  </article>
+
+  <footer class="mt-16 pt-10">
+    <a href={`/proyectos/${nextProject.id}`} class="group">
+      <p class="font-mono text-[11px] tracking-wide text-muted mb-2">leer siguiente →</p>
+      <p class="font-sans text-xl tracking-tight text-muted group-hover:text-text transition-colors duration-200 mb-2">
+        {nextProject.data.title}
+      </p>
+      <p class="font-mono text-[12px] text-muted leading-[1.5]">
+        {nextProject.data.description}
+      </p>
+    </a>
+  </footer>
+</Project>
