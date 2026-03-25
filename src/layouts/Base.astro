@@ -24,8 +24,12 @@ const { title, description } = Astro.props;
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <ClientRouter />
   </head>
-  <body class="text-text antialiased min-h-screen bg-bg">
-    <slot />
+  <body class="text-text antialiased min-h-screen bg-bg relative">
+    <!-- Luz tenue desde arriba a la derecha -->
+    <div id="light-overlay" class="pointer-events-none fixed inset-0 z-50" style="background: radial-gradient(ellipse 100vw 100vh at 100% 0%, rgba(255,220,180,0.45), transparent 60%);"></div>
+    <div class="min-h-[100dvh]">
+      <slot />
+    </div>
   </body>
 </html>
 
@@ -80,7 +84,7 @@ const { title, description } = Astro.props;
     animation: fade-in 0.2s ease-out forwards;
   }
 
-  @media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
     ::view-transition-old(root),
     ::view-transition-new(root) {
       animation: none;
@@ -122,5 +126,55 @@ const { title, description } = Astro.props;
   document.addEventListener('astro:after-swap', () => {
     initThemeToggle();
     restoreScrollPosition();
+    initLightOverlay();
+    initNavbarScroll();
   });
+
+  // Animar overlay de luz con scroll
+  function initLightOverlay() {
+    const overlay = document.getElementById('light-overlay');
+    if (!overlay) return;
+
+    function updateLight(e) {
+      const scrollY = window.scrollY;
+      const maxScroll = window.innerHeight * 0.7;
+      const progress = Math.min(scrollY / maxScroll, 1);
+      const opacity = 0.4;
+      overlay.style.opacity = opacity;
+    }
+
+    window.addEventListener('scroll', updateLight, { passive: true });
+    updateLight();
+  }
+
+  initLightOverlay();
+
+  // Navbar expand on scroll
+  function initNavbarScroll() {
+    const header = document.getElementById('site-header');
+    const nav = document.getElementById('site-nav');
+    if (!header || !nav) return;
+
+    let lastScroll = 0;
+
+    function updateNav() {
+      const scrollY = window.scrollY;
+      const isMobile = window.innerWidth < 768;
+      const expanded = scrollY > 50 && !isMobile;
+
+      if (expanded) {
+        nav.style.maxWidth = '950px';
+      } else {
+        nav.style.maxWidth = '58ch';
+      }
+
+      lastScroll = scrollY;
+    }
+
+    window.addEventListener('scroll', updateNav, { passive: true });
+    updateNav();
+  }
+
+  initNavbarScroll();
+  document.addEventListener('astro:after-swap', initNavbarScroll);
 </script>
