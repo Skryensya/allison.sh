@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.1875rem;
+  --text-4xl: 2.75rem;
+  --text-5xl: 3.4375rem;
+  --text-6xl: 4.25rem;
+  --text-7xl: 5.5rem;
+
+  --color-bg: #F8F6F1;
+  --color-text: #2C2925;
+  --color-muted: #7A7570;
+  --color-subtle: #A09C98;
+  --color-border: #C4BFB8;
+  --color-link: #BF4700;
+}
