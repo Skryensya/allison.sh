@@ -9,6 +9,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "start": "npx serve dist -l 3000",
     "astro": "astro"
   },
   "dependencies": {
