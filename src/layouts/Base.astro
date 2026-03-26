@@ -230,10 +230,17 @@ const { title, description } = Astro.props;
 
   // Navbar scroll animation - elements slide out with easing
   function initNavbarScroll() {
+    const header = document.getElementById('site-header');
     const logo = document.getElementById('nav-logo');
     const links = document.getElementById('nav-links');
     
-    if (!logo || !links) return;
+    if (!header || !logo || !links) return;
+
+    // Create overlay to block clicks on hidden header
+    const overlay = document.createElement('div');
+    overlay.id = 'header-click-blocker';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;height:0;z-index:99;pointer-events:none;transition:height 0.25s ease-out;';
+    document.body.appendChild(overlay);
 
     let lastScrollY = window.scrollY;
     let isHidden = false;
@@ -247,15 +254,25 @@ const { title, description } = Astro.props;
 
       if (shouldHide && !isHidden) {
         // Slide out - faster on way down
-        logo.style.transform = 'translateX(-120%)';
+        logo.style.transform = 'translateX(-130%)';
         logo.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
         
         links.style.transform = 'translateX(120%)';
         links.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
         
+        // Enable overlay to block clicks
+        setTimeout(() => {
+          overlay.style.height = `${header.offsetHeight}px`;
+          overlay.style.pointerEvents = 'auto';
+        }, 50);
+        
         isHidden = true;
-      } else if (isHidden && currentScrollY === 0) {
-        // Only show when at the very top
+      } else if (isHidden && currentScrollY <= threshold) {
+        // Disable overlay first
+        overlay.style.pointerEvents = 'none';
+        overlay.style.height = '0px';
+        
+        // Then slide back in
         logo.style.transform = 'translateX(0)';
         logo.style.transition = 'transform 0.15s cubic-bezier(0.2, 0, 0, 1)';
         
