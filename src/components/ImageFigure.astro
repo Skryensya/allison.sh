@@ -1,0 +1,78 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  wide?: boolean; // true = extends to left, false = extends to right
+  credit?: string;
+}
+
+const { src, alt, caption, wide = false, credit } = Astro.props;
+---
+
+<figure class={`image-figure ${wide ? 'image-figure--wide' : 'image-figure--narrow'}`}>
+  <div class="image-figure__wrapper">
+    <img src={src} alt={alt} loading="lazy" />
+  </div>
+  {(caption || credit) && (
+    <figcaption>
+      {caption && <span class="image-figure__caption">{caption}</span>}
+      {credit && <span class="image-figure__credit">{credit}</span>}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .image-figure {
+    --breakout-size: 8rem;
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  /* Mobile: normal flow, full width */
+  .image-figure {
+    margin-left: calc(var(--breakout-size) * -1);
+    margin-right: calc(var(--breakout-size) * -1);
+  }
+
+  /* Desktop: breakout to sides */
+  @media (min-width: 768px) {
+    .image-figure {
+      margin-left: calc(var(--breakout-size) * -1);
+      margin-right: calc(var(--breakout-size) * -1);
+    }
+
+    .image-figure__wrapper {
+      max-width: none;
+    }
+
+    .image-figure__wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Optional: even wider breakout for important images */
+    .image-figure--wide {
+      --breakout-size: 12rem;
+    }
+  }
+
+  /* Caption styling */
+  figcaption {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--color-subtle);
+    margin-top: 0.75rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .image-figure__credit {
+    color: var(--color-muted);
+    font-size: 0.625rem;
+  }
+</style>

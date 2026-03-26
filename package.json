@@ -13,10 +13,12 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/mdx": "^5.0.2",
     "@tailwindcss/vite": "^4.2.2",
     "astro": "^6.0.8",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
+    "rehype-slug": "^6.0.0",
     "tailwindcss": "^4.2.2"
   }
 }

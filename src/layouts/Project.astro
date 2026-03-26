@@ -1,5 +1,8 @@
 ---
 import Base from './Base.astro';
+import Navbar from '@/components/Navbar.astro';
+import Footer from '@/components/Footer.astro';
+import TableOfContents from '@/components/TableOfContents.astro';
 
 interface Props {
   title: string;
@@ -11,38 +14,12 @@ const { title, description, year } = Astro.props;
 ---
 
 <Base title={`${title} | Allison Peña`} description={description}>
-  <header id="site-header" class="w-full sticky top-0 z-50 transition-all duration-300 overflow-hidden">
-    <nav id="site-nav" class="max-w-[58ch] mx-auto px-6 md:px-8 flex justify-between items-center py-4 md:py-8 transition-all duration-300 bg-bg md:bg-transparent">
-      <h1 class="font-sans text-xl font-medium tracking-tight shrink-0"><a href="/" class="hover:text-muted transition-colors duration-200"><span class="font-light">Allison</span> Peña</a></h1>
-      <div class="flex items-center gap-3 md:gap-6 flex-wrap justify-end">
-        <a href="/#proyectos" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">work</a>
-        <a href="/#sobre-mi" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">about</a>
-        <a href="/#contacto" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">contact</a>
-        <a href="/curriculum.pdf" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">CV</a>
-        <button
-          id="theme-toggle"
-          class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text"
-        >
-          <span class="dark-label">dark</span>
-          <span class="light-label" style="display:none">light</span>
-        </button>
-      </div>
-    </nav>
-  </header>
+  <Navbar showBack={true} />
 
-  <main class="max-w-[54ch] mx-auto px-6 py-8 md:py-12">
+  <main class="max-w-[58ch] mx-auto px-6 md:px-8 pt-4 pb-16 md:pb-24">
 
-    <header class="mb-10 md:mb-12">
-      <a href="/" class="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wide transition-colors duration-200 text-muted hover:text-text group">
-        <svg class="w-3 h-3 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        volver
-      </a>
-    </header>
-
-    <section class="mb-10 md:mb-12">
-      <h1 class="font-sans text-3xl md:text-4xl leading-[1.12] mb-3 tracking-tight">
+    <section class="mt-16 md:mt-20 mb-10 md:mb-12">
+      <h1 class="font-display text-3xl md:text-4xl leading-[1.12] mb-3 tracking-tight">
         {title}
       </h1>
       {year && (
@@ -50,9 +27,21 @@ const { title, description, year } = Astro.props;
       )}
     </section>
 
-    <article class="font-mono text-[14px] leading-[1.85] text-muted">
+    <article class="font-mono text-base leading-[1.85] text-text tracking-tight">
       <slot />
     </article>
+
+    <style>
+      article :global(h2) {
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: var(--color-muted);
+        margin-top: 2.5rem;
+        margin-bottom: 0.75rem;
+      }
+    </style>
 
     <footer class="mt-12 md:mt-14">
       <a href="/" class="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wide transition-colors duration-200 text-muted hover:text-text group">
@@ -63,5 +52,9 @@ const { title, description, year } = Astro.props;
       </a>
     </footer>
 
+    <Footer />
+
   </main>
+
+  <TableOfContents />
 </Base>

@@ -1,6 +1,7 @@
 ---
 import '@/styles/global.css';
 import { ClientRouter } from 'astro:transitions';
+import { Font } from 'astro:assets';
 
 interface Props {
   title: string;
@@ -22,6 +23,7 @@ const { title, description } = Astro.props;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <Font cssVariable="--font-display" />
     <ClientRouter />
   </head>
   <body class="text-text antialiased min-h-screen bg-bg relative">
@@ -29,6 +31,9 @@ const { title, description } = Astro.props;
     <div class="pointer-events-none fixed inset-0 z-[60] opacity-[0.035] dark:opacity-[0.04]" style="background-image: url('data:image/svg+xml,<svg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22><filter id=%22noise%22><feTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/></svg>'); background-repeat: repeat; background-size: 256px 256px;"></div>
     <!-- Luz tenue desde arriba a la derecha -->
     <div id="light-overlay" class="pointer-events-none fixed inset-0 z-50" style="background: radial-gradient(ellipse 100vw 100vh at 100% 0%, oklab(0.92 0.05 0.08 / 0.45), transparent 60%);"></div>
+    <!-- Fade en la parte superior -->
+    <div id="top-fade" class="pointer-events-none fixed top-0 left-0 right-0 z-30 transition-all duration-300" style="height: 0px; background: linear-gradient(to bottom, var(--color-bg) 0%, transparent 80%); -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 80%); mask-image: linear-gradient(to bottom, black 0%, transparent 80%);"></div>
+    <div id="bottom-fade" class="pointer-events-none fixed bottom-0 left-0 right-0 z-30 transition-all duration-300" style="height: 0px; background: linear-gradient(to top, var(--color-bg) 0%, transparent 80%); -webkit-mask-image: linear-gradient(to top, black 0%, transparent 80%); mask-image: linear-gradient(to top, black 0%, transparent 80%);"></div>
     <div class="min-h-[100dvh]">
       <slot />
     </div>
@@ -98,16 +103,6 @@ const { title, description } = Astro.props;
     ::view-transition-old(root),
     ::view-transition-new(root) {
       animation: none;
-    }
-  }
-
-  #site-nav {
-    transition: max-width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    #site-nav {
-      transition: none;
     }
   }
 </style>
@@ -184,64 +179,101 @@ const { title, description } = Astro.props;
 
   initLightOverlay();
 
-  // Navbar expand on scroll
-  function initNavbarScroll() {
-    const header = document.getElementById('site-header');
-    const nav = document.getElementById('site-nav');
-    if (!header || !nav) return;
+  // Fade de contenido con scroll
+  function initTopFade() {
+    const fade = document.getElementById('top-fade');
+    if (!fade) return;
 
-    let lastScroll = 0;
-    let isExpanded = false;
-    let hasBg = false;
+    let lastScrollY = window.scrollY;
+    const maxFade = 200; // altura máxima del fade en px
 
-    function updateNav() {
+    function updateFade() {
       const scrollY = window.scrollY;
-      const isMobile = window.innerWidth < 768;
-      const shouldExpand = scrollY > 50 && !isMobile;
-      const shouldHaveBg = scrollY > 50 && isMobile;
-
-      const logo = nav.querySelector('h1');
-      const links = nav.querySelector('div');
-
-      // Only apply slide animation on desktop
-      if (!isMobile) {
-        if (shouldExpand && !isExpanded) {
-          if (logo) {
-            logo.style.transform = 'translateX(-130%)';
-            logo.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-          }
-          if (links) {
-            links.style.transform = 'translateX(95%)';
-            links.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-          }
-          isExpanded = true;
-        } else if (!shouldExpand && isExpanded) {
-          if (logo) {
-            logo.style.transform = 'translateX(0)';
-            logo.style.transition = 'transform 200ms cubic-bezier(0.4, 0, 0.6, 1)';
-          }
-          if (links) {
-            links.style.transform = 'translateX(0)';
-            links.style.transition = 'transform 200ms cubic-bezier(0.4, 0, 0.6, 1)';
-          }
-          isExpanded = false;
-        }
-      }
-
-      // Mobile background
-      if (shouldHaveBg && !hasBg) {
-        nav.style.backgroundColor = 'var(--color-bg)';
-        hasBg = true;
-      } else if (!shouldHaveBg && hasBg) {
-        nav.style.backgroundColor = 'transparent';
-        hasBg = false;
-      }
-
-      lastScroll = scrollY;
+      const scrollingUp = scrollY < lastScrollY;
+      
+      // Crecer el fade cuando scrollea hacia arriba, achicarlo hacia abajo
+      const height = Math.min(scrollY, maxFade);
+      fade.style.height = `${height}px`;
+      
+      lastScrollY = scrollY;
     }
 
-    window.addEventListener('scroll', updateNav, { passive: true });
-    updateNav();
+    window.addEventListener('scroll', updateFade, { passive: true });
+    updateFade();
+  }
+
+  initTopFade();
+  document.addEventListener('astro:after-swap', initTopFade);
+
+  // Fade de contenido en el bottom con scroll
+  function initBottomFade() {
+    const fade = document.getElementById('bottom-fade');
+    if (!fade) return;
+
+    const maxFade = 200; // altura máxima del fade en px
+
+    function updateFade() {
+      const scrollY = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      
+      // Fade aparece cuando scrolleaseas
+      const height = Math.min(scrollY * 0.5, maxFade);
+      fade.style.height = `${height}px`;
+    }
+
+    window.addEventListener('scroll', updateFade, { passive: true });
+    updateFade();
+  }
+
+  initBottomFade();
+  document.addEventListener('astro:after-swap', initBottomFade);
+
+  // Navbar scroll animation - elements slide out with easing
+  function initNavbarScroll() {
+    const logo = document.getElementById('nav-logo');
+    const links = document.getElementById('nav-links');
+    
+    if (!logo || !links) return;
+
+    let lastScrollY = window.scrollY;
+    let isHidden = false;
+    let rafId = null;
+    const threshold = 20;
+
+    function animateNavbar() {
+      const currentScrollY = window.scrollY;
+      const scrollingDown = currentScrollY > lastScrollY;
+      const shouldHide = currentScrollY > threshold && scrollingDown && currentScrollY > 0;
+
+      if (shouldHide && !isHidden) {
+        // Slide out - faster on way down
+        logo.style.transform = 'translateX(-120%)';
+        logo.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+        
+        links.style.transform = 'translateX(120%)';
+        links.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+        
+        isHidden = true;
+      } else if (isHidden && currentScrollY === 0) {
+        // Only show when at the very top
+        logo.style.transform = 'translateX(0)';
+        logo.style.transition = 'transform 0.15s cubic-bezier(0.2, 0, 0, 1)';
+        
+        links.style.transform = 'translateX(0)';
+        links.style.transition = 'transform 0.15s cubic-bezier(0.2, 0, 0, 1)';
+        
+        isHidden = false;
+      }
+
+      lastScrollY = currentScrollY;
+    }
+
+    function onScroll() {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(animateNavbar);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
   }
 
   initNavbarScroll();
