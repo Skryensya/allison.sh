@@ -19,25 +19,7 @@ body {
   position: relative;
 }
 
-/* Prevent CLS from font loading - match fallback metrics to Clash Grotesk */
-@font-face {
-  font-family: 'Clash Grotesk-fallback';
-  src: local('Arial');
-  font-display: swap;
-  size-adjust: 97%;
-  ascent-override: 94%;
-  descent-override: 23%;
-  line-gap-override: 0%;
-}
 
-@font-face {
-  font-family: 'Bricolage Grotesque-fallback';
-  src: local('Georgia');
-  font-display: swap;
-  size-adjust: 97%;
-  ascent-override: 91%;
-  descent-override: 22%;
-}
 
 body::before {
   content: '';
@@ -51,9 +33,9 @@ body::before {
 }
 
 @theme {
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-display: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, 'Cascadia Mono', 'Segoe UI Mono', 'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro', 'Fira Mono', 'Droid Sans Mono', monospace;
+  --font-sans: var(--font-display), sans-serif;
+  --font-display: var(--font-display), sans-serif;
+  --font-mono: var(--font-mono), monospace;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
