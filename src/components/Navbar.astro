@@ -7,17 +7,25 @@ const { showBack = false } = Astro.props;
 ---
 
 <header id="site-header" class="w-full sticky top-0 z-[200]">
-  <nav id="site-nav" class="max-w-[58ch] mx-auto px-6 md:px-8 flex justify-between items-center py-4 md:py-8">
-    <h1 id="nav-logo" class="font-display text-xl font-medium tracking-tight shrink-0 -ml-2">
-      <a href="/" class="hover:text-muted transition-colors duration-200"><span class="font-light">Allison</span> Peña</a>
-    </h1>
-    <div id="nav-links" class="flex items-center gap-3 md:gap-6 flex-wrap justify-end">
-      <a href="#proyectos" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">work</a>
-      <a href="#sobre-mi" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">about</a>
-      <a href="#contacto" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text">contact</a>
+  <nav id="site-nav" aria-label="Navegación principal" class="max-w-[58ch] mx-auto px-6 md:px-8 flex justify-between items-center py-4 md:py-8">
+    <div id="nav-logo" class="font-display text-xl font-medium tracking-tight shrink-0 -ml-2">
+      <a href="/" class="hover:text-muted transition-colors duration-200">
+        <span class="name-wrapper">
+  <span class="name-normal">Allison Peña</span>
+  <span class="name-hover" id="hover-name">
+    A<span class="glitch-char" data-char="/">/</span><span class="glitch-char" data-char="/">/</span>ison Peña
+  </span>
+</span>
+      </a>
+    </div>
+    <div id="nav-links" class="flex items-center gap-3 md:gap-6 flex-wrap justify-end -translate-x-2">
+      <a href="#proyectos" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text text-left">work</a>
+      <a href="#sobre-mi" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text text-left">about</a>
+      <a href="#contacto" class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text text-left">contact</a>
       <button
         id="theme-toggle"
-        class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text"
+        class="font-sans text-sm tracking-wide transition-colors duration-200 text-muted hover:text-text text-left"
+        aria-label="Cambiar tema"
       >
         <span class="dark-label">dark</span>
         <span class="light-label" style="display:none">light</span>

@@ -6,11 +6,21 @@ import mdx from '@astrojs/mdx';
 
 // https://astro.build/config
 export default defineConfig({
+  compressHTML: true,
   vite: {
     plugins: [tailwindcss()],
     resolve: {
       alias: {
         '@': new URL('./src', import.meta.url).pathname,
+      },
+    },
+    build: {
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
       },
     },
   },
