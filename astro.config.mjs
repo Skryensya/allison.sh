@@ -37,8 +37,8 @@ export default defineConfig({
       styles: ['normal'],
     },
     {
-      provider: fontProviders.fontshare(),
-      name: 'JetBrains Mono',
+      provider: fontProviders.fontsource(),
+      name: 'IBM Plex Mono',
       cssVariable: '--font-mono',
       weights: ['400'],
       styles: ['normal'],
