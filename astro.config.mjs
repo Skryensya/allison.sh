@@ -31,9 +31,16 @@ export default defineConfig({
   fonts: [
     {
       provider: fontProviders.fontshare(),
-      name: 'Clash Grotesk',
+      name: 'Satoshi',
       cssVariable: '--font-display',
-      weights: ['400', '500', '600', '700'],
+      weights: ['400', '500', '700'],
+      styles: ['normal'],
+    },
+    {
+      provider: fontProviders.fontshare(),
+      name: 'JetBrains Mono',
+      cssVariable: '--font-mono',
+      weights: ['400'],
       styles: ['normal'],
     },
   ],
