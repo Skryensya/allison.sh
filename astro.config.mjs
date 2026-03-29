@@ -29,19 +29,43 @@ export default defineConfig({
   },
   integrations: [mdx()],
   fonts: [
+    // Clash Grotesk for headings/display
     {
-      provider: fontProviders.fontshare(),
-      name: 'Satoshi',
+      provider: fontProviders.local(),
+      name: 'Clash Grotesk',
       cssVariable: '--font-display',
-      weights: ['400', '500', '700'],
-      styles: ['normal'],
+      options: {
+        variants: [
+          { src: ['./src/assets/fonts/clash-grotesk-400.woff2'], weight: '400' },
+          { src: ['./src/assets/fonts/clash-grotesk-500.woff2'], weight: '500' },
+          { src: ['./src/assets/fonts/clash-grotesk-600.woff2'], weight: '600' },
+          { src: ['./src/assets/fonts/clash-grotesk-700.woff2'], weight: '700' },
+        ],
+      },
     },
+    // Satoshi for body text
     {
-      provider: fontProviders.fontsource(),
+      provider: fontProviders.local(),
+      name: 'Satoshi',
+      cssVariable: '--font-sans',
+      options: {
+        variants: [
+          { src: ['./src/assets/fonts/satoshi-400.woff2'], weight: '400' },
+          { src: ['./src/assets/fonts/satoshi-500.woff2'], weight: '500' },
+          { src: ['./src/assets/fonts/satoshi-700.woff2'], weight: '700' },
+        ],
+      },
+    },
+    // IBM Plex Mono for code
+    {
+      provider: fontProviders.local(),
       name: 'IBM Plex Mono',
       cssVariable: '--font-mono',
-      weights: ['400'],
-      styles: ['normal'],
+      options: {
+        variants: [
+          { src: ['./src/assets/fonts/ibm-plex-mono-400.woff2'], weight: '400' },
+        ],
+      },
     },
   ],
 });
