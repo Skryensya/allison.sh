@@ -30,6 +30,7 @@ export class SpeechBubble {
   private typeTimerId: number | null = null;
   private autoHideTimerId: number | null = null;
   private targetText = '';
+  private avatarRect: DOMRect | null = null;
 
   constructor(options: SpeechBubbleOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -37,9 +38,9 @@ export class SpeechBubble {
     this.container = document.createElement('div');
     this.container.className = 'speech-bubble';
     this.container.style.cssText = `
-      position: fixed;
+      position: absolute;
       pointer-events: none;
-      z-index: 9999;
+      z-index: 10;
       display: none;
       opacity: 0;
       transform: translateY(6px);
@@ -80,72 +81,19 @@ export class SpeechBubble {
           opacity: 1;
           transform: translateY(0);
         }
-        .talk-btn {
-          position: relative;
-          width: 32px;
-          height: 32px;
-          border: 2px solid #1a1a1a;
-          border-radius: 50%;
-          background: #ffffff;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s ease;
-        }
-        .talk-btn:hover {
-          transform: scale(1.1);
-          background: #f5f5f5;
-        }
-        .talk-btn:active {
-          transform: scale(0.95);
-        }
-        .talk-btn svg {
-          width: 16px;
-          height: 16px;
-        }
-        .talk-btn.speaking {
-          animation: talk-pulse 0.8s ease-in-out infinite;
-        }
-        @keyframes talk-pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.15); }
+        .speech-bubble.visible .cursor {
+          display: none;
         }
       `;
       document.head.appendChild(style);
     }
-
-    document.body.appendChild(this.container);
   }
 
-  createTalkButton(avatarRect: DOMRect): HTMLButtonElement {
-    const btn = document.createElement('button');
-    btn.className = 'talk-btn';
-    btn.type = 'button';
-    btn.setAttribute('aria-label', 'Hablar');
-    btn.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-      </svg>
-    `;
-
-    const x = avatarRect.right + 4;
-    const y = avatarRect.bottom - 20;
-
-    btn.style.position = 'fixed';
-    btn.style.left = `${x}px`;
-    btn.style.top = `${y}px`;
-    btn.style.zIndex = '9998';
-
-    btn.addEventListener('click', () => {
-      btn.classList.add('speaking');
-    });
-
-    return btn;
-  }
-
-  markButtonDone(button: HTMLButtonElement): void {
-    button.classList.remove('speaking');
+  /**
+   * Mount to a parent element (e.g., avatar wrapper)
+   */
+  mount(parent: HTMLElement): void {
+    parent.appendChild(this.container);
   }
 
   private measureText(text: string): { width: number; height: number } {
@@ -166,16 +114,21 @@ export class SpeechBubble {
     };
   }
 
-  private position(avatarRect: DOMRect, textWidth: number, textHeight: number): void {
+  private position(textWidth: number, textHeight: number): void {
+    if (!this.avatarRect) return;
+
     const gap = 12;
-    const avatarCenterX = avatarRect.left + avatarRect.width / 2;
-    const avatarTop = avatarRect.top;
+    const avatarCenterX = this.avatarRect.width / 2;
+    const avatarTop = 0;
 
-    let x = avatarCenterX - textWidth / 2;
-    let y = avatarTop - textHeight - gap;
+    // Center bubble above avatar
+    let x = avatarCenterX - textWidth / 2 - this.avatarRect.left;
+    let y = -textHeight - gap;
 
-    x = Math.max(12, Math.min(x, window.innerWidth - textWidth - 32));
-    y = Math.max(12, y);
+    // Clamp to parent bounds (with some padding)
+    const maxX = 300;
+    x = Math.max(-50, Math.min(x, maxX - textWidth));
+    y = Math.min(y, -gap);
 
     this.container.style.left = `${x}px`;
     this.container.style.top = `${y}px`;
@@ -196,6 +149,7 @@ export class SpeechBubble {
       this.typeTimerId = window.setTimeout(() => this.typeNextChar(), this.options.typeSpeed);
     } else {
       this.state = 'visible';
+      this.container.classList.add('visible');
       setTimeout(() => {
         this.cursorEl.style.display = 'none';
       }, 400);
@@ -205,16 +159,18 @@ export class SpeechBubble {
 
   show(text: string, avatarRect: DOMRect): void {
     this.clearAllTimers();
+    this.avatarRect = avatarRect;
 
     this.fullText = text;
     this.displayedChars = 0;
     this.state = 'typing';
 
     const { width, height } = this.measureText(text);
-    this.position(avatarRect, width, height);
+    this.position(width, height);
 
     this.textEl.textContent = '';
     this.cursorEl.style.display = 'inline-block';
+    this.container.classList.remove('visible');
 
     this.container.style.display = 'block';
 

@@ -252,7 +252,7 @@ function initAvatar(root: AvatarRoot) {
 
   if (!button || !leftEye || !rightEye || !mouthLeft || !mouthRight) return;
 
-  // Initialize speech bubble
+  // Initialize speech bubble and mount to wrapper
   const speechBubble = new SpeechBubble({
     font: '15px Inter, system-ui, sans-serif',
     maxWidth: 180,
@@ -260,29 +260,17 @@ function initAvatar(root: AvatarRoot) {
     typeSpeed: 30,
     displayDuration: 3000,
   });
+  speechBubble.mount(root);
 
-  // Create talk button
-  let talkButton: HTMLButtonElement | null = null;
   let messageIndex = 0;
 
-  const createTalkButton = () => {
+  // Click on avatar to show speech bubble
+  button.addEventListener('click', () => {
     const rect = button.getBoundingClientRect();
-    talkButton = speechBubble.createTalkButton(rect);
-    document.body.appendChild(talkButton);
-
-    talkButton.addEventListener('click', () => {
-      const message = DEMO_MESSAGES[messageIndex % DEMO_MESSAGES.length];
-      messageIndex++;
-      speechBubble.show(message, rect);
-      talkButton?.classList.add('speaking');
-
-      setTimeout(() => {
-        speechBubble.markButtonDone(talkButton!);
-      }, 3500);
-    });
-  };
-
-  setTimeout(createTalkButton, 100);
+    const message = DEMO_MESSAGES[messageIndex % DEMO_MESSAGES.length];
+    messageIndex++;
+    speechBubble.show(message, rect);
+  });
 
   applyStoredAvatarConfig(root);
 
@@ -679,9 +667,8 @@ function initAvatar(root: AvatarRoot) {
       window.cancelAnimationFrame(rafId);
     }
 
-    // Cleanup speech bubble and talk button
+    // Cleanup speech bubble
     speechBubble?.destroy();
-    talkButton?.remove();
   };
 }
 
