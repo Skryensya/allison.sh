@@ -143,6 +143,11 @@ const gridSizePercent = gridScale * 100;
     display: flex;
     align-items: center;
     justify-content: center;
+
+    /* Make hit area match the circular avatar, not the square box */
+    border-radius: 9999px;
+    -webkit-clip-path: circle(50% at 50% 50%);
+    clip-path: circle(50% at 50% 50%);
   }
 
   .avatar__grid {
@@ -163,9 +168,4 @@ const gridSizePercent = gridScale * 100;
     shape-rendering: crispEdges;
   }
 
-  @media (max-width: 640px) {
-    .avatar {
-      contain-intrinsic-size: 170px 170px;
-    }
-  }
 </style>

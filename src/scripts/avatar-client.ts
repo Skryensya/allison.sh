@@ -1,12 +1,34 @@
 import { avatarHats, avatarOutfits, avatarSpecialConfigs } from '@/data/avatarSprite';
 import { SpeechBubble } from './speech-bubble';
 
-// Demo messages for the speech bubble
-const DEMO_MESSAGES = [
-  '¡Hola!',
-  'Construyo cosas para la web',
-  'Me importa la experiencia',
-  'Menos código, más impacto',
+// Phrases the avatar cycles through on click.
+// Tone: personal, specific, quiet — like thinking out loud.
+const AVATAR_PHRASES = [
+  // Presentación
+  'Hola, soy Allison',
+  'Bienvenido a mi sitio',
+  // Proceso
+  'Llevo rato ajustando este espaciado',
+  'Lo mejor que escribí hoy lo borré',
+  'Esto se ve mejor de lo que costó',
+  'Todavía no sé si este color está bien',
+  'Cambié tres veces la tipografía',
+  'Estuve una hora en un detalle que nadie va a notar',
+  // Filosofía
+  'Si no se nota, está bien hecho',
+  'Diseñar es decidir qué sobra',
+  'La mejor feature es la que no hace falta',
+  'Un buen sitio no se siente como un sitio',
+  'Lo difícil es que se vea fácil',
+  'Menos capas, menos problemas',
+  // Contexto
+  'Esto lo hice con Astro',
+  'Este avatar tiene más estados que mi app',
+  'Esta burbuja usa pretext para el layout',
+  // Mood
+  'Me falta un café para seguir',
+  'Hoy es buen día para borrar código',
+  'Debería estar durmiendo',
 ];
 
 type AvatarDirection =
@@ -252,23 +274,16 @@ function initAvatar(root: AvatarRoot) {
 
   if (!button || !leftEye || !rightEye || !mouthLeft || !mouthRight) return;
 
-  // Initialize speech bubble
+  // Initialize speech bubble (primary interaction: click avatar)
   const speechBubble = new SpeechBubble({
-    font: '15px Inter, system-ui, sans-serif',
-    maxWidth: 180,
-    lineHeight: 24,
-    typeSpeed: 30,
-    displayDuration: 3000,
+    charSpeed: 35,
+    displayDuration: 3500,
+    phrases: AVATAR_PHRASES,
   });
 
-  let messageIndex = 0;
-
-  // Click on avatar to show speech bubble
-  button.addEventListener('click', () => {
-    const message = DEMO_MESSAGES[messageIndex % DEMO_MESSAGES.length];
-    messageIndex++;
-    speechBubble.show(message, button);
-  });
+  const handleAvatarSpeak = () => {
+    speechBubble.next(root, root);
+  };
 
   applyStoredAvatarConfig(root);
 
@@ -307,7 +322,9 @@ function initAvatar(root: AvatarRoot) {
     setUseTarget(mouthLeft, symbolHref(MOUTH_LEFT_TILES[mouthTarget]));
     setUseTarget(mouthRight, symbolHref(MOUTH_RIGHT_TILES[mouthTarget]));
 
-    const shouldUseInteractiveDirection = hasPointer && (isAvatarHovered || performance.now() < forceTrackUntil);
+    // During speech, do NOT track the pointer (feels creepy). Use speakingDirection.
+    const shouldUseInteractiveDirection =
+      !isSpeaking && hasPointer && (isAvatarHovered || performance.now() < forceTrackUntil);
     const eyeDirection = shouldUseInteractiveDirection ? direction : speakingDirection;
 
     if (isBlinking) {
@@ -327,21 +344,38 @@ function initAvatar(root: AvatarRoot) {
     setUseTarget(rightEye, symbolHref(RIGHT_EYE_TILES[target]));
   };
 
-  const getBlinkDuration = () => 110 + Math.round(Math.random() * 70);
+  const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+  const expSample = (mean: number) => -Math.log(1 - Math.random()) * mean;
+
+  const getBlinkDuration = () => {
+    // Typical blink is ~90-150ms, with rare slightly longer blinks.
+    const base = 90 + Math.round(Math.random() * 60);
+    const extra = Math.random() < 0.05 ? 60 + Math.round(Math.random() * 80) : 0;
+    return base + extra;
+  };
+
   const getNextBlinkDelay = (initial = false) => {
+    // Use an exponential-ish distribution (human-like: mostly average, sometimes long gaps)
+    // instead of a flat uniform random.
     if (initial) {
-      return 2600 + Math.round(Math.random() * 1800);
+      // First blink: allow it relatively soon so users catch it early.
+      // (Still not immediate; we want it to feel incidental.)
+      return clamp(550 + expSample(750), 550, 2400);
     }
 
+    // After the first blink, keep the cadence sparse.
+    // Speaking: slightly more engaged, but still not "busy".
     if (isSpeaking) {
-      return 2200 + Math.round(Math.random() * 1900);
+      return clamp(2600 + expSample(2400), 2600, 9000);
     }
 
+    // Hover/focus: people blink less when visually engaged
     if (isAvatarHovered || hasPointer) {
-      return 3000 + Math.round(Math.random() * 2300);
+      return clamp(5000 + expSample(3600), 5000, 16000);
     }
 
-    return 3800 + Math.round(Math.random() * 3200);
+    // Idle: sparse, occasional blinks
+    return clamp(3200 + expSample(3000), 3200, 14000);
   };
   const isClickLookThrottled = () => performance.now() < clickLookThrottleUntil;
   const isClickLookActive = () => performance.now() < clickLookHoldUntil;
@@ -368,6 +402,7 @@ function initAvatar(root: AvatarRoot) {
     rafId = 0;
     if (
       !started ||
+      isSpeaking ||
       !hasPointer ||
       (!isAvatarHovered && performance.now() >= forceTrackUntil) ||
       isBlinking ||
@@ -405,7 +440,7 @@ function initAvatar(root: AvatarRoot) {
 
   const blinkSequence = () => {
     blinkOnce(() => {
-      const shouldDoubleBlink = !isWinking && (isSpeaking ? Math.random() < 0.08 : Math.random() < 0.03);
+      const shouldDoubleBlink = !isWinking && (isSpeaking ? Math.random() < 0.06 : Math.random() < 0.025);
       if (!shouldDoubleBlink) return;
 
       window.clearTimeout(blinkFollowupTimer);
@@ -575,10 +610,7 @@ function initAvatar(root: AvatarRoot) {
     handlePointerReset();
   };
 
-  const handleClick = () => {
-    winkOnce();
-    smileOnce();
-  };
+
 
   const handleSetMouth = (event: Event) => {
     const customEvent = event as CustomEvent<{ state?: string }>;
@@ -587,9 +619,8 @@ function initAvatar(root: AvatarRoot) {
 
     if (nextSpeaking !== isSpeaking) {
       isSpeaking = nextSpeaking;
-      if (!isSpeaking) {
-        speakingDirection = 'base';
-      }
+      // While speaking we want a neutral forward gaze.
+      speakingDirection = 'base';
       scheduleNextBlink();
     }
 
@@ -618,9 +649,9 @@ function initAvatar(root: AvatarRoot) {
 
   startTimer = window.setTimeout(() => {
     scheduleNextBlink(true);
-  }, 2200);
+  }, 450);
 
-  button.addEventListener('click', handleClick);
+  button.addEventListener('click', handleAvatarSpeak);
   button.addEventListener('focus', handleFocus);
   button.addEventListener('blur', handlePointerReset);
   button.addEventListener('pointerenter', handleAvatarPointerEnter, { passive: true });
@@ -638,7 +669,7 @@ function initAvatar(root: AvatarRoot) {
   render();
 
   root.__avatarCleanup = () => {
-    button.removeEventListener('click', handleClick);
+    button.removeEventListener('click', handleAvatarSpeak);
     button.removeEventListener('focus', handleFocus);
     button.removeEventListener('blur', handlePointerReset);
     button.removeEventListener('pointerenter', handleAvatarPointerEnter);
