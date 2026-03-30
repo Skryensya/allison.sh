@@ -1,4 +1,13 @@
 import { avatarHats, avatarOutfits, avatarSpecialConfigs } from '@/data/avatarSprite';
+import { SpeechBubble } from './speech-bubble';
+
+// Demo messages for the speech bubble
+const DEMO_MESSAGES = [
+  '¡Hola!',
+  'Construyo cosas para la web',
+  'Me importa la experiencia',
+  'Menos código, más impacto',
+];
 
 type AvatarDirection =
   | 'base'
@@ -242,6 +251,38 @@ function initAvatar(root: AvatarRoot) {
   const mouthRight = root.querySelector<SVGUseElement>('.avatar__part--mouth-right');
 
   if (!button || !leftEye || !rightEye || !mouthLeft || !mouthRight) return;
+
+  // Initialize speech bubble
+  const speechBubble = new SpeechBubble({
+    font: '15px Inter, system-ui, sans-serif',
+    maxWidth: 180,
+    lineHeight: 24,
+    typeSpeed: 30,
+    displayDuration: 3000,
+  });
+
+  // Create talk button
+  let talkButton: HTMLButtonElement | null = null;
+  let messageIndex = 0;
+
+  const createTalkButton = () => {
+    const rect = button.getBoundingClientRect();
+    talkButton = speechBubble.createTalkButton(rect);
+    document.body.appendChild(talkButton);
+
+    talkButton.addEventListener('click', () => {
+      const message = DEMO_MESSAGES[messageIndex % DEMO_MESSAGES.length];
+      messageIndex++;
+      speechBubble.show(message, rect);
+      talkButton?.classList.add('speaking');
+
+      setTimeout(() => {
+        speechBubble.markButtonDone(talkButton!);
+      }, 3500);
+    });
+  };
+
+  setTimeout(createTalkButton, 100);
 
   applyStoredAvatarConfig(root);
 
@@ -637,6 +678,10 @@ function initAvatar(root: AvatarRoot) {
     if (rafId) {
       window.cancelAnimationFrame(rafId);
     }
+
+    // Cleanup speech bubble and talk button
+    speechBubble?.destroy();
+    talkButton?.remove();
   };
 }
 
