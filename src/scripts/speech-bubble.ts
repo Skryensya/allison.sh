@@ -30,7 +30,7 @@ export class SpeechBubble {
   private typeTimerId: number | null = null;
   private autoHideTimerId: number | null = null;
   private targetText = '';
-  private avatarRect: DOMRect | null = null;
+  private buttonEl: HTMLElement | null = null;
 
   constructor(options: SpeechBubbleOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -39,12 +39,15 @@ export class SpeechBubble {
     this.container.className = 'speech-bubble';
     this.container.style.cssText = `
       position: absolute;
+      bottom: calc(100% + 12px);
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
       pointer-events: none;
       z-index: 10;
       display: none;
       opacity: 0;
-      transform: translateY(6px);
       transition: opacity 0.25s ease, transform 0.25s ease;
+      white-space: nowrap;
     `;
 
     this.textEl = document.createElement('span');
@@ -79,21 +82,11 @@ export class SpeechBubble {
         }
         .speech-bubble.show {
           opacity: 1;
-          transform: translateY(0);
-        }
-        .speech-bubble.visible .cursor {
-          display: none;
+          transform: translateX(-50%) translateY(0) !important;
         }
       `;
       document.head.appendChild(style);
     }
-  }
-
-  /**
-   * Mount to a parent element (e.g., avatar wrapper)
-   */
-  mount(parent: HTMLElement): void {
-    parent.appendChild(this.container);
   }
 
   private measureText(text: string): { width: number; height: number } {
@@ -114,29 +107,16 @@ export class SpeechBubble {
     };
   }
 
-  private position(textWidth: number, textHeight: number): void {
-    if (!this.avatarRect) return;
+  private position(): void {
+    const { width } = this.measureText(this.fullText);
 
-    const gap = 12;
-    const avatarCenterX = this.avatarRect.width / 2;
-    const avatarTop = 0;
-
-    // Center bubble above avatar
-    let x = avatarCenterX - textWidth / 2 - this.avatarRect.left;
-    let y = -textHeight - gap;
-
-    // Clamp to parent bounds (with some padding)
-    const maxX = 300;
-    x = Math.max(-50, Math.min(x, maxX - textWidth));
-    y = Math.min(y, -gap);
-
-    this.container.style.left = `${x}px`;
-    this.container.style.top = `${y}px`;
     this.container.style.width = 'auto';
+    this.container.style.maxWidth = `${this.options.maxWidth}px`;
     this.container.style.padding = '10px 16px';
     this.container.style.background = '#ffffff';
     this.container.style.borderRadius = '8px';
     this.container.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)';
+    this.container.style.whiteSpace = 'normal';
   }
 
   private typeNextChar(): void {
@@ -149,7 +129,6 @@ export class SpeechBubble {
       this.typeTimerId = window.setTimeout(() => this.typeNextChar(), this.options.typeSpeed);
     } else {
       this.state = 'visible';
-      this.container.classList.add('visible');
       setTimeout(() => {
         this.cursorEl.style.display = 'none';
       }, 400);
@@ -157,20 +136,22 @@ export class SpeechBubble {
     }
   }
 
-  show(text: string, avatarRect: DOMRect): void {
+  show(text: string, buttonEl: HTMLElement): void {
     this.clearAllTimers();
-    this.avatarRect = avatarRect;
-
+    this.buttonEl = buttonEl;
     this.fullText = text;
     this.displayedChars = 0;
     this.state = 'typing';
 
-    const { width, height } = this.measureText(text);
-    this.position(width, height);
+    // Append to button if not already
+    if (!this.container.parentElement) {
+      buttonEl.appendChild(this.container);
+    }
+
+    this.position();
 
     this.textEl.textContent = '';
     this.cursorEl.style.display = 'inline-block';
-    this.container.classList.remove('visible');
 
     this.container.style.display = 'block';
 

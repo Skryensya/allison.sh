@@ -252,7 +252,7 @@ function initAvatar(root: AvatarRoot) {
 
   if (!button || !leftEye || !rightEye || !mouthLeft || !mouthRight) return;
 
-  // Initialize speech bubble and mount to wrapper
+  // Initialize speech bubble
   const speechBubble = new SpeechBubble({
     font: '15px Inter, system-ui, sans-serif',
     maxWidth: 180,
@@ -260,16 +260,14 @@ function initAvatar(root: AvatarRoot) {
     typeSpeed: 30,
     displayDuration: 3000,
   });
-  speechBubble.mount(root);
 
   let messageIndex = 0;
 
   // Click on avatar to show speech bubble
   button.addEventListener('click', () => {
-    const rect = button.getBoundingClientRect();
     const message = DEMO_MESSAGES[messageIndex % DEMO_MESSAGES.length];
     messageIndex++;
-    speechBubble.show(message, rect);
+    speechBubble.show(message, button);
   });
 
   applyStoredAvatarConfig(root);

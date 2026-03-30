@@ -30,13 +30,10 @@ const gridSizePercent = gridScale * 100;
 ---
 
 <div
-  class={`avatar-wrapper inline-block relative ${className}`}
+  class={`avatar relative size-full ${className}`}
   data-avatar-id={id}
   data-avatar-sprite-url={spriteSheetUrl}
 >
-  <div
-    class="avatar relative size-full"
-  >
   <button
     type="button"
     class="avatar__button relative block size-full cursor-pointer overflow-hidden text-left focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-main focus-visible:outline-offset-4"
@@ -72,7 +69,6 @@ const gridSizePercent = gridScale * 100;
       })}
     </div>
   </button>
-  </div>
 </div>
 
 <script>
@@ -121,12 +117,6 @@ const gridSizePercent = gridScale * 100;
 </script>
 
 <style>
-  .avatar-wrapper {
-    position: relative;
-    display: inline-block;
-    padding-top: 80px;
-  }
-
   .avatar {
     --avatar-black: var(--theme-contrasty);
     --avatar-white: #ffffff;
@@ -178,5 +168,4 @@ const gridSizePercent = gridScale * 100;
       contain-intrinsic-size: 170px 170px;
     }
   }
-
-  </style>
+</style>
