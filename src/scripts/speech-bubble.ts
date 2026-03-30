@@ -366,7 +366,8 @@ export class SpeechBubble {
   private static CSS = `
     .avatar-speech-bubble {
       position: absolute;
-      z-index: 50;
+      /* Keep the bubble under the fixed top/bottom fades so it gets “masked” with the content */
+      z-index: 25;
       pointer-events: none;
       display: none;
 
