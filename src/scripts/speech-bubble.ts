@@ -130,6 +130,21 @@ export class SpeechBubble {
   private avatarRoot: HTMLElement | null = null;
   private prefersReducedMotion: boolean;
 
+  private currentAnchor: HTMLElement | null = null;
+  private viewportListenersAttached = false;
+  private viewportRaf = 0;
+
+  private onViewportChange = (): void => {
+    if (this.state === 'hidden' || !this.currentAnchor) return;
+    if (this.viewportRaf) return;
+
+    this.viewportRaf = window.requestAnimationFrame(() => {
+      this.viewportRaf = 0;
+      const size = this.getBubbleSize();
+      this.positionSmart(this.currentAnchor!, size ?? undefined);
+    });
+  };
+
   constructor(options: SpeechBubbleOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
     this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -171,7 +186,11 @@ export class SpeechBubble {
       document.body.appendChild(this.container);
     }
 
-    this.positionBeside(anchorEl);
+    this.currentAnchor = anchorEl;
+    this.addViewportListeners();
+
+    // Initial position (will be refined once we know final bubble dimensions)
+    this.positionSmart(anchorEl);
 
     // ── Use pretext to measure & lay out lines ──
     const { font, maxTextWidth, lineHeight } = this.options;
@@ -187,8 +206,8 @@ export class SpeechBubble {
     this.inner.style.width = `${innerWidth}px`;
     this.inner.style.height = `${innerHeight}px`;
 
-    // Re-position now that we know the final width (flip to left if needed)
-    this.positionBeside(anchorEl, innerWidth);
+    // Re-position now that we know the final bubble size
+    this.positionSmart(anchorEl, { width: innerWidth, height: innerHeight });
 
     // ── Build character spans per line ──
     this.inner.innerHTML = '';
@@ -277,6 +296,7 @@ export class SpeechBubble {
   hide(): void {
     if (this.state === 'hidden' || this.state === 'hiding') return;
     this.cancelTimers();
+    this.removeViewportListeners();
     this.state = 'hiding';
     this.dispatchMouth('default');
 
@@ -292,48 +312,174 @@ export class SpeechBubble {
 
   destroy(): void {
     this.cancelTimers();
+    this.removeViewportListeners();
     this.dispatchMouth('default');
     this.container.remove();
   }
 
   /* ── Private ───────────────────────────────────────── */
 
-  private positionBeside(anchor: HTMLElement, bubbleWidth?: number): 'left' | 'right' {
+  private addViewportListeners(): void {
+    if (this.viewportListenersAttached) return;
+    this.viewportListenersAttached = true;
+
+    // Resize + scroll affect both the anchor rect and the viewport bounds.
+    // Use rAF-throttled handler so we don't thrash layout.
+    window.addEventListener('resize', this.onViewportChange, { passive: true });
+    window.addEventListener('scroll', this.onViewportChange, { passive: true });
+
+    // On mobile, visualViewport changes when the URL bar collapses/expands.
+    window.visualViewport?.addEventListener('resize', this.onViewportChange, { passive: true });
+    window.visualViewport?.addEventListener('scroll', this.onViewportChange, { passive: true });
+  }
+
+  private removeViewportListeners(): void {
+    if (!this.viewportListenersAttached) return;
+    this.viewportListenersAttached = false;
+
+    window.removeEventListener('resize', this.onViewportChange);
+    window.removeEventListener('scroll', this.onViewportChange);
+    window.visualViewport?.removeEventListener('resize', this.onViewportChange);
+    window.visualViewport?.removeEventListener('scroll', this.onViewportChange);
+
+    if (this.viewportRaf) {
+      window.cancelAnimationFrame(this.viewportRaf);
+      this.viewportRaf = 0;
+    }
+
+    this.currentAnchor = null;
+  }
+
+  private getBubbleSize(): { width: number; height: number } | null {
+    const w = Number.parseFloat(this.inner.style.width || '');
+    const h = Number.parseFloat(this.inner.style.height || '');
+    if (Number.isFinite(w) && w > 0 && Number.isFinite(h) && h > 0) return { width: w, height: h };
+
+    const r = this.inner.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) return { width: r.width, height: r.height };
+
+    return null;
+  }
+
+  private positionSmart(
+    anchor: HTMLElement,
+    bubbleSize?: { width: number; height: number },
+  ): 'left' | 'right' | 'top' | 'bottom' {
     const rect = anchor.getBoundingClientRect();
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
 
+    const size = bubbleSize ?? this.getBubbleSize() ?? { width: 260, height: 64 };
+
     const margin = 12;
-    const gutter = 8;
-    const viewportLeft = scrollX + gutter;
-    const viewportRight = scrollX + window.innerWidth - gutter;
+    const gutterX = 10;
+    const gutterY = 10;
 
-    const top = rect.top + rect.height / 2 + scrollY;
+    const vpLeft = scrollX + gutterX;
+    const vpRight = scrollX + window.innerWidth - gutterX;
+    const vpTop = scrollY + gutterY;
+    const vpBottom = scrollY + window.innerHeight - gutterY;
 
-    // Default: to the right
-    let side: 'right' | 'left' = 'right';
-    let left = rect.right + margin + scrollX;
+    const anchorRect = {
+      left: rect.left + scrollX,
+      right: rect.right + scrollX,
+      top: rect.top + scrollY,
+      bottom: rect.bottom + scrollY,
+    };
 
-    if (bubbleWidth) {
-      const wouldOverflowRight = left + bubbleWidth > viewportRight;
-      if (wouldOverflowRight) {
-        side = 'left';
-        left = rect.left - margin - bubbleWidth + scrollX;
+    const anchorCenterX = (anchorRect.left + anchorRect.right) / 2;
+    const anchorCenterY = (anchorRect.top + anchorRect.bottom) / 2;
+
+    const clamp = (value: number, min: number, max: number) => {
+      if (max < min) return min;
+      return Math.max(min, Math.min(value, max));
+    };
+
+    const intersectionArea = (
+      a: { left: number; right: number; top: number; bottom: number },
+      b: { left: number; right: number; top: number; bottom: number },
+    ) => {
+      const w = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+      const h = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      return w * h;
+    };
+
+    const overflowAmount = (b: { left: number; right: number; top: number; bottom: number }) => {
+      const left = Math.max(0, vpLeft - b.left);
+      const right = Math.max(0, b.right - vpRight);
+      const top = Math.max(0, vpTop - b.top);
+      const bottom = Math.max(0, b.bottom - vpBottom);
+      return left + right + top + bottom;
+    };
+
+    const avoidPad = 10;
+    const avoidRect = {
+      left: anchorRect.left - avoidPad,
+      right: anchorRect.right + avoidPad,
+      top: anchorRect.top - avoidPad,
+      bottom: anchorRect.bottom + avoidPad,
+    };
+
+    const candidates: Array<{
+      side: 'right' | 'left' | 'top' | 'bottom';
+      left: number;
+      centerY: number;
+      bias: number;
+    }> = [
+      // Prefer beside first (desktop feel)
+      { side: 'right', left: anchorRect.right + margin, centerY: anchorCenterY, bias: 0 },
+      { side: 'left', left: anchorRect.left - margin - size.width, centerY: anchorCenterY, bias: 0.02 },
+      // Fall back to above/below on tight viewports to avoid covering the avatar
+      { side: 'top', left: anchorCenterX - size.width / 2, centerY: anchorRect.top - margin - size.height / 2, bias: 0.04 },
+      { side: 'bottom', left: anchorCenterX - size.width / 2, centerY: anchorRect.bottom + margin + size.height / 2, bias: 0.06 },
+    ];
+
+    let best = {
+      side: 'right' as const,
+      left: candidates[0].left,
+      centerY: candidates[0].centerY,
+      score: Number.POSITIVE_INFINITY,
+    };
+
+    for (const c of candidates) {
+      const left = clamp(c.left, vpLeft, vpRight - size.width);
+      const centerY = clamp(c.centerY, vpTop + size.height / 2, vpBottom - size.height / 2);
+
+      const bubbleRect = {
+        left,
+        right: left + size.width,
+        top: centerY - size.height / 2,
+        bottom: centerY + size.height / 2,
+      };
+
+      const overlap = intersectionArea(bubbleRect, avoidRect);
+      const overflow = overflowAmount(bubbleRect);
+      const moved = Math.abs(left - c.left) + Math.abs(centerY - c.centerY);
+
+      // Hard rules:
+      // - Avoid covering the avatar (overlap is heavily penalized)
+      // - Avoid viewport overflow
+      const score =
+        (overlap > 0 ? 1_000_000_000 : 0) +
+        overflow * 1_000_000 +
+        moved +
+        c.bias;
+
+      if (score < best.score) {
+        best = { side: c.side, left, centerY, score };
       }
-
-      // Clamp
-      left = Math.max(viewportLeft, Math.min(left, viewportRight - bubbleWidth));
     }
 
-    this.container.dataset.side = side;
-    this.container.style.left = `${left}px`;
-    this.container.style.top = `${top}px`;
+    this.container.dataset.side = best.side;
+    this.container.style.left = `${best.left}px`;
+    this.container.style.top = `${best.centerY}px`;
 
-    return side;
+    return best.side;
   }
 
   private hideInstant(): void {
     this.cancelTimers();
+    this.removeViewportListeners();
     this.dispatchMouth('default');
     this.container.classList.remove('visible', 'hiding');
     this.container.style.display = 'none';
@@ -393,6 +539,18 @@ export class SpeechBubble {
       transform: translateY(-50%) scale(0.85) translateX(8px);
     }
 
+    /* When the viewport is tight (mobile) we may place the bubble above/below the avatar
+       to avoid clamping it on top of the anchor. */
+    .avatar-speech-bubble[data-side="top"] {
+      transform-origin: center bottom;
+      transform: translateY(-50%) scale(0.85) translateY(8px);
+    }
+
+    .avatar-speech-bubble[data-side="bottom"] {
+      transform-origin: center top;
+      transform: translateY(-50%) scale(0.85) translateY(-8px);
+    }
+
     .avatar-speech-bubble.visible {
       opacity: 1;
       transform: translateY(-50%) scale(1) translateX(0);
@@ -411,6 +569,18 @@ export class SpeechBubble {
       transition:
         opacity 150ms ease,
         transform 150ms ease;
+    }
+
+    .avatar-speech-bubble[data-side="left"].hiding {
+      transform: translateY(-50%) scale(0.95) translateX(4px);
+    }
+
+    .avatar-speech-bubble[data-side="top"].hiding {
+      transform: translateY(-50%) scale(0.95) translateY(4px);
+    }
+
+    .avatar-speech-bubble[data-side="bottom"].hiding {
+      transform: translateY(-50%) scale(0.95) translateY(-4px);
     }
 
     .avatar-speech-bubble__inner {
@@ -460,6 +630,22 @@ export class SpeechBubble {
 
       /* Justo debajo del shape principal */
       z-index: -1;
+    }
+
+    /* Tail when bubble is above/below the avatar (mobile fallback) */
+    .avatar-speech-bubble[data-side="top"] .avatar-speech-bubble__tail {
+      top: auto;
+      bottom: var(--bubble-inset-y);
+      left: 50%;
+      right: auto;
+      transform: translate(-50%, 35%) rotate(45deg) skewX(var(--bubble-skew));
+    }
+
+    .avatar-speech-bubble[data-side="bottom"] .avatar-speech-bubble__tail {
+      top: var(--bubble-inset-y);
+      left: 50%;
+      right: auto;
+      transform: translate(-50%, -35%) rotate(45deg) skewX(var(--bubble-skew));
     }
 
     /* Flip tail when bubble is on the left of the avatar */
