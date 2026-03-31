@@ -29,16 +29,31 @@ const phrasesJson = JSON.stringify(phrases);
   }
 
   .speech-bubble__content {
-    background: var(--color-bg, #F8F6F1);
-    border-radius: 8px;
+    /* El shape del navbar es un pill skewed con un "inset" extra.
+       Replicamos eso con un ::before para no skewear el texto. */
+    background: transparent;
+    border-radius: 999px;
     padding: 12px 18px;
     min-width: 240px;
     min-height: 52px;
     max-width: 320px;
     position: relative;
+    isolation: isolate;
+    z-index: 0;
     opacity: 0;
     transform: scale(0.95) translateX(4px);
     transition: opacity 250ms ease-out, transform 250ms ease-out;
+  }
+
+  .speech-bubble__content::before {
+    content: '';
+    position: absolute;
+    /* Igual que el highlight del navbar */
+    inset: -2px -6px;
+    border-radius: 999px;
+    background: var(--color-bg, #F8F6F1);
+    transform: skewX(-12deg);
+    z-index: -1;
   }
 
   .speech-bubble__content.visible {
@@ -54,7 +69,7 @@ const phrasesJson = JSON.stringify(phrases);
     white-space: pre-line;
   }
 
-  :global(html.dark) .speech-bubble__content {
+  :global(html.dark) .speech-bubble__content::before {
     background: var(--color-bg, #0F0F0E);
   }
 

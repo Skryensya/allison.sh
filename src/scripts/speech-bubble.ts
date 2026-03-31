@@ -371,6 +371,16 @@ export class SpeechBubble {
       pointer-events: none;
       display: none;
 
+      /* Share colors between inner + tail */
+      --bubble-bg: var(--color-text, #1F1C18);
+      --bubble-fg: var(--color-bg, #F4F1EB);
+
+      /* Shape tokens (match navbar hover pill) */
+      --bubble-radius: 999px;
+      --bubble-skew: -12deg;
+      --bubble-inset-y: -2px;
+      --bubble-inset-x: -6px;
+
       /* Entrance: scale from the tail side */
       transform-origin: left center;
       transform: translateY(-50%) scale(0.85) translateX(-8px);
@@ -405,9 +415,9 @@ export class SpeechBubble {
 
     .avatar-speech-bubble__inner {
       position: relative;
-      background: var(--color-text, #1F1C18);
-      color: var(--color-bg, #F4F1EB);
-      border-radius: 12px;
+      background: transparent;
+      color: var(--bubble-fg);
+      border-radius: var(--bubble-radius);
       padding: 10px 16px;
       font-family: var(--font-sans, system-ui, sans-serif);
       font-size: 0.875rem;
@@ -415,6 +425,19 @@ export class SpeechBubble {
       letter-spacing: -0.01em;
       white-space: pre;
       text-align: left;
+      isolation: isolate;
+      z-index: 0;
+    }
+
+    /* Replicate the navbar hover shape without skewing the text */
+    .avatar-speech-bubble__inner::before {
+      content: '';
+      position: absolute;
+      inset: var(--bubble-inset-y) var(--bubble-inset-x);
+      border-radius: var(--bubble-radius);
+      background: var(--bubble-bg);
+      transform: skewX(var(--bubble-skew));
+      z-index: -1;
     }
 
     .avatar-speech-bubble__line {
@@ -422,25 +445,28 @@ export class SpeechBubble {
       align-items: center;
     }
 
-    /* Triangle tail */
+    /* Tail (rounded) — keeps the "arrow" but matches the pill corner language */
     .avatar-speech-bubble__tail {
       position: absolute;
       top: 50%;
-      left: -6px;
-      width: 0;
-      height: 0;
-      border-top: 7px solid transparent;
-      border-bottom: 7px solid transparent;
-      border-right: 7px solid var(--color-text, #1F1C18);
-      transform: translateY(-50%);
+      left: var(--bubble-inset-x);
+      width: 14px;
+      height: 14px;
+      background: var(--bubble-bg);
+      border-radius: 4px;
+
+      /* Más pegado a la burbuja: menos translateX que -50% */
+      transform: translate(-20%, -50%) rotate(45deg) skewX(var(--bubble-skew));
+
+      /* Justo debajo del shape principal */
+      z-index: -1;
     }
 
     /* Flip tail when bubble is on the left of the avatar */
     .avatar-speech-bubble[data-side="left"] .avatar-speech-bubble__tail {
       left: auto;
-      right: -6px;
-      border-right: 0;
-      border-left: 7px solid var(--color-text, #1F1C18);
+      right: var(--bubble-inset-x);
+      transform: translate(20%, -50%) rotate(45deg) skewX(var(--bubble-skew));
     }
 
     /* Character animation */
@@ -454,18 +480,10 @@ export class SpeechBubble {
       opacity: 1;
     }
 
-    /* Dark mode */
-    html.dark .avatar-speech-bubble__inner {
-      background: var(--color-text, #E8E4DD);
-      color: var(--color-bg, #0F0F0E);
-    }
-
-    html.dark .avatar-speech-bubble__tail {
-      border-right-color: var(--color-text, #E8E4DD);
-    }
-
-    html.dark .avatar-speech-bubble[data-side="left"] .avatar-speech-bubble__tail {
-      border-left-color: var(--color-text, #E8E4DD);
+    /* Dark mode (set explicit fallbacks) */
+    html.dark .avatar-speech-bubble {
+      --bubble-bg: var(--color-text, #E8E4DD);
+      --bubble-fg: var(--color-bg, #0F0F0E);
     }
 
     /* Reduced motion */
