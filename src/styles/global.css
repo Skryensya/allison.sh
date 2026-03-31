@@ -147,7 +147,11 @@ a:hover .glitch-char:nth-child(2) {
   border-radius: 999px;
   text-decoration: none;
 
-  transition: color 160ms ease;
+  /* Importante: la salida (hover-out) usa el transition del estado base */
+  transition:
+    color 160ms ease,
+    transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+  will-change: transform;
 }
 
 #nav-links a::before,
@@ -157,12 +161,17 @@ a:hover .glitch-char:nth-child(2) {
   inset: -2px -6px;
   border-radius: 999px;
   background: var(--color-text);
+
+  /* Estado “reposo”: colapsa hacia la derecha (exit swipe) */
   opacity: 0;
-  transform: scaleX(0.2) skewX(-12deg);
-  transform-origin: left;
+  transform: scaleX(0) skewX(-12deg);
+  transform-origin: right;
+
+  /* Exit: un poco más corto + ease-in para que se vaya con intención */
   transition:
-    transform 220ms cubic-bezier(0.23, 1, 0.32, 1),
-    opacity 180ms cubic-bezier(0.23, 1, 0.32, 1);
+    transform 200ms cubic-bezier(0.4, 0, 1, 1),
+    opacity 140ms ease;
+  will-change: transform, opacity;
   z-index: -1;
 }
 
@@ -171,15 +180,18 @@ a:hover .glitch-char:nth-child(2) {
   #theme-toggle:hover {
     color: var(--color-bg);
     transform: translateY(-1px);
-    transition:
-      color 160ms ease,
-      transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
   }
 
   #nav-links a:hover::before,
   #theme-toggle:hover::before {
     opacity: 1;
     transform: scaleX(1) skewX(-12deg);
+    transform-origin: left;
+
+    /* Entry: un poquito más largo + ease-out “springy” */
+    transition:
+      transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 120ms ease;
   }
 }
 
@@ -192,6 +204,7 @@ a:hover .glitch-char:nth-child(2) {
 #theme-toggle:focus-visible::before {
   opacity: 1;
   transform: scaleX(1) skewX(-12deg);
+  transform-origin: left;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -210,6 +223,7 @@ a:hover .glitch-char:nth-child(2) {
 
 /* Theme toggle button (active press feedback) */
 #theme-toggle:active {
+  transition: none;
   transform: translateY(0) scale(0.96);
 }
 
