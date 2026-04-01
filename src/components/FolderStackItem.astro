@@ -1,0 +1,15 @@
+---
+interface Props {
+  href: string;
+  index: number;
+}
+
+const { href, index } = Astro.props;
+---
+
+<li class="folder-stack__item" data-folder-stack-item style={`--i:${index}`}
+>
+  <a href={href} class="folder-stack__link" data-folder-link>
+    <slot />
+  </a>
+</li>

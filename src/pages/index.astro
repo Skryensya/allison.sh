@@ -4,6 +4,9 @@ import Base from '@/layouts/Base.astro';
 import Avatar from '@/components/Avatar.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
+import Folder from '@/components/Folder.astro';
+import FolderStack from '@/components/FolderStack.astro';
+import FolderStackItem from '@/components/FolderStackItem.astro';
 
 const proyectos = await getCollection('proyectos');
 const projects = proyectos
@@ -25,23 +28,13 @@ const projects = proyectos
     </section>
 
     <section id="proyectos" class="mb-32 md:mb-40 scroll-mt-20">
-      <ul class="space-y-12">
-        {projects.map((p) => (
-          <li>
-            <a
-              href={`/proyectos/${p.id}`}
-              class="group py-3"
-            >
-              <h2 class="font-display text-3xl md:text-4xl leading-[1.1] tracking-tight group-hover:text-muted transition-colors duration-200 mb-2">
-                {p.data.title}
-              </h2>
-              <p class="font-sans text-base leading-[1.7] text-muted">
-                {p.data.description}
-              </p>
-            </a>
-          </li>
+      <FolderStack>
+        {projects.map((p, i) => (
+          <FolderStackItem href={`/proyectos/${p.id}`} index={i}>
+            <Folder title={p.data.title} description={p.data.description} className="w-full" />
+          </FolderStackItem>
         ))}
-      </ul>
+      </FolderStack>
     </section>
 
     <section id="sobre-mi" class="mb-32 md:mb-40 scroll-mt-20">

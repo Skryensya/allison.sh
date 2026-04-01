@@ -1,0 +1,206 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  className?: string;
+}
+
+const { title, description, className = '' } = Astro.props;
+---
+
+<div class={`relative ${className}`} data-folder>
+  <div data-folder-shell class="relative">
+    <svg
+      data-folder-svg
+      height="400"
+      class="block w-full"
+      aria-hidden="true"
+      preserveAspectRatio="none"
+    >
+      <!-- Fill only -->
+      <path data-folder-fill-path fill="var(--folder-fill, var(--color-bg))"></path>
+    </svg>
+
+    <!-- Text overlay (doesn't affect layout; JS will grow the SVG when needed) -->
+    <div data-folder-text-layer class="pointer-events-none absolute inset-0">
+      <div
+        data-folder-label
+        class="absolute left-[24px] top-[20px] text-text font-display text-3xl md:text-4xl leading-[1.1] tracking-tight font-normal whitespace-nowrap"
+      >
+        {title}
+      </div>
+
+      {
+        description && (
+          <div
+            data-folder-description
+            class="absolute left-[24px] top-[78px] md:top-[92px] right-[24px] text-muted font-sans text-base leading-[1.55]"
+          >
+            {description}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</div>
+
+<style>
+  [data-folder] {
+    /* Minimum folder height; JS can grow it beyond this based on content wrapping */
+    --folder-min-h: 400px;
+  }
+
+  @media (max-width: 640px) {
+    [data-folder] {
+      --folder-min-h: 360px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    [data-folder] {
+      --folder-min-h: 340px;
+    }
+  }
+
+  /* Clip: permite que la sombra salga por arriba y a los lados,
+     pero corta cualquier blur que intente “caer” debajo del folder. */
+  [data-folder-shell] {
+    /* Deja respirar la sombra arriba y a los lados, pero la mantiene “apretada”. */
+    clip-path: inset(-56px -88px 0 -88px);
+  }
+
+  [data-folder-fill-path] {
+    transition: fill 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  /* Sombra hacia arriba (overrideable from outside via --folder-shadow-filter) */
+  [data-folder-svg] {
+    transition: filter 220ms cubic-bezier(0.2, 0, 0, 1);
+    will-change: filter;
+
+    filter: var(
+      --folder-shadow-filter,
+      drop-shadow(0 -8px 14px color-mix(in srgb, var(--color-text) 7%, transparent))
+        drop-shadow(0 -2px 4px color-mix(in srgb, var(--color-text) 3%, transparent))
+    );
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-folder-fill-path],
+    [data-folder-svg] {
+      transition: none;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    // Run once per page.
+    if (window.__folderShapesInit) return;
+    window.__folderShapesInit = true;
+
+    const config = {
+      padding: 56,
+      flapHeight: 60,
+      minWidth: 280,
+      extraTail: 240,
+      bottomPadding: 26,
+    };
+
+    function updateShape(root) {
+      const label = root.querySelector('[data-folder-label]');
+      const description = root.querySelector('[data-folder-description]');
+      const svg = root.querySelector('[data-folder-svg]');
+      const fillPath = root.querySelector('[data-folder-fill-path]');
+      if (!label || !svg || !fillPath) return;
+
+      // --- Height (grow based on content) ---
+      const styles = getComputedStyle(root);
+      const minH = Number.parseFloat(styles.getPropertyValue('--folder-min-h')) || 200;
+
+      const labelBottom = label.offsetTop + label.offsetHeight;
+      const descriptionBottom = description ? description.offsetTop + description.offsetHeight : 0;
+      const contentBottom = Math.max(labelBottom, descriptionBottom);
+
+      const desiredSvgHeight = Math.max(minH, Math.ceil(contentBottom + config.bottomPadding));
+      const prevHeight = Number(svg.getAttribute('height')) || 0;
+      if (desiredSvgHeight !== prevHeight) {
+        svg.setAttribute('height', String(desiredSvgHeight));
+      }
+
+      // --- Width / shape ---
+      const textWidth = label.offsetWidth;
+      const flapStart = 24;
+      const flapEnd = flapStart + textWidth + config.padding;
+
+      const rootWidth = Math.round(root.getBoundingClientRect().width) || 0;
+      const totalWidth = Math.max(rootWidth, config.minWidth, flapEnd + config.extraTail);
+
+      // Make SVG coordinates match the computed geometry.
+      const svgHeight = Number(svg.getAttribute('height')) || desiredSvgHeight;
+      svg.setAttribute('viewBox', `0 0 ${totalWidth} ${svgHeight}`);
+
+      // Bottom equals SVG height. (We keep the flap height fixed; the body grows.)
+      const bottomY = svgHeight;
+
+      const dFill = `
+        M0 ${config.flapHeight}
+
+        Q0 0 48 0
+        H ${flapEnd - 72}
+
+        C ${flapEnd - 40} 0,
+          ${flapEnd - 12} 6,
+          ${flapEnd + 4} 20
+
+        C ${flapEnd + 18} 34,
+          ${flapEnd + 36} ${config.flapHeight - 4},
+          ${flapEnd + 72} ${config.flapHeight}
+
+        H ${totalWidth - 56}
+
+        Q ${totalWidth} ${config.flapHeight}
+          ${totalWidth} ${config.flapHeight + 44}
+
+        V ${bottomY}
+        H 0
+        Z
+      `;
+
+      fillPath.setAttribute('d', dFill);
+    }
+
+    function initAll() {
+      const roots = document.querySelectorAll('[data-folder]');
+
+      roots.forEach((root) => {
+        if (root.dataset.folderInit === 'true') return;
+        root.dataset.folderInit = 'true';
+
+        const run = () => updateShape(root);
+        run();
+
+        const label = root.querySelector('[data-folder-label]');
+        const description = root.querySelector('[data-folder-description]');
+
+        const ro = new ResizeObserver(run);
+        if (label) ro.observe(label);
+        if (description) ro.observe(description);
+        ro.observe(root);
+
+        // store for potential future cleanup
+        root.__folderResizeObserver = ro;
+
+        window.addEventListener('resize', run);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAll, { once: true });
+    } else {
+      initAll();
+    }
+
+    document.addEventListener('astro:page-load', initAll);
+  })();
+</script>

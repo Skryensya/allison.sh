@@ -1,0 +1,184 @@
+---
+interface Props {
+  /**
+   * How much each folder overlaps the previous one.
+   * (Bigger = tighter stack)
+   */
+  overlap?: string;
+  /** Small positive spacing added back so the stack can breathe. */
+  gap?: string;
+  /** Lift amount on hover/focus/active */
+  lift?: string;
+}
+
+const {
+  overlap = '240px',
+  gap = '22px',
+  lift = '8px',
+} = Astro.props;
+---
+
+<ul
+  class="folder-stack"
+  data-folder-stack
+  style={`--folder-overlap:${overlap}; --folder-gap:${gap}; --folder-lift:${lift};`}
+>
+  <slot />
+</ul>
+
+<style is:global>
+  /* Folder stack: overlapping pile with subtle randomness + micro-interactions */
+  .folder-stack {
+    /* Set via inline style defaults above */
+    --folder-overlap: 240px;
+    --folder-gap: 22px;
+    --folder-lift: 8px;
+
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .folder-stack {
+      --folder-overlap: 210px;
+      --folder-gap: 20px;
+      --folder-lift: 7px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .folder-stack {
+      --folder-overlap: 190px;
+      --folder-gap: 18px;
+      --folder-lift: 6px;
+    }
+  }
+
+  /* Softer shadow when folders are stacked (reduces “dark band” between items) */
+  .folder-stack [data-folder] {
+    --folder-shadow-filter:
+      drop-shadow(0 -7px 12px color-mix(in srgb, var(--color-text) 5%, transparent))
+      drop-shadow(0 -2px 4px color-mix(in srgb, var(--color-text) 2%, transparent));
+  }
+
+  .folder-stack__item {
+    position: relative;
+
+    /* small pile feel */
+    --stack-x: 0px;
+    --stack-y: 0px;
+    --stack-rot: 0deg;
+
+    /* entrance */
+    animation: fadeSlideIn 420ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    animation-delay: calc(var(--i, 0) * 55ms);
+  }
+
+  .folder-stack__item:nth-child(odd) {
+    --stack-x: -2px;
+    --stack-y: 1px;
+    --stack-rot: -0.15deg;
+  }
+
+  .folder-stack__item:nth-child(even) {
+    --stack-x: 2px;
+    --stack-y: 0px;
+    --stack-rot: 0.15deg;
+  }
+
+  .folder-stack__item + .folder-stack__item {
+    margin-top: calc(-1 * var(--folder-overlap) + var(--folder-gap));
+  }
+
+  .folder-stack__link {
+    display: block;
+    text-decoration: none;
+
+    transform: translate3d(var(--stack-x), var(--stack-y), 0) rotate(var(--stack-rot));
+    transition:
+      transform 260ms cubic-bezier(0.23, 1, 0.32, 1);
+
+    will-change: transform;
+  }
+
+  /* Reveal interaction: no z-index changes — just a gentle lift */
+  .folder-stack__item:hover .folder-stack__link,
+  .folder-stack__item:focus-within .folder-stack__link,
+  .folder-stack__item[data-active='true'] .folder-stack__link {
+    transform: translate3d(var(--stack-x), calc(var(--stack-y) - var(--folder-lift)), 0) rotate(0deg);
+  }
+
+  /* Delight: tiny “focus glow” by nudging fill + slightly stronger shadow */
+  .folder-stack__item:hover [data-folder],
+  .folder-stack__item:focus-within [data-folder],
+  .folder-stack__item[data-active='true'] [data-folder] {
+    --folder-fill: color-mix(in srgb, var(--color-bg) 94%, var(--color-text) 6%);
+    --folder-shadow-filter:
+      drop-shadow(0 -9px 14px color-mix(in srgb, var(--color-text) 7%, transparent))
+      drop-shadow(0 -2px 5px color-mix(in srgb, var(--color-text) 3%, transparent));
+  }
+
+  .folder-stack__link:active {
+    transform: translate3d(var(--stack-x), calc(var(--stack-y) - (var(--folder-lift) - 2px)), 0) rotate(0deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .folder-stack__item {
+      animation: none;
+    }
+
+    .folder-stack__link {
+      transition: none;
+    }
+
+    .folder-stack__item:hover .folder-stack__link,
+    .folder-stack__item:focus-within .folder-stack__link,
+    .folder-stack__item[data-active='true'] .folder-stack__link {
+      transform: translate3d(var(--stack-x), var(--stack-y), 0) rotate(var(--stack-rot));
+    }
+  }
+</style>
+
+<script is:inline>
+  // Mobile: 1st tap = reveal (lift). 2nd tap = navigate.
+  (function () {
+    const stacks = document.querySelectorAll('[data-folder-stack]');
+    if (!stacks.length) return;
+
+    const isTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    if (!isTouch) return;
+
+    stacks.forEach((stack) => {
+      function clearActive() {
+        stack.querySelectorAll('[data-folder-stack-item][data-active="true"]').forEach((el) => {
+          el.dataset.active = 'false';
+        });
+      }
+
+      function setActive(item) {
+        clearActive();
+        item.dataset.active = 'true';
+      }
+
+      stack.addEventListener('click', (e) => {
+        const link = e.target instanceof Element ? e.target.closest('[data-folder-link]') : null;
+        if (!link) return;
+
+        const item = link.closest('[data-folder-stack-item]');
+        if (!item) return;
+
+        if (item.dataset.active !== 'true') {
+          e.preventDefault();
+          setActive(item);
+        }
+      });
+
+      document.addEventListener('pointerdown', (e) => {
+        if (!(e.target instanceof Node)) return;
+        if (stack.contains(e.target)) return;
+        clearActive();
+      });
+    });
+  })();
+</script>
