@@ -78,6 +78,12 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   .folder-stack__item {
     position: relative;
 
+    /*
+      Critical: let “empty” parts of the folder bounding box pass through.
+      The only clickable/hoverable element is the clipped .folder-stack__hit link.
+    */
+    pointer-events: none;
+
     /* No tilt / no sideways drift */
     --stack-x: 0px;
     --stack-y: 0px;
@@ -119,11 +125,16 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     animation-delay: calc(var(--i, 0) * 75ms);
   }
 
-  .folder-stack__link {
-    display: block;
-    text-decoration: none;
+  /*
+    Visual card (the actual Folder markup) + an invisible, clipped hit-area link.
+    The hit-area is clipped to the real folder SVG path via --folder-clip-path
+    (set by folder-shapes-client.ts).
 
-    /* Hover lift lives here, separate from stack relax */
+    This lets the “empty” parts of the folder bounding box pass pointer events
+    through to the folders below.
+  */
+  .folder-stack__card,
+  .folder-stack__hit {
     transform: translate3d(0, 0, 0) scale(1);
     transform-origin: 50% 90%;
 
@@ -132,28 +143,61 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     backface-visibility: hidden;
   }
 
+  .folder-stack__card {
+    display: block;
+    /* Important: don't block clicks in transparent corners. */
+    pointer-events: none;
+  }
+
+  /* Ensure the whole visual subtree is non-interactive (overlay link handles all hits). */
+  .folder-stack__card * {
+    pointer-events: none;
+  }
+
+  .folder-stack__hit {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    display: block;
+    text-decoration: none;
+    cursor: pointer;
+    touch-action: manipulation;
+
+    /* Re-enable events (the parent LI is pointer-events:none) */
+    pointer-events: auto;
+
+    /* Only clickable where the folder is actually visible. */
+    -webkit-clip-path: var(--folder-clip-path, none);
+    clip-path: var(--folder-clip-path, none);
+  }
+
   /* Active (touch) also lifts */
-  .folder-stack__item[data-active='true'] .folder-stack__link {
+  .folder-stack__item[data-active='true'] :is(.folder-stack__card, .folder-stack__hit) {
     transform: translate3d(0, calc(-1 * var(--folder-lift)), 0) scale(1.004);
   }
 
-  /* Hover + focus lift only on devices that truly hover */
+  /* Hover lift only on devices that truly hover (and only inside the clipped hit area) */
   @media (hover: hover) and (pointer: fine) {
-    .folder-stack__item:hover .folder-stack__link {
+    .folder-stack__hit:hover,
+    .folder-stack__hit:hover + .folder-stack__card {
       transform: translate3d(0, calc(-1 * var(--folder-lift)), 0) scale(1.004);
     }
   }
 
-  .folder-stack__item:focus-within .folder-stack__link {
+  /* Keyboard focus lift */
+  .folder-stack__item:focus-within :is(.folder-stack__card, .folder-stack__hit) {
     transform: translate3d(0, calc(-1 * var(--folder-lift)), 0) scale(1.004);
   }
 
-  .folder-stack__link:active {
+  /* Press feedback (only within the clipped hit area) */
+  .folder-stack__hit:active,
+  .folder-stack__hit:active + .folder-stack__card {
     transform: translate3d(0, calc(-1 * (var(--folder-lift) - 2px)), 0) scale(1.002);
   }
 
   /* Delight: subtle fill nudge + shadow ramps up only when a folder is “picked up”. */
-  .folder-stack__item:hover [data-folder],
+  .folder-stack__hit:hover + .folder-stack__card [data-folder],
   .folder-stack__item:focus-within [data-folder],
   .folder-stack__item[data-active='true'] [data-folder] {
     --folder-fill: color-mix(in srgb, var(--color-bg) 92%, var(--color-text) 8%);
@@ -168,7 +212,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       transform: none !important;
     }
 
-    .folder-stack__link {
+    .folder-stack__card,
+    .folder-stack__hit {
       transition: none;
       transform: none !important;
     }

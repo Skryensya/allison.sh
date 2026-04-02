@@ -149,9 +149,7 @@ function setupFolderShapes() {
     const c4 = Math.round(m.flapCurve * 0.25);
     const c5 = Math.round(m.flapCurve * 0.5);
 
-    fillPath.setAttribute(
-      'd',
-      `
+    const d = `
         M0 ${config.flapHeight}
 
         Q0 0 ${m.topLeftRadius} 0
@@ -173,8 +171,22 @@ function setupFolderShapes() {
         V ${bottomY}
         H 0
         Z
-      `.trim()
-    );
+      `.trim();
+
+    fillPath.setAttribute('d', d);
+
+    // Expose a clip-path() version for HTML hit-testing.
+    // Used by FolderStackItem's invisible overlay link so the “empty” corners of the
+    // folder bounding box don't steal pointer events from the folders below.
+    const dForCss = d.replace(/\s+/g, ' ').trim();
+    const clip = `path('${dForCss}')`;
+
+    root.style.setProperty('--folder-clip-path', clip);
+
+    const stackItem = root.closest('[data-folder-stack-item]');
+    if (stackItem instanceof HTMLElement) {
+      stackItem.style.setProperty('--folder-clip-path', clip);
+    }
   }
 
   function ensureObserver() {
