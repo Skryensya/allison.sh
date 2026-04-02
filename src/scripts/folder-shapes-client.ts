@@ -128,12 +128,8 @@ function setupFolderShapes() {
     const maxLabelWidth = Math.max(48, maxFlapEnd - flapStart - m.padding);
 
     // Keep the label bounded so its measured width can't force an impossible flap.
+    // Note: don't clip/truncate the title (keeps glyphs + text selection intact).
     label.style.maxWidth = `${maxLabelWidth}px`;
-    if (label.dataset.folderEllipsis !== 'true') {
-      label.dataset.folderEllipsis = 'true';
-      label.style.overflow = 'hidden';
-      label.style.textOverflow = 'ellipsis';
-    }
 
     const textWidth = Math.min(label.offsetWidth, maxLabelWidth);
     const flapEnd = Math.max(minFlapEnd, flapStart + textWidth + m.padding);
