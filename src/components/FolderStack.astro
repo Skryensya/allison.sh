@@ -64,11 +64,12 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     }
   }
 
-  /* Very subtle shadow when folders are stacked (avoid dark band between items) */
+  /* Shadow: almost invisible while stacked (avoid a dark band), comes alive on hover. */
   .folder-stack [data-folder] {
+    /* Near-transparent at rest: should read as “almost none”. */
     --folder-shadow-filter:
-      drop-shadow(0 -6px 12px color-mix(in srgb, var(--color-text) 4%, transparent))
-      drop-shadow(0 -1px 3px color-mix(in srgb, var(--color-text) 2%, transparent));
+      drop-shadow(0 -3px 8px color-mix(in srgb, var(--color-text) 0.45%, transparent))
+      drop-shadow(0 -1px 2px color-mix(in srgb, var(--color-text) 0.18%, transparent));
   }
 
   .folder-stack__item {
@@ -148,11 +149,14 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     transform: translate3d(0, calc(-1 * (var(--folder-lift) - 2px)), 0) scale(1.002);
   }
 
-  /* Delight: tiny “focus glow” by nudging fill (no shadow changes = less jank) */
+  /* Delight: subtle fill nudge + shadow ramps up only when a folder is “picked up”. */
   .folder-stack__item:hover [data-folder],
   .folder-stack__item:focus-within [data-folder],
   .folder-stack__item[data-active='true'] [data-folder] {
     --folder-fill: color-mix(in srgb, var(--color-bg) 95%, var(--color-text) 5%);
+    --folder-shadow-filter:
+      drop-shadow(0 -8px 16px color-mix(in srgb, var(--color-text) 3.2%, transparent))
+      drop-shadow(0 -2px 5px color-mix(in srgb, var(--color-text) 1.4%, transparent));
   }
 
   @media (prefers-reduced-motion: reduce) {
