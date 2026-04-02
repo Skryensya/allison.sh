@@ -25,7 +25,7 @@ const { title, description, className = '' } = Astro.props;
     <div data-folder-text-layer class="pointer-events-none absolute inset-0">
       <div
         data-folder-label
-        class="absolute left-[24px] top-[20px] text-text font-display text-3xl md:text-4xl leading-[1.1] tracking-tight font-normal whitespace-nowrap"
+        class="absolute left-[24px] top-[20px] text-text font-display text-2xl sm:text-3xl md:text-4xl leading-[1.1] tracking-tight font-normal whitespace-nowrap"
       >
         {title}
       </div>
@@ -100,11 +100,29 @@ const { title, description, className = '' } = Astro.props;
     window.__folderShapesInit = true;
 
     const config = {
-      padding: 56,
       flapHeight: 60,
-      minWidth: 280,
-      extraTail: 240,
       bottomPadding: 26,
+
+      // Geometry tuned for the wide desktop container.
+      desktop: {
+        padding: 56,
+        flapCurve: 72,
+        topLeftRadius: 48,
+        rightInset: 56,
+        rightDrop: 44,
+      },
+
+      // Mobile gets a tighter curve + less padding so the flap can fit inside
+      // narrow containers *without* making the SVG viewBox wider than the element.
+      // (If the viewBox is wider, the SVG scales down but the HTML label doesn't,
+      // and the flap stops lining up with the text.)
+      mobile: {
+        padding: 34,
+        flapCurve: 52,
+        topLeftRadius: 44,
+        rightInset: 46,
+        rightDrop: 40,
+      },
     };
 
     function updateShape(root) {
@@ -129,38 +147,64 @@ const { title, description, className = '' } = Astro.props;
       }
 
       // --- Width / shape ---
-      const textWidth = label.offsetWidth;
       const flapStart = 24;
-      const flapEnd = flapStart + textWidth + config.padding;
 
+      // IMPORTANT: the SVG is `w-full` (scaled to the container) while the title is
+      // HTML text positioned in CSS pixels. If the SVG viewBox is wider than the
+      // rendered element, the SVG scales down but the label doesn't → the flap
+      // width/position stops matching the title (most noticeable on mobile).
       const rootWidth = Math.round(root.getBoundingClientRect().width) || 0;
-      const totalWidth = Math.max(rootWidth, config.minWidth, flapEnd + config.extraTail);
+      if (!rootWidth) return;
 
-      // Make SVG coordinates match the computed geometry.
+      const m = rootWidth <= 640 ? config.mobile : config.desktop;
+
+      // Ensure the flap fits *inside* the element.
+      const minFlapEnd = flapStart + m.topLeftRadius + m.flapCurve + 14;
+      const maxFlapEnd = Math.max(minFlapEnd, rootWidth - m.rightInset - m.flapCurve);
+      const maxLabelWidth = Math.max(48, maxFlapEnd - flapStart - m.padding);
+
+      // Keep the label bounded so its measured width can't force an impossible flap.
+      // (Titles here are short; this mainly protects edge cases.)
+      label.style.maxWidth = `${maxLabelWidth}px`;
+      label.style.overflow = 'hidden';
+      label.style.textOverflow = 'ellipsis';
+
+      const textWidth = Math.min(label.offsetWidth, maxLabelWidth);
+      const flapEnd = Math.max(minFlapEnd, flapStart + textWidth + m.padding);
+
+      // 1 SVG unit == 1 CSS pixel (prevents scaling mismatch with the HTML overlay).
+      const totalWidth = rootWidth;
       const svgHeight = Number(svg.getAttribute('height')) || desiredSvgHeight;
       svg.setAttribute('viewBox', `0 0 ${totalWidth} ${svgHeight}`);
 
       // Bottom equals SVG height. (We keep the flap height fixed; the body grows.)
       const bottomY = svgHeight;
 
+      // Curve control points derived from flapCurve (keeps proportions consistent).
+      const c1 = Math.round(m.flapCurve * 0.56);
+      const c2 = Math.round(m.flapCurve * 0.17);
+      const c3 = Math.round(m.flapCurve * 0.06);
+      const c4 = Math.round(m.flapCurve * 0.25);
+      const c5 = Math.round(m.flapCurve * 0.5);
+
       const dFill = `
         M0 ${config.flapHeight}
 
-        Q0 0 48 0
-        H ${flapEnd - 72}
+        Q0 0 ${m.topLeftRadius} 0
+        H ${flapEnd - m.flapCurve}
 
-        C ${flapEnd - 40} 0,
-          ${flapEnd - 12} 6,
-          ${flapEnd + 4} 20
+        C ${flapEnd - c1} 0,
+          ${flapEnd - c2} 6,
+          ${flapEnd + c3} 20
 
-        C ${flapEnd + 18} 34,
-          ${flapEnd + 36} ${config.flapHeight - 4},
-          ${flapEnd + 72} ${config.flapHeight}
+        C ${flapEnd + c4} 34,
+          ${flapEnd + c5} ${config.flapHeight - 4},
+          ${flapEnd + m.flapCurve} ${config.flapHeight}
 
-        H ${totalWidth - 56}
+        H ${totalWidth - m.rightInset}
 
         Q ${totalWidth} ${config.flapHeight}
-          ${totalWidth} ${config.flapHeight + 44}
+          ${totalWidth} ${config.flapHeight + m.rightDrop}
 
         V ${bottomY}
         H 0
