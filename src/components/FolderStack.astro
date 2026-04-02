@@ -84,6 +84,16 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     */
     pointer-events: none;
 
+    /*
+      Bleed into the page padding so the folder's inner padding can match the
+      page text container width.
+
+      (Uses the global --folder-pad-x which matches `px-6 md:px-8`.)
+    */
+    width: calc(100% + var(--folder-pad-x) + var(--folder-pad-x));
+    margin-left: calc(0px - var(--folder-pad-x));
+    margin-right: calc(0px - var(--folder-pad-x));
+
     /* No tilt / no sideways drift */
     --stack-x: 0px;
     --stack-y: 0px;

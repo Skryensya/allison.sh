@@ -20,7 +20,7 @@ const { title, description, year } = Astro.props;
   <main class="max-w-[58ch] mx-auto px-6 md:px-8 pt-4 pb-16 md:pb-24">
 
     <section class="mt-10 md:mt-12 mb-10 md:mb-12">
-      <Folder title={title} description={description} className="w-full" />
+      <Folder title={title} description={description} className="w-full folder-bleed" />
       {year && (
         <p class="mt-3 font-sans text-xs text-subtle">{year}</p>
       )}

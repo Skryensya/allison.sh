@@ -116,7 +116,7 @@ function setupFolderShapes() {
     if (desiredSvgHeight !== prevHeight) svg.setAttribute('height', String(desiredSvgHeight));
 
     // --- Width / flap geometry ---
-    const flapStart = 24;
+    const flapStart = Number.parseFloat(styles.getPropertyValue('--folder-pad-x')) || 24;
     const rootWidth = root.clientWidth || 0;
     if (!rootWidth) return;
 

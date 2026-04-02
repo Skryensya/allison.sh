@@ -29,6 +29,30 @@
   }
 }
 
+/*
+  Shared horizontal gutter used by "bleed" components.
+  Matches the main container padding: `px-6 md:px-8`.
+*/
+:root {
+  --folder-pad-x: 24px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --folder-pad-x: 32px;
+  }
+}
+
+/*
+  Full-bleed helper: expands an element into the container padding, while keeping
+  the content aligned with the page text container.
+*/
+.folder-bleed {
+  width: calc(100% + var(--folder-pad-x) + var(--folder-pad-x));
+  margin-left: calc(0px - var(--folder-pad-x));
+  margin-right: calc(0px - var(--folder-pad-x));
+}
+
 /* Accessibility: screen reader only */
 .sr-only {
   position: absolute;
