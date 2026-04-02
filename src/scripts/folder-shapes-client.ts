@@ -24,6 +24,7 @@ declare global {
 const config = {
   flapHeight: 60,
   bottomPadding: 26,
+  bottomRadius: 8,
 
   desktop: {
     padding: 56,
@@ -149,6 +150,15 @@ function setupFolderShapes() {
     const c4 = Math.round(m.flapCurve * 0.25);
     const c5 = Math.round(m.flapCurve * 0.5);
 
+    const br = Math.max(
+      0,
+      Math.min(
+        config.bottomRadius,
+        Math.floor(totalWidth / 2),
+        Math.floor((bottomY - config.flapHeight) / 2)
+      )
+    );
+
     const d = `
         M0 ${config.flapHeight}
 
@@ -168,8 +178,17 @@ function setupFolderShapes() {
         Q ${totalWidth} ${config.flapHeight}
           ${totalWidth} ${config.flapHeight + m.rightDrop}
 
-        V ${bottomY}
-        H 0
+        V ${bottomY - br}
+
+        Q ${totalWidth} ${bottomY}
+          ${totalWidth - br} ${bottomY}
+
+        H ${br}
+
+        Q 0 ${bottomY}
+          0 ${bottomY - br}
+
+        V ${config.flapHeight}
         Z
       `.trim();
 
