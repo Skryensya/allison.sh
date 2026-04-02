@@ -206,37 +206,45 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
         };
 
         if (prefersReducedMotion) {
-          // No motion: show final state immediately.
+          // No motion: show final state immediately (but keep interactions).
           stack.classList.remove('is-pre');
           stack.classList.add('is-relaxed');
-          return;
-        }
-
-        // If already in view, kick the animation on next frame.
-        const rect = stack.getBoundingClientRect();
-        const isInitiallyInView = rect.top < window.innerHeight && rect.bottom > 0;
-        if (isInitiallyInView) {
-          requestAnimationFrame(reveal);
-        }
-
-        // Otherwise, reveal when it enters the viewport.
-        const io = new IntersectionObserver(
-          (entries) => {
-            if (!entries.some((e) => e.isIntersecting)) return;
-            io.disconnect();
+        } else {
+          // If already in view, kick the animation on next frame.
+          const rect = stack.getBoundingClientRect();
+          const isInitiallyInView = rect.top < window.innerHeight && rect.bottom > 0;
+          if (isInitiallyInView) {
             requestAnimationFrame(reveal);
-          },
-          {
-            threshold: 0.12,
-            rootMargin: '0px 0px -10% 0px',
           }
-        );
 
-        io.observe(stack);
+          // Otherwise, reveal when it enters the viewport.
+          const io = new IntersectionObserver(
+            (entries) => {
+              if (!entries.some((e) => e.isIntersecting)) return;
+              io.disconnect();
+              requestAnimationFrame(reveal);
+            },
+            {
+              threshold: 0.12,
+              rootMargin: '0px 0px -10% 0px',
+            }
+          );
 
-        // --- Mobile interaction: 1st tap = reveal (lift). 2nd tap = navigate. ---
-        const isTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-        if (!isTouch) return;
+          io.observe(stack);
+        }
+
+        // --- Touch (no hover): use a “current” folder based on viewport center. ---
+        // The folder closest to the vertical center of the viewport gets `data-active="true"`
+        // (which reuses the same lift + shadow styles as hover).
+        //
+        // NOTE: `(hover:none) and (pointer:coarse)` is *not* reliable in desktop responsive
+        // emulation or on some hybrid devices, so we also enable this on small viewports.
+        const isMobileLike =
+          window.matchMedia('(max-width: 768px)').matches ||
+          window.matchMedia('(hover: none)').matches ||
+          window.matchMedia('(pointer: coarse)').matches ||
+          (navigator.maxTouchPoints || 0) > 0;
+        if (!isMobileLike) return;
 
         function clearActive() {
           stack.querySelectorAll('[data-folder-stack-item][data-active="true"]').forEach((el) => {
@@ -249,6 +257,48 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
           item.dataset.active = 'true';
         }
 
+        function setActiveFromViewportCenter() {
+          const items = stack.querySelectorAll('[data-folder-stack-item]');
+          const vh = window.innerHeight || 0;
+          if (!vh || !items.length) return;
+
+          const centerY = vh * 0.5;
+          let best = null;
+          let bestDist = Infinity;
+
+          items.forEach((item) => {
+            if (!(item instanceof HTMLElement)) return;
+            const rect = item.getBoundingClientRect();
+            const isVisible = rect.bottom > 0 && rect.top < vh;
+            if (!isVisible) return;
+
+            const itemCenter = (rect.top + rect.bottom) / 2;
+            const d = Math.abs(itemCenter - centerY);
+            if (d < bestDist) {
+              bestDist = d;
+              best = item;
+            }
+          });
+
+          if (best) setActive(best);
+        }
+
+        let raf = 0;
+        function scheduleCenterUpdate() {
+          if (raf) return;
+          raf = window.requestAnimationFrame(() => {
+            raf = 0;
+            setActiveFromViewportCenter();
+          });
+        }
+
+        // Initialize + keep in sync while scrolling.
+        setActiveFromViewportCenter();
+        window.addEventListener('scroll', scheduleCenterUpdate, { passive: true });
+        window.addEventListener('resize', scheduleCenterUpdate);
+
+        // 2-tap UX still applies when tapping a non-current folder:
+        // 1st tap = make it current (lift). 2nd tap = navigate.
         stack.addEventListener('click', (e) => {
           const link = e.target instanceof Element ? e.target.closest('[data-folder-link]') : null;
           if (!link) return;
@@ -262,10 +312,11 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
           }
         });
 
+        // If the user taps outside, snap back to the centered folder (don't leave none active).
         document.addEventListener('pointerdown', (e) => {
           if (!(e.target instanceof Node)) return;
           if (stack.contains(e.target)) return;
-          clearActive();
+          scheduleCenterUpdate();
         });
       });
     }
