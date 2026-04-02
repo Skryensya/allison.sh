@@ -3,6 +3,7 @@ import Base from './Base.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import TableOfContents from '@/components/TableOfContents.astro';
+import Folder from '@/components/Folder.astro';
 
 interface Props {
   title: string;
@@ -18,12 +19,10 @@ const { title, description, year } = Astro.props;
 
   <main class="max-w-[58ch] mx-auto px-6 md:px-8 pt-4 pb-16 md:pb-24">
 
-    <section class="mt-16 md:mt-20 mb-10 md:mb-12">
-      <h1 class="font-display text-3xl md:text-4xl leading-[1.12] mb-3 tracking-tight">
-        {title}
-      </h1>
+    <section class="mt-10 md:mt-12 mb-10 md:mb-12">
+      <Folder title={title} description={description} className="w-full" />
       {year && (
-        <span class="font-sans text-xs text-subtle">{year}</span>
+        <p class="mt-3 font-sans text-xs text-subtle">{year}</p>
       )}
     </section>
 
