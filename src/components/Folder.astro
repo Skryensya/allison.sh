@@ -93,9 +93,9 @@ const { title, description, className = '' } = Astro.props;
   }
 </style>
 
-<script is:inline>
+<script>
   (function () {
-    // Run once per page.
+    // One runtime for all folders (this component is rendered many times).
     if (window.__folderShapesInit) return;
     window.__folderShapesInit = true;
 
@@ -103,7 +103,6 @@ const { title, description, className = '' } = Astro.props;
       flapHeight: 60,
       bottomPadding: 26,
 
-      // Geometry tuned for the wide desktop container.
       desktop: {
         padding: 56,
         flapCurve: 72,
@@ -112,10 +111,6 @@ const { title, description, className = '' } = Astro.props;
         rightDrop: 44,
       },
 
-      // Mobile gets a tighter curve + less padding so the flap can fit inside
-      // narrow containers *without* making the SVG viewBox wider than the element.
-      // (If the viewBox is wider, the SVG scales down but the HTML label doesn't,
-      // and the flap stops lining up with the text.)
       mobile: {
         padding: 34,
         flapCurve: 52,
@@ -125,12 +120,56 @@ const { title, description, className = '' } = Astro.props;
       },
     };
 
-    function updateShape(root) {
+    const state = (window.__folderShapesState ||= {
+      ro: null,
+      roots: new Set(),
+      rootToParts: new WeakMap(),
+      elToRoot: new WeakMap(),
+      dirty: new Set(),
+      raf: 0,
+    });
+
+    function schedule(root) {
+      state.dirty.add(root);
+      if (state.raf) return;
+      state.raf = window.requestAnimationFrame(flush);
+    }
+
+    function flush() {
+      state.raf = 0;
+      state.dirty.forEach((root) => updateShape(root));
+      state.dirty.clear();
+    }
+
+    function getParts(root) {
+      let parts = state.rootToParts.get(root);
+      if (parts) return parts;
+
       const label = root.querySelector('[data-folder-label]');
       const description = root.querySelector('[data-folder-description]');
       const svg = root.querySelector('[data-folder-svg]');
       const fillPath = root.querySelector('[data-folder-fill-path]');
-      if (!label || !svg || !fillPath) return;
+
+      if (!(label instanceof HTMLElement)) return null;
+      if (!(svg instanceof SVGSVGElement)) return null;
+      if (!(fillPath instanceof SVGPathElement)) return null;
+
+      parts = {
+        label,
+        description: description instanceof HTMLElement ? description : null,
+        svg,
+        fillPath,
+      };
+
+      state.rootToParts.set(root, parts);
+      return parts;
+    }
+
+    function updateShape(root) {
+      const parts = getParts(root);
+      if (!parts) return;
+
+      const { label, description, svg, fillPath } = parts;
 
       // --- Height (grow based on content) ---
       const styles = getComputedStyle(root);
@@ -142,52 +181,47 @@ const { title, description, className = '' } = Astro.props;
 
       const desiredSvgHeight = Math.max(minH, Math.ceil(contentBottom + config.bottomPadding));
       const prevHeight = Number(svg.getAttribute('height')) || 0;
-      if (desiredSvgHeight !== prevHeight) {
-        svg.setAttribute('height', String(desiredSvgHeight));
-      }
+      if (desiredSvgHeight !== prevHeight) svg.setAttribute('height', String(desiredSvgHeight));
 
-      // --- Width / shape ---
+      // --- Width / flap geometry ---
       const flapStart = 24;
-
-      // IMPORTANT: the SVG is `w-full` (scaled to the container) while the title is
-      // HTML text positioned in CSS pixels. If the SVG viewBox is wider than the
-      // rendered element, the SVG scales down but the label doesn't → the flap
-      // width/position stops matching the title (most noticeable on mobile).
-      const rootWidth = Math.round(root.getBoundingClientRect().width) || 0;
+      const rootWidth = root.clientWidth || 0;
       if (!rootWidth) return;
 
       const m = rootWidth <= 640 ? config.mobile : config.desktop;
 
-      // Ensure the flap fits *inside* the element.
       const minFlapEnd = flapStart + m.topLeftRadius + m.flapCurve + 14;
       const maxFlapEnd = Math.max(minFlapEnd, rootWidth - m.rightInset - m.flapCurve);
       const maxLabelWidth = Math.max(48, maxFlapEnd - flapStart - m.padding);
 
-      // Keep the label bounded so its measured width can't force an impossible flap.
-      // (Titles here are short; this mainly protects edge cases.)
       label.style.maxWidth = `${maxLabelWidth}px`;
-      label.style.overflow = 'hidden';
-      label.style.textOverflow = 'ellipsis';
+      // Set once; maxWidth changes per update.
+      if (label.dataset.folderEllipsis !== 'true') {
+        label.dataset.folderEllipsis = 'true';
+        label.style.overflow = 'hidden';
+        label.style.textOverflow = 'ellipsis';
+      }
 
       const textWidth = Math.min(label.offsetWidth, maxLabelWidth);
       const flapEnd = Math.max(minFlapEnd, flapStart + textWidth + m.padding);
 
-      // 1 SVG unit == 1 CSS pixel (prevents scaling mismatch with the HTML overlay).
+      // 1 SVG unit == 1 CSS pixel.
       const totalWidth = rootWidth;
       const svgHeight = Number(svg.getAttribute('height')) || desiredSvgHeight;
-      svg.setAttribute('viewBox', `0 0 ${totalWidth} ${svgHeight}`);
+      const viewBox = `0 0 ${totalWidth} ${svgHeight}`;
+      if (svg.getAttribute('viewBox') !== viewBox) svg.setAttribute('viewBox', viewBox);
 
-      // Bottom equals SVG height. (We keep the flap height fixed; the body grows.)
       const bottomY = svgHeight;
 
-      // Curve control points derived from flapCurve (keeps proportions consistent).
       const c1 = Math.round(m.flapCurve * 0.56);
       const c2 = Math.round(m.flapCurve * 0.17);
       const c3 = Math.round(m.flapCurve * 0.06);
       const c4 = Math.round(m.flapCurve * 0.25);
       const c5 = Math.round(m.flapCurve * 0.5);
 
-      const dFill = `
+      fillPath.setAttribute(
+        'd',
+        `
         M0 ${config.flapHeight}
 
         Q0 0 ${m.topLeftRadius} 0
@@ -209,34 +243,71 @@ const { title, description, className = '' } = Astro.props;
         V ${bottomY}
         H 0
         Z
-      `;
+      `.trim()
+      );
+    }
 
-      fillPath.setAttribute('d', dFill);
+    function ensureObserver() {
+      if (state.ro) return;
+      if (!('ResizeObserver' in window)) return;
+
+      state.ro = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const root = state.elToRoot.get(entry.target);
+          if (root) schedule(root);
+        }
+      });
     }
 
     function initAll() {
       const roots = document.querySelectorAll('[data-folder]');
+      if (!roots.length) return;
+
+      ensureObserver();
 
       roots.forEach((root) => {
+        if (!(root instanceof HTMLElement)) return;
         if (root.dataset.folderInit === 'true') return;
         root.dataset.folderInit = 'true';
 
-        const run = () => updateShape(root);
-        run();
+        const parts = getParts(root);
+        if (!parts) return;
 
-        const label = root.querySelector('[data-folder-label]');
-        const description = root.querySelector('[data-folder-description]');
+        state.roots.add(root);
+        state.elToRoot.set(root, root);
+        state.ro?.observe(root);
 
-        const ro = new ResizeObserver(run);
-        if (label) ro.observe(label);
-        if (description) ro.observe(description);
-        ro.observe(root);
+        state.elToRoot.set(parts.label, root);
+        state.ro?.observe(parts.label);
 
-        // store for potential future cleanup
-        root.__folderResizeObserver = ro;
+        if (parts.description) {
+          state.elToRoot.set(parts.description, root);
+          state.ro?.observe(parts.description);
+        }
 
-        window.addEventListener('resize', run);
+        schedule(root);
       });
+    }
+
+    function cleanup() {
+      // Release references so removed nodes can be GC'd between view transitions.
+      state.ro?.disconnect();
+      state.ro = null;
+      state.roots.clear();
+      state.rootToParts = new WeakMap();
+      state.elToRoot = new WeakMap();
+      state.dirty.clear();
+      if (state.raf) window.cancelAnimationFrame(state.raf);
+      state.raf = 0;
+    }
+
+    if (!window.__folderShapesBound) {
+      window.__folderShapesBound = true;
+      document.addEventListener('astro:page-load', initAll);
+      window.addEventListener('astro:before-preparation', cleanup);
+      window.addEventListener('pagehide', cleanup);
+      window.addEventListener('resize', () => state.roots.forEach(schedule));
+      window.addEventListener('load', () => state.roots.forEach(schedule), { once: true });
     }
 
     if (document.readyState === 'loading') {
@@ -244,7 +315,5 @@ const { title, description, className = '' } = Astro.props;
     } else {
       initAll();
     }
-
-    document.addEventListener('astro:page-load', initAll);
   })();
 </script>

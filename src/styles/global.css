@@ -142,9 +142,7 @@ a:hover .glitch-char:nth-child(2) {
      --nav-origin-in / --nav-origin-out
    - Sin "completion" forzada: si salís, se envuelve rápido (exit corto).
 */
-#nav-links a,
-#theme-toggle,
-#contacto a {
+:where(#nav-links a, #theme-toggle, #contacto a) {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -168,9 +166,7 @@ a:hover .glitch-char:nth-child(2) {
   will-change: transform;
 }
 
-#nav-links a::before,
-#theme-toggle::before,
-#contacto a::before {
+:where(#nav-links a, #theme-toggle, #contacto a)::before {
   content: '';
   position: absolute;
   inset: -2px -6px;
@@ -192,16 +188,12 @@ a:hover .glitch-char:nth-child(2) {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  #nav-links a:hover,
-  #theme-toggle:hover,
-  #contacto a:hover {
+  :where(#nav-links a, #theme-toggle, #contacto a):hover {
     color: var(--color-bg);
     transform: translateY(-1px);
   }
 
-  #nav-links a:hover::before,
-  #theme-toggle:hover::before,
-  #contacto a:hover::before {
+  :where(#nav-links a, #theme-toggle, #contacto a):hover::before {
     opacity: 1;
     transform: scaleX(1) skewX(var(--nav-skew));
     transform-origin: var(--nav-origin-in);
@@ -213,35 +205,33 @@ a:hover .glitch-char:nth-child(2) {
   }
 }
 
-#nav-links a:focus-visible,
-#theme-toggle:focus-visible,
-#contacto a:focus-visible {
+:where(#nav-links a, #theme-toggle, #contacto a):focus-visible {
   color: var(--color-bg);
   transform: translateY(-1px);
 }
 
-#nav-links a:focus-visible::before,
-#theme-toggle:focus-visible::before,
-#contacto a:focus-visible::before {
+:where(#nav-links a, #theme-toggle, #contacto a):focus-visible::before {
   opacity: 1;
   transform: scaleX(1) skewX(var(--nav-skew));
   transform-origin: var(--nav-origin-in);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #nav-links a,
-  #theme-toggle,
-  #contacto a,
-  #nav-links a::before,
-  #theme-toggle::before,
-  #contacto a::before {
+  :where(#nav-links a, #theme-toggle, #contacto a),
+  :where(#nav-links a, #theme-toggle, #contacto a)::before {
     transition: none;
   }
 
-  #nav-links a:hover,
-  #theme-toggle:hover,
-  #contacto a:hover {
+  :where(#nav-links a, #theme-toggle, #contacto a):hover {
     transform: none;
+  }
+}
+
+/* En mobile: solo mostrar el toggle, ocultar links del nav (work/about/contact)
+   Nota: esto es un “safety net” por si alguna regla global pisa el `hidden`. */
+@media (max-width: 47.999rem) {
+  #nav-links a {
+    display: none !important;
   }
 }
 

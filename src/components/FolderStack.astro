@@ -41,6 +41,9 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     /* How much “tighter” the stack starts before it relaxes into place */
     --stack-compress-step: 12px;
 
+    /* Make this an offset context so item.offsetTop is stable & transform-independent. */
+    position: relative;
+
     list-style: none;
     padding: 0;
     margin: 0;
@@ -172,9 +175,46 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   }
 </style>
 
-<script is:inline>
-  // Mobile: 1st tap = reveal (lift). 2nd tap = navigate.
+<script>
+  // Folder stack: in-view relax animation + mobile “current folder” while scrolling.
   (function () {
+    // This component can appear on multiple pages with Astro view transitions.
+    // Guard against registering duplicate global listeners.
+    if (window.__folderStackScriptLoaded) return;
+    window.__folderStackScriptLoaded = true;
+
+    const state = (window.__folderStackState ||= { controllers: [], observers: [] });
+
+    function cleanupFolderStacks() {
+      // Remove window listeners created for previous pages.
+      state.controllers.forEach((c) => {
+        try {
+          c.abort();
+        } catch {
+          // ignore
+        }
+      });
+      state.controllers.length = 0;
+
+      // Disconnect any observers that may still be alive.
+      state.observers.forEach((o) => {
+        try {
+          o.disconnect();
+        } catch {
+          // ignore
+        }
+      });
+      state.observers.length = 0;
+    }
+
+    if (!window.__folderStackCleanupBound) {
+      window.__folderStackCleanupBound = true;
+      // Fired by Astro view transitions before swapping DOM.
+      window.addEventListener('astro:before-preparation', cleanupFolderStacks);
+      // Safety for bfcache / tab close.
+      window.addEventListener('pagehide', cleanupFolderStacks);
+    }
+
     function initFolderStacks() {
       const stacks = document.querySelectorAll('[data-folder-stack]');
       if (!stacks.length) return;
@@ -230,100 +270,144 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
             }
           );
 
+          state.observers.push(io);
           io.observe(stack);
         }
 
-        // --- Touch (no hover): use a “current” folder based on viewport center. ---
-        // The folder closest to the vertical center of the viewport gets `data-active="true"`
-        // (which reuses the same lift + shadow styles as hover).
-        //
-        // NOTE: `(hover:none) and (pointer:coarse)` is *not* reliable in desktop responsive
-        // emulation or on some hybrid devices, so we also enable this on small viewports.
-        const isMobileLike =
-          window.matchMedia('(max-width: 768px)').matches ||
-          window.matchMedia('(hover: none)').matches ||
-          window.matchMedia('(pointer: coarse)').matches ||
-          (navigator.maxTouchPoints || 0) > 0;
-        if (!isMobileLike) return;
+        // --- Mobile: no hover. Keep one folder “current” while scrolling. ---
+        // Use an activation line slightly ABOVE center so the active one doesn't lag below.
+        // This is intentionally simple (and fast): rAF-throttled scroll + a small loop.
+        const enableAutoActive = window.matchMedia('(max-width: 768px)').matches;
+        if (!enableAutoActive) return;
+
+        const items = Array.from(stack.querySelectorAll('[data-folder-stack-item]')).filter(
+          (el) => el instanceof HTMLElement
+        );
+        if (!items.length) return;
+
+        const ACTIVE_LINE = 0.42; // 0..1 of viewport height
+        const MIN_VISIBLE_RATIO = 0.5; // only show “current” when stack fills >= 50% of viewport
+
+        /** Cached layout (document coordinates). Recomputed on resize / content changes. */
+        let metricsReady = false;
+        let stackTop = 0;
+        let stackBottom = 0;
+        let itemTops = [];
+
+        let activeItem = null;
 
         function clearActive() {
-          stack.querySelectorAll('[data-folder-stack-item][data-active="true"]').forEach((el) => {
-            el.dataset.active = 'false';
-          });
+          if (!activeItem) return;
+          activeItem.dataset.active = 'false';
+          activeItem = null;
         }
 
         function setActive(item) {
-          clearActive();
-          item.dataset.active = 'true';
+          if (!item) return;
+          if (activeItem === item) return;
+          if (activeItem) activeItem.dataset.active = 'false';
+          activeItem = item;
+          activeItem.dataset.active = 'true';
         }
 
-        function setActiveFromViewportCenter() {
-          const items = stack.querySelectorAll('[data-folder-stack-item]');
+        function recalcMetrics() {
+          const sy = window.scrollY || window.pageYOffset || 0;
+          const srect = stack.getBoundingClientRect();
+          stackTop = srect.top + sy;
+          stackBottom = srect.bottom + sy;
+
+          itemTops = new Array(items.length);
+          for (let i = 0; i < items.length; i++) {
+            // offsetTop is cheap and ignores transforms (important during the relax animation).
+            itemTops[i] = stackTop + items[i].offsetTop;
+          }
+
+          metricsReady = true;
+        }
+
+        function stackVisibleHeight(sy, vh) {
+          return Math.max(0, Math.min(stackBottom, sy + vh) - Math.max(stackTop, sy));
+        }
+
+        function pickActive() {
           const vh = window.innerHeight || 0;
-          if (!vh || !items.length) return;
+          const sy = window.scrollY || window.pageYOffset || 0;
+          if (!vh) return;
 
-          const centerY = vh * 0.5;
-          let best = null;
-          let bestDist = Infinity;
+          if (!metricsReady) recalcMetrics();
 
-          items.forEach((item) => {
-            if (!(item instanceof HTMLElement)) return;
-            const rect = item.getBoundingClientRect();
-            const isVisible = rect.bottom > 0 && rect.top < vh;
-            if (!isVisible) return;
+          // Gate: only when stack is meaningfully on screen.
+          const visible = stackVisibleHeight(sy, vh);
+          if (visible < vh * MIN_VISIBLE_RATIO) {
+            clearActive();
+            return;
+          }
 
-            const itemCenter = (rect.top + rect.bottom) / 2;
-            const d = Math.abs(itemCenter - centerY);
-            if (d < bestDist) {
-              bestDist = d;
-              best = item;
+          const yDoc = sy + vh * ACTIVE_LINE;
+
+          // Find last item whose top is above the activation line.
+          // Binary search keeps scroll work tiny.
+          let lo = 0;
+          let hi = itemTops.length - 1;
+          let ans = 0;
+
+          while (lo <= hi) {
+            const mid = (lo + hi) >> 1;
+            if (itemTops[mid] <= yDoc) {
+              ans = mid;
+              lo = mid + 1;
+            } else {
+              hi = mid - 1;
             }
-          });
+          }
 
-          if (best) setActive(best);
+          setActive(items[ans]);
         }
 
         let raf = 0;
-        function scheduleCenterUpdate() {
+        function scheduleUpdate() {
           if (raf) return;
           raf = window.requestAnimationFrame(() => {
             raf = 0;
-            setActiveFromViewportCenter();
+            pickActive();
           });
         }
 
-        // Initialize + keep in sync while scrolling.
-        setActiveFromViewportCenter();
-        window.addEventListener('scroll', scheduleCenterUpdate, { passive: true });
-        window.addEventListener('resize', scheduleCenterUpdate);
+        let recalcRaf = 0;
+        function scheduleRecalc() {
+          if (recalcRaf) return;
+          recalcRaf = window.requestAnimationFrame(() => {
+            recalcRaf = 0;
+            recalcMetrics();
+            pickActive();
+          });
+        }
 
-        // 2-tap UX still applies when tapping a non-current folder:
-        // 1st tap = make it current (lift). 2nd tap = navigate.
-        stack.addEventListener('click', (e) => {
-          const link = e.target instanceof Element ? e.target.closest('[data-folder-link]') : null;
-          if (!link) return;
+        const ac = new AbortController();
+        state.controllers.push(ac);
 
-          const item = link.closest('[data-folder-stack-item]');
-          if (!item) return;
+        // Recalc when layout changes (folder heights can change after hydration).
+        const ro = new ResizeObserver(scheduleRecalc);
+        state.observers.push(ro);
+        ro.observe(stack);
 
-          if (item.dataset.active !== 'true') {
-            e.preventDefault();
-            setActive(item);
-          }
-        });
+        recalcMetrics();
+        pickActive();
 
-        // If the user taps outside, snap back to the centered folder (don't leave none active).
-        document.addEventListener('pointerdown', (e) => {
-          if (!(e.target instanceof Node)) return;
-          if (stack.contains(e.target)) return;
-          scheduleCenterUpdate();
-        });
+        window.addEventListener('scroll', scheduleUpdate, { passive: true, signal: ac.signal });
+        window.addEventListener('resize', scheduleRecalc, { signal: ac.signal });
       });
     }
 
-    initFolderStacks();
+    const boot = () => initFolderStacks();
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot, { once: true });
+    } else {
+      boot();
+    }
 
     // Astro view transitions support
-    document.addEventListener('astro:page-load', initFolderStacks);
+    document.addEventListener('astro:page-load', boot);
   })();
 </script>
