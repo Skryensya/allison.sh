@@ -18,14 +18,14 @@ const { title, description, className = '' } = Astro.props;
       preserveAspectRatio="none"
     >
       <!-- Fill only -->
-      <path data-folder-fill-path fill="var(--folder-fill, var(--color-bg))"></path>
+      <path data-folder-fill-path fill="var(--folder-fill, var(--folder-base-fill, var(--color-bg)))"></path>
     </svg>
 
     <!-- Text overlay (doesn't affect layout; JS will grow the SVG when needed) -->
-    <div data-folder-text-layer class="pointer-events-none absolute inset-0">
+    <div data-folder-text-layer class="pointer-events-none absolute inset-0 z-[2]">
       <div
         data-folder-label
-        class="absolute left-[var(--folder-pad-x)] top-[16px] text-text font-sans text-xl sm:text-2xl md:text-3xl leading-[1.1] tracking-tight font-normal whitespace-nowrap pointer-events-auto select-text"
+        class="absolute left-[var(--folder-pad-x)] top-[20px] text-text font-sans text-xl sm:text-2xl md:text-3xl leading-[1.1] tracking-tight font-normal whitespace-nowrap pointer-events-auto select-text"
       >
         {title}
       </div>
@@ -34,7 +34,7 @@ const { title, description, className = '' } = Astro.props;
         description && (
           <div
             data-folder-description
-            class="absolute left-[var(--folder-pad-x)] top-[66px] md:top-[78px] right-[var(--folder-pad-x)] text-muted font-sans text-base leading-[1.55] pointer-events-auto select-text"
+            class="absolute left-[var(--folder-pad-x)] top-[64px] md:top-[74px] right-[var(--folder-pad-x)] text-muted font-sans text-base leading-[1.55] pointer-events-auto select-text"
           >
             {description}
           </div>
@@ -62,10 +62,18 @@ const { title, description, className = '' } = Astro.props;
     }
   }
 
+  @media (max-width: 768px) {
+    [data-folder-shell] {
+      clip-path: none;
+    }
+  }
+
   /* Clip: permite que la sombra salga por arriba y a los lados,
      pero corta cualquier blur que intente “caer” debajo del folder. */
   [data-folder-shell] {
     /* Deja respirar la sombra arriba y a los lados, pero la mantiene “apretada”. */
+    position: relative;
+    z-index: 2;
     clip-path: inset(-56px -88px 0 -88px);
   }
 
@@ -80,9 +88,21 @@ const { title, description, className = '' } = Astro.props;
 
     filter: var(
       --folder-shadow-filter,
-      drop-shadow(0 -7px 13px color-mix(in srgb, var(--color-text) 5%, transparent))
-        drop-shadow(0 -2px 4px color-mix(in srgb, var(--color-text) 2.5%, transparent))
+      drop-shadow(0 -7px 13px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 5%, transparent))
+        drop-shadow(0 -2px 4px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 2.5%, transparent))
     );
+  }
+
+  @media (max-width: 768px) {
+    [data-folder-fill-path],
+    [data-folder-svg] {
+      transition: none;
+    }
+
+    [data-folder-svg] {
+      filter: none;
+      will-change: auto;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

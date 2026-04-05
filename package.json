@@ -14,11 +14,15 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.2",
+    "@astrojs/react": "^5.0.2",
     "@chenglou/pretext": "^0.0.4",
+    "@paper-design/shaders-react": "^0.0.72",
     "@tailwindcss/vite": "^4.2.2",
     "astro": "^6.0.8",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "rehype-slug": "^6.0.0",
     "tailwindcss": "^4.2.2"
   },
