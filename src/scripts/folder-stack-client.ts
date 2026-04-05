@@ -140,6 +140,7 @@ function setupFolderStacks() {
       let activeItem: HTMLElement | null = null;
 
       const openItemPreview = (item: HTMLElement) => {
+        if (isMobile && stack.dataset.scrollFast === 'true') return;
         ensurePreviewLoaded(item);
         item.dataset.previewOpen = 'true';
         item.querySelectorAll('[data-preview-index]').forEach((el) => {
@@ -345,6 +346,32 @@ function setupFolderStacks() {
       }
 
       let pickRaf = 0;
+      let lastScrollY = window.scrollY || window.pageYOffset || 0;
+      let lastScrollAt = performance.now();
+      let fastScrollTimer = 0;
+
+      function markFastScroll(sy: number) {
+        if (!isMobile) return;
+        const now = performance.now();
+        const dy = Math.abs(sy - lastScrollY);
+        const dt = Math.max(16, now - lastScrollAt);
+        const velocity = dy / dt;
+
+        lastScrollY = sy;
+        lastScrollAt = now;
+
+        if (velocity > 1.1) {
+          stack.dataset.scrollFast = 'true';
+          if (activeItem) closeItemPreview(activeItem);
+        }
+
+        if (fastScrollTimer) window.clearTimeout(fastScrollTimer);
+        fastScrollTimer = window.setTimeout(() => {
+          delete stack.dataset.scrollFast;
+          if (activeItem) openItemPreview(activeItem);
+        }, 140);
+      }
+
       function schedulePick() {
         if (pickRaf) return;
         pickRaf = window.requestAnimationFrame(() => {
@@ -367,6 +394,8 @@ function setupFolderStacks() {
         const vh = window.innerHeight || 0;
         const sy = window.scrollY || window.pageYOffset || 0;
         if (!vh) return;
+
+        markFastScroll(sy);
 
         if (!metricsReady) {
           scheduleRecalc();
@@ -394,6 +423,10 @@ function setupFolderStacks() {
 
       recalcMetrics();
       pickActive();
+
+      ac.signal.addEventListener('abort', () => {
+        if (fastScrollTimer) window.clearTimeout(fastScrollTimer);
+      });
 
       window.addEventListener('scroll', onScroll, { passive: true, signal: ac.signal });
       window.addEventListener('resize', scheduleRecalc, { signal: ac.signal });
