@@ -3,6 +3,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeSlug from 'rehype-slug';
 import mdx from '@astrojs/mdx';
+import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
@@ -27,7 +28,7 @@ export default defineConfig({
   markdown: {
     rehypePlugins: [rehypeSlug],
   },
-  integrations: [mdx()],
+  integrations: [mdx(), react()],
   fonts: [
     // Clash Grotesk for headings/display
     {
