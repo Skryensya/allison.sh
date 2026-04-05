@@ -53,8 +53,7 @@ function setupFolderStacks() {
     if (!stacks.length) return;
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    const enableAutoActive = isMobile;
+    const enableAutoActive = window.matchMedia('(max-width: 768px)').matches;
 
     stacks.forEach((stack) => {
       if (!(stack instanceof HTMLElement)) return;
@@ -80,7 +79,7 @@ function setupFolderStacks() {
         }, total);
       };
 
-      if (prefersReducedMotion || isMobile) {
+      if (prefersReducedMotion) {
         stack.classList.remove('is-pre');
         stack.classList.add('is-relaxed');
       } else {
@@ -116,16 +115,6 @@ function setupFolderStacks() {
         const imgs = item.querySelectorAll('[data-folder-preview-img]');
         if (!imgs.length) return;
 
-        if (isMobile) {
-          const firstImg = imgs[0];
-          if (firstImg instanceof HTMLImageElement) {
-            const src = firstImg.dataset.src;
-            if (src) firstImg.src = src;
-          }
-          item.dataset.previewLoaded = 'true';
-          return;
-        }
-
         imgs.forEach((img) => {
           if (!(img instanceof HTMLImageElement)) return;
           const src = img.dataset.src;
@@ -137,146 +126,61 @@ function setupFolderStacks() {
       }
 
       const previewableItems: HTMLElement[] = [];
-      let activeItem: HTMLElement | null = null;
-
-      const openItemPreview = (item: HTMLElement) => {
-        ensurePreviewLoaded(item);
-        item.dataset.previewOpen = 'true';
-        item.querySelectorAll('[data-preview-index]').forEach((el) => {
-          if (el instanceof HTMLElement) el.dataset.previewOpen = 'true';
-        });
-      };
-
-      const closeItemPreview = (item: HTMLElement) => {
-        item.dataset.previewOpen = 'false';
-        delete item.dataset.hoveredPreview;
-        item.querySelectorAll('[data-preview-index]').forEach((el) => {
-          if (el instanceof HTMLElement) el.dataset.previewOpen = 'false';
-        });
-      };
-
-      const clearActiveItem = () => {
-        if (!activeItem) return;
-        activeItem.dataset.active = 'false';
-        closeItemPreview(activeItem);
-        activeItem = null;
-      };
-
-      const setActiveItem = (item: HTMLElement) => {
-        if (activeItem === item) {
-          item.dataset.active = 'true';
-          openItemPreview(item);
-          return;
-        }
-
-        if (activeItem) {
-          activeItem.dataset.active = 'false';
-          closeItemPreview(activeItem);
-        }
-
-        activeItem = item;
-        activeItem.dataset.active = 'true';
-        openItemPreview(activeItem);
-      };
 
       items.forEach((item) => {
         const hit = item.querySelector('[data-folder-hit]');
         if (!(hit instanceof HTMLElement)) return;
 
         const openPreview = () => {
-          openItemPreview(item);
-        };
-
-        const clearHoveredPreview = () => {
-          delete item.dataset.hoveredPreview;
+          ensurePreviewLoaded(item);
+          item.dataset.previewOpen = 'true';
+          item.querySelectorAll('[data-preview-index]').forEach((el) => {
+            if (el instanceof HTMLElement) el.dataset.previewOpen = 'true';
+          });
         };
 
         const closePreview = () => {
-          closeItemPreview(item);
+          item.dataset.previewOpen = 'false';
+          item.querySelectorAll('[data-preview-index]').forEach((el) => {
+            if (el instanceof HTMLElement) el.dataset.previewOpen = 'false';
+          });
         };
 
         if (item.querySelector('[data-preview-index]')) previewableItems.push(item);
 
-        if (!isMobile) {
-          item.querySelectorAll('[data-preview-index]').forEach((preview) => {
-            if (!(preview instanceof HTMLElement)) return;
-            const index = preview.dataset.previewIndex;
-            if (!index) return;
-
-            preview.addEventListener(
-              'pointerenter',
-              () => {
-                openPreview();
-                item.dataset.hoveredPreview = index;
-              },
-              { signal: ac.signal }
-            );
-
-            preview.addEventListener('pointerleave', clearHoveredPreview, { signal: ac.signal });
-            preview.addEventListener(
-              'focus',
-              () => {
-                openPreview();
-                item.dataset.hoveredPreview = index;
-              },
-              { signal: ac.signal }
-            );
-            preview.addEventListener('blur', clearHoveredPreview, { signal: ac.signal });
-          });
-        }
-
-        if (!isMobile) {
-          hit.addEventListener('pointerenter', openPreview, { signal: ac.signal });
-        }
+        hit.addEventListener('pointerenter', openPreview, { signal: ac.signal });
+        hit.addEventListener('pointerleave', closePreview, { signal: ac.signal });
         hit.addEventListener('focus', openPreview, { signal: ac.signal });
-        hit.addEventListener(
-          'click',
-          (event) => {
-            if (!isMobile) return;
-            if (item.dataset.active === 'true' || item.dataset.previewOpen === 'true') return;
-            event.preventDefault();
-            setActiveItem(item);
-          },
-          { signal: ac.signal }
-        );
-
-        if (!isMobile) {
-          item.addEventListener(
-            'pointerleave',
-            (event) => {
-              const related = event.relatedTarget;
-              if (related instanceof Node && item.contains(related)) return;
-              closePreview();
-            },
-            { signal: ac.signal }
-          );
-        }
-
-        if (!isMobile) {
-          item.addEventListener(
-            'focusout',
-            (event) => {
-              const related = event.relatedTarget;
-              if (related instanceof Node && item.contains(related)) return;
-              closePreview();
-            },
-            { signal: ac.signal }
-          );
-        }
+        hit.addEventListener('blur', closePreview, { signal: ac.signal });
       });
 
       if (!enableAutoActive && previewableItems.length) {
-        previewableItems.forEach((item) => {
-          closeItemPreview(item);
-          item.dataset.active = 'false';
-        });
+        const leadItem = previewableItems[0];
+        if (leadItem && !stack.dataset.previewHintDismissed) {
+          ensurePreviewLoaded(leadItem);
+          leadItem.dataset.previewOpen = 'true';
+          leadItem.querySelectorAll('[data-preview-index]').forEach((el) => {
+            if (el instanceof HTMLElement) el.dataset.previewOpen = 'true';
+          });
+        }
+
+        const dismissHint = () => {
+          if (stack.dataset.previewHintDismissed === 'true') return;
+          stack.dataset.previewHintDismissed = 'true';
+          previewableItems.forEach((item) => {
+            item.dataset.previewOpen = 'false';
+            item.querySelectorAll('[data-preview-index]').forEach((el) => {
+              if (el instanceof HTMLElement) el.dataset.previewOpen = 'false';
+            });
+          });
+        };
+
+        stack.addEventListener('pointerenter', dismissHint, { once: true, signal: ac.signal });
+        stack.addEventListener('focusin', dismissHint, { once: true, signal: ac.signal });
       }
 
       // --- Mobile: keep one folder “current” while scrolling ---
       if (!enableAutoActive) return;
-
-      const activeCandidates = previewableItems.length ? previewableItems : items;
-      if (!activeCandidates.length) return;
 
       const ACTIVE_LINE = 0.42;
       const MIN_VISIBLE_RATIO = 0.5;
@@ -286,12 +190,19 @@ function setupFolderStacks() {
       let stackBottom = 0;
       let itemTops: number[] = [];
 
+      let activeItem: HTMLElement | null = null;
+
       function clearActive() {
-        clearActiveItem();
+        if (!activeItem) return;
+        activeItem.dataset.active = 'false';
+        activeItem = null;
       }
 
       function setActive(item: HTMLElement) {
-        setActiveItem(item);
+        if (activeItem === item) return;
+        if (activeItem) activeItem.dataset.active = 'false';
+        activeItem = item;
+        activeItem.dataset.active = 'true';
       }
 
       function recalcMetrics() {
@@ -301,9 +212,9 @@ function setupFolderStacks() {
         stackBottom = rect.bottom + sy;
 
         // offsetTop is cheap and ignores transforms (important during relax).
-        itemTops = new Array(activeCandidates.length);
-        for (let i = 0; i < activeCandidates.length; i++) {
-          itemTops[i] = stackTop + activeCandidates[i].offsetTop;
+        itemTops = new Array(items.length);
+        for (let i = 0; i < items.length; i++) {
+          itemTops[i] = stackTop + items[i].offsetTop;
         }
 
         metricsReady = true;
@@ -341,7 +252,7 @@ function setupFolderStacks() {
           }
         }
 
-        setActive(activeCandidates[ans]);
+        setActive(items[ans]);
       }
 
       let pickRaf = 0;

@@ -1,4 +1,6 @@
 ---
+import FolderPreviewPaper from '@/components/FolderPreviewPaper';
+
 interface Props {
   href: string;
   index: number;
@@ -29,27 +31,15 @@ const { href, index, ariaLabel, previewSrcs = [], previewAlt } = Astro.props;
 
   {
     previewSrcs.length > 0 && (
-      <div class="folder-stack__preview-stack">
+      <div class="folder-stack__preview-stack" aria-hidden="true">
         {previewSrcs.slice(0, 3).map((src, i) => (
-          <a
-            href={href}
-            class="folder-stack__preview"
-            data-preview-index={i}
-            aria-label={ariaLabel ?? `Open project preview ${i + 1}`}
-          >
+          <div class="folder-stack__preview" data-preview-index={i}>
             <div class="folder-stack__preview-frame">
               <div class="folder-stack__preview-media">
-                <img
-                  class="folder-stack__preview-img"
-                  data-folder-preview-img
-                  data-src={src}
-                  alt={previewAlt ?? ''}
-                  loading="lazy"
-                  decoding="async"
-                />
+                <FolderPreviewPaper client:load src={src} alt={previewAlt ?? ''} />
               </div>
             </div>
-          </a>
+          </div>
         ))}
       </div>
     )

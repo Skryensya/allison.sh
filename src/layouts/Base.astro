@@ -54,11 +54,6 @@ const { title, description } = Astro.props;
     --avatar-white: var(--theme-colorful);
     --avatar-gray: color-mix(in srgb, var(--theme-colorful) 82%, var(--theme-contrasty) 18%);
     --avatar-colorful-50: color-mix(in srgb, var(--theme-colorful) 25%, var(--theme-contrasty) 75%);
-
-    /* Folder surfaces / shadows */
-    --folder-base-fill: var(--color-bg);
-    --folder-hover-fill: color-mix(in srgb, var(--color-bg) 94%, var(--color-text) 6%);
-    --folder-shadow-ink: var(--color-text);
   }
 
   html.dark {
@@ -68,10 +63,6 @@ const { title, description } = Astro.props;
     --color-subtle: #858280;
     --color-border: #4A4740;
     --color-link: #FF6030;
-
-    --folder-base-fill: var(--color-bg);
-    --folder-hover-fill: color-mix(in srgb, var(--color-bg) 80%, var(--color-text) 20%);
-    --folder-shadow-ink: #000;
     /* Avatar keeps light theme colors */
   }
 
