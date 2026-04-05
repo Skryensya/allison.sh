@@ -103,11 +103,84 @@ function setupFolderStacks() {
         io.observe(stack);
       }
 
-      // --- Mobile: keep one folder “current” while scrolling ---
-      if (!enableAutoActive) return;
-
       const items = Array.from(stack.children).filter((el): el is HTMLElement => el instanceof HTMLElement);
       if (!items.length) return;
+
+      const ac = new AbortController();
+      state.controllers.push(ac);
+
+      // --- Lazy-load folder previews on first hover/focus ---
+      function ensurePreviewLoaded(item: HTMLElement) {
+        if (item.dataset.previewLoaded === 'true') return;
+        const imgs = item.querySelectorAll('[data-folder-preview-img]');
+        if (!imgs.length) return;
+
+        imgs.forEach((img) => {
+          if (!(img instanceof HTMLImageElement)) return;
+          const src = img.dataset.src;
+          if (!src) return;
+          img.src = src;
+        });
+
+        item.dataset.previewLoaded = 'true';
+      }
+
+      const previewableItems: HTMLElement[] = [];
+
+      items.forEach((item) => {
+        const hit = item.querySelector('[data-folder-hit]');
+        if (!(hit instanceof HTMLElement)) return;
+
+        const openPreview = () => {
+          ensurePreviewLoaded(item);
+          item.dataset.previewOpen = 'true';
+          item.querySelectorAll('[data-preview-index]').forEach((el) => {
+            if (el instanceof HTMLElement) el.dataset.previewOpen = 'true';
+          });
+        };
+
+        const closePreview = () => {
+          item.dataset.previewOpen = 'false';
+          item.querySelectorAll('[data-preview-index]').forEach((el) => {
+            if (el instanceof HTMLElement) el.dataset.previewOpen = 'false';
+          });
+        };
+
+        if (item.querySelector('[data-preview-index]')) previewableItems.push(item);
+
+        hit.addEventListener('pointerenter', openPreview, { signal: ac.signal });
+        hit.addEventListener('pointerleave', closePreview, { signal: ac.signal });
+        hit.addEventListener('focus', openPreview, { signal: ac.signal });
+        hit.addEventListener('blur', closePreview, { signal: ac.signal });
+      });
+
+      if (!enableAutoActive && previewableItems.length) {
+        const leadItem = previewableItems[0];
+        if (leadItem && !stack.dataset.previewHintDismissed) {
+          ensurePreviewLoaded(leadItem);
+          leadItem.dataset.previewOpen = 'true';
+          leadItem.querySelectorAll('[data-preview-index]').forEach((el) => {
+            if (el instanceof HTMLElement) el.dataset.previewOpen = 'true';
+          });
+        }
+
+        const dismissHint = () => {
+          if (stack.dataset.previewHintDismissed === 'true') return;
+          stack.dataset.previewHintDismissed = 'true';
+          previewableItems.forEach((item) => {
+            item.dataset.previewOpen = 'false';
+            item.querySelectorAll('[data-preview-index]').forEach((el) => {
+              if (el instanceof HTMLElement) el.dataset.previewOpen = 'false';
+            });
+          });
+        };
+
+        stack.addEventListener('pointerenter', dismissHint, { once: true, signal: ac.signal });
+        stack.addEventListener('focusin', dismissHint, { once: true, signal: ac.signal });
+      }
+
+      // --- Mobile: keep one folder “current” while scrolling ---
+      if (!enableAutoActive) return;
 
       const ACTIVE_LINE = 0.42;
       const MIN_VISIBLE_RATIO = 0.5;
@@ -220,9 +293,6 @@ function setupFolderStacks() {
 
         schedulePick();
       }
-
-      const ac = new AbortController();
-      state.controllers.push(ac);
 
       // Recalc when layout changes (folder heights can change after hydration).
       const ro = new ResizeObserver(scheduleRecalc);

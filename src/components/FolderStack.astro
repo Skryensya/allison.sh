@@ -21,16 +21,24 @@ if (lift) styleParts.push(`--folder-lift:${lift}`);
 const style = styleParts.length ? styleParts.join('; ') : undefined;
 ---
 
-<ul
-  class="folder-stack"
-  data-folder-stack
-  style={style}
->
-  <slot />
-</ul>
+<div class="folder-stack-wrap">
+  <ul
+    class="folder-stack"
+    data-folder-stack
+    style={style}
+  >
+    <slot />
+  </ul>
+  <div class="folder-stack__tail-mask" aria-hidden="true"></div>
+</div>
 
 <style is:global>
   /* Folder stack: overlapping pile with subtle randomness + micro-interactions */
+  .folder-stack-wrap {
+    position: relative;
+    --folder-tail-mask-h: 120px;
+  }
+
   .folder-stack {
     /* Defaults (can be overridden by inline CSS vars via props) */
     --folder-overlap: 260px;
@@ -50,6 +58,10 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   }
 
   @media (max-width: 640px) {
+    .folder-stack-wrap {
+      --folder-tail-mask-h: 104px;
+    }
+
     .folder-stack {
       --folder-overlap: 230px;
       --folder-gap: 30px;
@@ -59,6 +71,10 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   }
 
   @media (max-width: 420px) {
+    .folder-stack-wrap {
+      --folder-tail-mask-h: 92px;
+    }
+
     .folder-stack {
       --folder-overlap: 210px;
       --folder-gap: 26px;
@@ -67,12 +83,23 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     }
   }
 
+  .folder-stack__tail-mask {
+    position: absolute;
+    left: calc(-2 * var(--folder-pad-x));
+    right: calc(-2 * var(--folder-pad-x));
+    bottom: 0;
+    height: var(--folder-tail-mask-h);
+    background: linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--color-bg) 76%, transparent) 48%, var(--color-bg) 100%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
   /* Shadow: almost invisible while stacked (avoid a dark band), comes alive on hover. */
   .folder-stack [data-folder] {
     /* Near-transparent at rest: should read as “almost none”. */
     --folder-shadow-filter:
-      drop-shadow(0 -3px 8px color-mix(in srgb, var(--color-text) 0.45%, transparent))
-      drop-shadow(0 -1px 2px color-mix(in srgb, var(--color-text) 0.18%, transparent));
+      drop-shadow(0 -3px 8px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.32%, transparent))
+      drop-shadow(0 -1px 2px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.12%, transparent));
   }
 
   .folder-stack__item {
@@ -94,10 +121,98 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     margin-left: calc(0px - var(--folder-pad-x));
     margin-right: calc(0px - var(--folder-pad-x));
 
-    /* No tilt / no sideways drift */
-    --stack-x: 0px;
-    --stack-y: 0px;
-    --stack-rot: 0deg;
+    /*
+      3D context for hover tilt (applies to the hit + card children).
+      Keeping it per-item avoids the whole stack becoming one 3D scene.
+    */
+    perspective: 950px;
+
+    /* Uniform hover motion: like pulling a folder slightly forward from a cabinet */
+    --folder-hover-rx: -3.4deg;
+    --folder-hover-ry: 0deg;
+    --folder-hover-rz: 0deg;
+    --folder-hover-z: 2px;
+
+    /* Hidden at rest; rise clearly above the folder on hover. */
+    --preview-center-rest-x: -8px;
+    --preview-center-rest-y: 28px;
+    --preview-center-rest-rot: -1.2deg;
+    --preview-left-rest-x: 84px;
+    --preview-left-rest-y: 34px;
+    --preview-left-rest-rot: -5deg;
+    --preview-right-rest-x: 76px;
+    --preview-right-rest-y: 38px;
+    --preview-right-rest-rot: 6deg;
+
+    --preview-center-hover-x: -3px;
+    --preview-center-hover-y: -284px;
+    --preview-center-hover-rot: -0.4deg;
+    --preview-left-hover-x: 62px;
+    --preview-left-hover-y: -276px;
+    --preview-left-hover-rot: -3.5deg;
+    --preview-right-hover-x: 52px;
+    --preview-right-hover-y: -252px;
+    --preview-right-hover-rot: 4.5deg;
+  }
+
+  .folder-stack__item:nth-child(4n + 1) {
+    --preview-center-rest-x: -14px;
+    --preview-center-rest-rot: 1deg;
+    --preview-left-rest-x: 92px;
+    --preview-left-rest-rot: -6deg;
+    --preview-right-rest-x: 82px;
+    --preview-right-rest-rot: 7deg;
+    --preview-center-hover-x: -8px;
+    --preview-center-hover-rot: 0.4deg;
+    --preview-left-hover-x: 68px;
+    --preview-left-hover-rot: -4deg;
+    --preview-right-hover-x: 58px;
+    --preview-right-hover-rot: 5deg;
+  }
+
+  .folder-stack__item:nth-child(4n + 2) {
+    --preview-center-rest-x: 10px;
+    --preview-center-rest-rot: -1.6deg;
+    --preview-left-rest-x: 66px;
+    --preview-left-rest-rot: -3deg;
+    --preview-right-rest-x: 70px;
+    --preview-right-rest-rot: 5deg;
+    --preview-center-hover-x: 5px;
+    --preview-center-hover-rot: -0.6deg;
+    --preview-left-hover-x: 48px;
+    --preview-left-hover-rot: -2deg;
+    --preview-right-hover-x: 46px;
+    --preview-right-hover-rot: 3.5deg;
+  }
+
+  .folder-stack__item:nth-child(4n + 3) {
+    --preview-center-rest-x: -10px;
+    --preview-center-rest-rot: 1.4deg;
+    --preview-left-rest-x: 96px;
+    --preview-left-rest-rot: -7deg;
+    --preview-right-rest-x: 84px;
+    --preview-right-rest-rot: 8deg;
+    --preview-center-hover-x: -3px;
+    --preview-center-hover-rot: 0.6deg;
+    --preview-left-hover-x: 72px;
+    --preview-left-hover-rot: -4.5deg;
+    --preview-right-hover-x: 58px;
+    --preview-right-hover-rot: 5.5deg;
+  }
+
+  .folder-stack__item:nth-child(4n) {
+    --preview-center-rest-x: 6px;
+    --preview-center-rest-rot: -0.8deg;
+    --preview-left-rest-x: 80px;
+    --preview-left-rest-rot: -4deg;
+    --preview-right-rest-x: 74px;
+    --preview-right-rest-rot: 6deg;
+    --preview-center-hover-x: 3px;
+    --preview-center-hover-rot: -0.2deg;
+    --preview-left-hover-x: 58px;
+    --preview-left-hover-rot: -3deg;
+    --preview-right-hover-x: 50px;
+    --preview-right-hover-rot: 4deg;
   }
 
   .folder-stack__item + .folder-stack__item {
@@ -145,10 +260,11 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   */
   .folder-stack__card,
   .folder-stack__hit {
-    transform: translate3d(0, 0, 0) scale(1);
-    transform-origin: 50% 90%;
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
+    transform-origin: 50% 114%;
 
-    transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+    /* Hover-out uses this (quick but soft). Hover-in overrides below. */
+    transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform;
     backface-visibility: hidden;
   }
@@ -157,6 +273,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     display: block;
     /* Important: don't block clicks in transparent corners. */
     pointer-events: none;
+    position: relative;
+    z-index: calc(var(--i, 0) * 2 + 2);
   }
 
   /* Ensure the whole visual subtree is non-interactive (overlay link handles all hits). */
@@ -167,12 +285,13 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   .folder-stack__hit {
     position: absolute;
     inset: 0;
-    z-index: 2;
+    z-index: calc(var(--i, 0) * 2 + 3);
 
     display: block;
     text-decoration: none;
     cursor: pointer;
     touch-action: manipulation;
+    outline: none;
 
     /* Re-enable events (the parent LI is pointer-events:none) */
     pointer-events: auto;
@@ -182,38 +301,187 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     clip-path: var(--folder-clip-path, none);
   }
 
-  /* Active (touch) also lifts */
-  .folder-stack__item[data-active='true'] :is(.folder-stack__card, .folder-stack__hit) {
-    transform: translate3d(0, calc(-1 * var(--folder-lift)), 0) scale(1.004);
+
+  .folder-stack__preview-stack {
+    position: absolute;
+    left: 50%;
+    top: 28px;
+    width: 100%;
+    height: 0;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: calc(var(--i, 0) * 2 + 1);
+    overflow: visible;
   }
 
-  /* Hover lift only on devices that truly hover (and only inside the clipped hit area) */
-  @media (hover: hover) and (pointer: fine) {
-    .folder-stack__hit:hover,
-    .folder-stack__hit:hover + .folder-stack__card {
-      transform: translate3d(0, calc(-1 * var(--folder-lift)), 0) scale(1.004);
+  .folder-stack__item:first-child .folder-stack__preview-stack {
+    top: 18px;
+  }
+
+  .folder-stack__preview {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 54%;
+    aspect-ratio: 4 / 3;
+    transform: translate3d(-50%, 40px, 0) scale(0.32);
+    transform-origin: 50% 100%;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    will-change: transform;
+    transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .folder-stack__preview[data-preview-index='0'] {
+    z-index: 2;
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(calc(-50% + var(--preview-center-hover-x)))
+      translateY(calc(var(--preview-center-hover-y) + 240px)) scale(0.62) rotate(var(--preview-center-hover-rot));
+  }
+
+  .folder-stack__preview[data-preview-index='1'] {
+    z-index: 1;
+    opacity: 0.86;
+    visibility: visible;
+    transform: translateX(calc(-50% - var(--preview-left-hover-x)))
+      translateY(calc(var(--preview-left-hover-y) + 240px)) scale(0.56) rotate(var(--preview-left-hover-rot));
+  }
+
+  .folder-stack__preview[data-preview-index='2'] {
+    z-index: 1;
+    opacity: 0.8;
+    visibility: visible;
+    transform: translateX(calc(-50% + var(--preview-right-hover-x)))
+      translateY(calc(var(--preview-right-hover-y) + 240px)) scale(0.52) rotate(var(--preview-right-hover-rot));
+  }
+
+  @media (max-width: 768px) {
+    .folder-stack__preview-stack {
+      top: 24px;
+    }
+
+    .folder-stack__item:first-child .folder-stack__preview-stack {
+      top: 14px;
+    }
+
+    .folder-stack__preview {
+      width: 50%;
     }
   }
 
-  /* Keyboard focus lift */
+  .folder-stack__preview-frame {
+    width: 100%;
+    height: 100%;
+    padding: 4px 4px 14px;
+    background: #fff;
+    border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+    border-radius: 2px;
+    box-shadow:
+      0 6px 12px color-mix(in srgb, var(--color-text) 6%, transparent),
+      0 1px 2px color-mix(in srgb, var(--color-text) 3%, transparent);
+  }
+
+  .folder-stack__preview-media {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--color-bg) 86%, var(--color-text) 14%);
+  }
+
+  .folder-stack__preview[data-preview-open='true'] {
+    visibility: visible;
+  }
+
+  /* Active (touch) also lifts (no tilt on mobile scroll-active) */
+  .folder-stack__item[data-active='true'] :is(.folder-stack__card, .folder-stack__hit) {
+    transform: translate3d(0, calc(-1 * var(--folder-lift)), 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
+      scale(1.004);
+  }
+
+  /* Hover tilt only on devices that truly hover (and only inside the clipped hit area) */
+  @media (hover: hover) and (pointer: fine) {
+    .folder-stack__hit:hover,
+    .folder-stack__hit:hover ~ .folder-stack__card,
+    .folder-stack__item[data-preview-open='true'] .folder-stack__hit,
+    .folder-stack__item[data-preview-open='true'] .folder-stack__card {
+      transform: translate3d(0, calc(-1 * var(--folder-lift)), var(--folder-hover-z))
+        rotateX(var(--folder-hover-rx)) rotateY(var(--folder-hover-ry)) rotateZ(var(--folder-hover-rz))
+        scale(1.0005);
+
+      transition-duration: 360ms;
+      transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .folder-stack__hit:hover ~ .folder-stack__preview-stack .folder-stack__preview[data-preview-index='0'] {
+      transform: translateX(calc(-50% + var(--preview-center-hover-x))) translateY(var(--preview-center-hover-y))
+        scale(0.62) rotate(var(--preview-center-hover-rot));
+    }
+
+    .folder-stack__hit:hover ~ .folder-stack__preview-stack .folder-stack__preview[data-preview-index='1'] {
+      transform: translateX(calc(-50% - var(--preview-left-hover-x))) translateY(var(--preview-left-hover-y))
+        scale(0.56) rotate(var(--preview-left-hover-rot));
+    }
+
+    .folder-stack__hit:hover ~ .folder-stack__preview-stack .folder-stack__preview[data-preview-index='2'] {
+      transform: translateX(calc(-50% + var(--preview-right-hover-x))) translateY(var(--preview-right-hover-y))
+        scale(0.52) rotate(var(--preview-right-hover-rot));
+    }
+  }
+
+  /* Keyboard focus tilt */
   .folder-stack__item:focus-within :is(.folder-stack__card, .folder-stack__hit) {
-    transform: translate3d(0, calc(-1 * var(--folder-lift)), 0) scale(1.004);
+    transform: translate3d(0, calc(-1 * var(--folder-lift)), var(--folder-hover-z))
+      rotateX(var(--folder-hover-rx)) rotateY(var(--folder-hover-ry)) rotateZ(var(--folder-hover-rz))
+      scale(1.0005);
+
+    transition-duration: 360ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+
+  .folder-stack__item[data-preview-open='true'] .folder-stack__preview[data-preview-index='0'],
+  .folder-stack__item:focus-within .folder-stack__preview[data-preview-index='0'],
+  .folder-stack__item[data-active='true'] .folder-stack__preview[data-preview-index='0'] {
+    transform: translateX(calc(-50% + var(--preview-center-hover-x))) translateY(var(--preview-center-hover-y))
+      scale(0.62) rotate(var(--preview-center-hover-rot));
+  }
+
+  .folder-stack__item[data-preview-open='true'] .folder-stack__preview[data-preview-index='1'],
+  .folder-stack__item:focus-within .folder-stack__preview[data-preview-index='1'],
+  .folder-stack__item[data-active='true'] .folder-stack__preview[data-preview-index='1'] {
+    transform: translateX(calc(-50% - var(--preview-left-hover-x))) translateY(var(--preview-left-hover-y))
+      scale(0.56) rotate(var(--preview-left-hover-rot));
+  }
+
+  .folder-stack__item[data-preview-open='true'] .folder-stack__preview[data-preview-index='2'],
+  .folder-stack__item:focus-within .folder-stack__preview[data-preview-index='2'],
+  .folder-stack__item[data-active='true'] .folder-stack__preview[data-preview-index='2'] {
+    transform: translateX(calc(-50% + var(--preview-right-hover-x))) translateY(var(--preview-right-hover-y))
+      scale(0.52) rotate(var(--preview-right-hover-rot));
   }
 
   /* Press feedback (only within the clipped hit area) */
   .folder-stack__hit:active,
   .folder-stack__hit:active + .folder-stack__card {
-    transform: translate3d(0, calc(-1 * (var(--folder-lift) - 2px)), 0) scale(1.002);
+    transform: translate3d(0, calc(-1 * (var(--folder-lift) - 2px)), 10px)
+      rotateX(-2.7deg) rotateY(var(--folder-hover-ry)) rotateZ(var(--folder-hover-rz)) scale(1);
+
+    transition-duration: 110ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
   }
 
   /* Delight: subtle fill nudge + shadow ramps up only when a folder is “picked up”. */
-  .folder-stack__hit:hover + .folder-stack__card [data-folder],
+  .folder-stack__hit:hover ~ .folder-stack__card [data-folder],
   .folder-stack__item:focus-within [data-folder],
   .folder-stack__item[data-active='true'] [data-folder] {
-    --folder-fill: color-mix(in srgb, var(--color-bg) 92%, var(--color-text) 8%);
+    --folder-fill: var(--folder-hover-fill, color-mix(in srgb, var(--color-bg) 92%, var(--color-text) 8%));
     --folder-shadow-filter:
-      drop-shadow(0 -8px 16px color-mix(in srgb, var(--color-text) 3.2%, transparent))
-      drop-shadow(0 -2px 5px color-mix(in srgb, var(--color-text) 1.4%, transparent));
+      drop-shadow(0 -8px 16px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 2.1%, transparent))
+      drop-shadow(0 -2px 5px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.9%, transparent));
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -223,7 +491,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     }
 
     .folder-stack__card,
-    .folder-stack__hit {
+    .folder-stack__hit,
+    .folder-stack__preview {
       transition: none;
       transform: none !important;
     }

@@ -1,16 +1,19 @@
 ---
+import FolderPreviewPaper from '@/components/FolderPreviewPaper';
+
 interface Props {
   href: string;
   index: number;
   /** Optional label for screen readers (falls back to generic) */
   ariaLabel?: string;
+  previewSrcs?: string[];
+  previewAlt?: string;
 }
 
-const { href, index, ariaLabel } = Astro.props;
+const { href, index, ariaLabel, previewSrcs = [], previewAlt } = Astro.props;
 ---
 
-<li class="folder-stack__item" data-folder-stack-item style={`--i:${index}`}
->
+<li class="folder-stack__item" data-folder-stack-item style={`--i:${index}`}>
   <!--
     Hit-area overlay.
     We clip this link to the actual folder SVG path (set by folder-shapes-client.ts)
@@ -25,6 +28,22 @@ const { href, index, ariaLabel } = Astro.props;
     data-folder-hit
     aria-label={ariaLabel ?? 'Open project'}
   ></a>
+
+  {
+    previewSrcs.length > 0 && (
+      <div class="folder-stack__preview-stack" aria-hidden="true">
+        {previewSrcs.slice(0, 3).map((src, i) => (
+          <div class="folder-stack__preview" data-preview-index={i}>
+            <div class="folder-stack__preview-frame">
+              <div class="folder-stack__preview-media">
+                <FolderPreviewPaper client:load src={src} alt={previewAlt ?? ''} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   <div class="folder-stack__card" data-folder-card>
     <slot />
