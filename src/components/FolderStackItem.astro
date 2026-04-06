@@ -2,7 +2,6 @@
 interface Props {
   href: string;
   index: number;
-  /** Optional label for screen readers (falls back to generic) */
   ariaLabel?: string;
   previewSrcs?: string[];
   previewAlt?: string;
@@ -13,14 +12,6 @@ const previewCount = Math.min(previewSrcs.length, 3);
 ---
 
 <li class="folder-stack__item" data-folder-stack-item data-preview-count={previewCount} style={`--i:${index}`}>
-  <!--
-    Hit-area overlay.
-    We clip this link to the actual folder SVG path (set by folder-shapes-client.ts)
-    so clicks/hover only register on the visible folder, and empty corners
-    pass through to the folders below.
-
-    NOTE: This element has no visuals; it won't clip shadows.
-  -->
   <a
     href={href}
     class="folder-stack__hit"

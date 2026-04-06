@@ -1,22 +1,30 @@
 ---
 title: "Kit Digital UC"
-description: "Un sistema de componentes en vanilla que tiene que sobrevivir a stacks distintos y decisiones viejas. Consistencia, accesibilidad y mantenimiento por sobre lo vistoso."
+description: "Sistema de diseño y biblioteca de componentes para mantener coherencia visual en todos los sitios de la universidad."
 ---
 
 ## Contexto
 
-Un sistema de componentes usado por toda la universidad. Decenas de equipos lo usan para construir sitios de facultades, unidades, subdirectorios. Cada decisión sobre tipografía, espaciado o componentes afecta cómo se ve algo que mucha gente usa. No es un framework abierto — es una herramienta con consecuencias cuando no se usa bien.
+La UC tiene dozens de sitios web construidos por equipos distintos. Cada uno con su personalidad, su stack, sus convenciones. El resultado: un ecosistema fragmentado donde la experiencia del usuario sufre.
 
-Lo que lo hacía interesante era el stack. Vanilla JS obligatorio — tenía que funcionar igual en React, Vue, PHP heredado, lo que fuera. Eso te limitaba lo que podías construir, pero también te dejaba pensando en lo esencial. Si algo no funcionaba en vanilla, probablemente no pertenecía al kit.
+Kit Digital UC propuso cambiar eso. Una biblioteca de componentes compartida, documentada y fácil de usar.
 
-<ImageFigure src="https://dummyimage.com/900x700/000/fff" alt="Placeholder Kit Digital UC 1" caption="Catálogo de componentes base." wide={true} />
+<ImageFigure src="https://dummyimage.com/900x700/a0c8e8/2b2b2b" alt="Catálogo de componentes base." />
 
 ## Mi aporte
 
-Cuando llegué, el kit funcionaba pero con deuda acumulada de desarrollo continuo. Mi trabajo fue mejorarlo sin romper nada de lo que ya dependía de él. Mejorar la accesibilidad, optimizar el rendimiento, limpiar inconsistencias que se habían colado con el tiempo. Elegir qué pertenecía al kit y qué no. Tomar decisiones que envejecen bien — como dejar background images por img semánticos, que no es glamoroso pero mejora SEO, accesibilidad y rendimiento para todos los sitios que lo usan.
+Desarrollo del sistema de diseño: tokens de diseño, componentes base y guías de implementación.
 
-<ImageFigure src="https://dummyimage.com/1180x620/000/fff" alt="Placeholder Kit Digital UC 2" caption="Documentación y patrones compartidos." wide={true} />
+Construí componentes accesibles desde cero siguiendo WCAG 2.1 AA.
+
+Documenté patrones de uso con ejemplos interactivos.
+
+Cree un sistema de versionado que permite actualizaciones sin breaking changes.
+
+<ImageFigure src="https://dummyimage.com/1180x620/e8c0a8/2b2b2b" alt="Documentación y patrones compartidos." />
 
 ## Aprendizaje
 
-Diseñar para el caso general cuando tienes que responder a casos particulares. Eso pasa cuando un sistema sirve a toda una organización — tienes que pensar en lo que realmente importa, no en lo que es cómodo. Los buenos sistemas no te limitan, te obligan a ser más preciso.
+Un sistema de diseño es una inversión. Al principio es más lento que hacerlo todo a mano. Pero después de seis meses, los equipos que lo usan van más rápido y con mejor calidad.
+
+La documentación no es opcional. El mejor componente sin docs es un componente que nadie usa.

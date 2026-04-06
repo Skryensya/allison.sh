@@ -126,7 +126,7 @@ function setupFolderStacks() {
         item.dataset.previewLoaded = 'true';
       }
 
-      const PREVIEW_OPEN_DELAY = isMobile ? 700 : 300;
+      const PREVIEW_OPEN_DELAY = isMobile ? 700 : 120;
       const previewableItems: HTMLElement[] = [];
       const previewOpenTimers = new Map<HTMLElement, number>();
       let activeItem: HTMLElement | null = null;
