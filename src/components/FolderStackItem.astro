@@ -9,9 +9,10 @@ interface Props {
 }
 
 const { href, index, ariaLabel, previewSrcs = [], previewAlt } = Astro.props;
+const previewCount = Math.min(previewSrcs.length, 3);
 ---
 
-<li class="folder-stack__item" data-folder-stack-item style={`--i:${index}`}>
+<li class="folder-stack__item" data-folder-stack-item data-preview-count={previewCount} style={`--i:${index}`}>
   <!--
     Hit-area overlay.
     We clip this link to the actual folder SVG path (set by folder-shapes-client.ts)

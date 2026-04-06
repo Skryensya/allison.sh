@@ -116,16 +116,6 @@ function setupFolderStacks() {
         const imgs = item.querySelectorAll('[data-folder-preview-img]');
         if (!imgs.length) return;
 
-        if (isMobile) {
-          const firstImg = imgs[0];
-          if (firstImg instanceof HTMLImageElement) {
-            const src = firstImg.dataset.src;
-            if (src) firstImg.src = src;
-          }
-          item.dataset.previewLoaded = 'true';
-          return;
-        }
-
         imgs.forEach((img) => {
           if (!(img instanceof HTMLImageElement)) return;
           const src = img.dataset.src;
@@ -136,18 +126,37 @@ function setupFolderStacks() {
         item.dataset.previewLoaded = 'true';
       }
 
+      const PREVIEW_OPEN_DELAY = isMobile ? 600 : 500;
       const previewableItems: HTMLElement[] = [];
+      const previewOpenTimers = new Map<HTMLElement, number>();
       let activeItem: HTMLElement | null = null;
 
-      const openItemPreview = (item: HTMLElement) => {
-        ensurePreviewLoaded(item);
+      const applyItemPreviewOpen = (item: HTMLElement) => {
         item.dataset.previewOpen = 'true';
         item.querySelectorAll('[data-preview-index]').forEach((el) => {
           if (el instanceof HTMLElement) el.dataset.previewOpen = 'true';
         });
       };
 
+      const clearPreviewOpenTimer = (item: HTMLElement) => {
+        const timer = previewOpenTimers.get(item);
+        if (!timer) return;
+        window.clearTimeout(timer);
+        previewOpenTimers.delete(item);
+      };
+
+      const openItemPreview = (item: HTMLElement) => {
+        if (item.dataset.previewOpen === 'true' || previewOpenTimers.has(item)) return;
+        ensurePreviewLoaded(item);
+        const timer = window.setTimeout(() => {
+          previewOpenTimers.delete(item);
+          applyItemPreviewOpen(item);
+        }, PREVIEW_OPEN_DELAY);
+        previewOpenTimers.set(item, timer);
+      };
+
       const closeItemPreview = (item: HTMLElement) => {
+        clearPreviewOpenTimer(item);
         item.dataset.previewOpen = 'false';
         delete item.dataset.hoveredPreview;
         item.querySelectorAll('[data-preview-index]').forEach((el) => {
@@ -394,6 +403,11 @@ function setupFolderStacks() {
 
       recalcMetrics();
       pickActive();
+
+      ac.signal.addEventListener('abort', () => {
+        previewOpenTimers.forEach((timer) => window.clearTimeout(timer));
+        previewOpenTimers.clear();
+      });
 
       window.addEventListener('scroll', onScroll, { passive: true, signal: ac.signal });
       window.addEventListener('resize', scheduleRecalc, { signal: ac.signal });
