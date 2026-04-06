@@ -13,13 +13,15 @@ const { src, alt, caption, wide = false, credit } = Astro.props;
 ---
 
 <figure class={`image-figure ${wide ? 'image-figure--wide' : 'image-figure--narrow'}`}>
-  <HalftonePolaroid
-    client:load
-    src={src}
-    alt={alt}
-    caption={caption}
-    showCaption={true}
-  />
+  <div class="image-figure__inner">
+    <HalftonePolaroid
+      client:load
+      src={src}
+      alt={alt}
+      caption={caption}
+      showCaption={true}
+    />
+  </div>
 
   {credit && (
     <figcaption class="image-figure__meta">
@@ -30,21 +32,23 @@ const { src, alt, caption, wide = false, credit } = Astro.props;
 
 <style>
   .image-figure {
-    --breakout-size: 8rem;
     margin-top: 2.75rem;
     margin-bottom: 2.75rem;
-    margin-left: calc(var(--breakout-size) * -1);
-    margin-right: calc(var(--breakout-size) * -1);
+  }
+
+  .image-figure__inner {
+    width: 100%;
+  }
+
+  .image-figure :global(.halftone-polaroid__frame) {
+    padding: 0.5rem;
+    padding-bottom: 2.5rem;
   }
 
   @media (min-width: 768px) {
-    .image-figure {
-      margin-left: calc(var(--breakout-size) * -1);
-      margin-right: calc(var(--breakout-size) * -1);
-    }
-
-    .image-figure--wide {
-      --breakout-size: 12rem;
+    .image-figure :global(.halftone-polaroid__frame) {
+      padding: var(--polaroid-pad);
+      padding-bottom: var(--polaroid-bottom);
     }
   }
 

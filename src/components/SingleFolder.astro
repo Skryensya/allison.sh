@@ -7,8 +7,7 @@ const { className = '' } = Astro.props;
 ---
 
 <div class={`single-folder-wrap ${className}`} data-single-folder>
-  <div class="single-folder__backdrop" aria-hidden="true"></div>
-  <div class="single-folder__flap" aria-hidden="true"></div>
+  <div class="single-folder__backdrop"></div>
   <div class="single-folder__content">
     <slot />
   </div>
@@ -17,71 +16,61 @@ const { className = '' } = Astro.props;
 <style>
   .single-folder-wrap {
     position: relative;
-    overflow: visible;
-    isolation: isolate;
   }
 
-  /* Backdrop shadow layer - invisible at rest */
+  /* Paper-like backdrop with grainy gradient */
   .single-folder__backdrop {
     position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: 1;
     opacity: 0;
-    transition: opacity 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity 250ms cubic-bezier(0.16, 1, 0.3, 1);
 
-    /* Folder-like shadow casting upward and sides */
+    /* Paper texture gradient - full color at top, fades to bg at bottom */
+    background:
+      /* Paper grain texture */
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
+      /* Color gradient - stronger at top, subtle at bottom */
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-bg) 75%, var(--color-text) 25%) 0%,
+        color-mix(in srgb, var(--color-bg) 88%, var(--color-text) 12%) 40%,
+        color-mix(in srgb, var(--color-bg) 96%, var(--color-text) 4%) 70%,
+        transparent 100%
+      );
+    background-blend-mode: soft-light, normal;
+    
+    /* Top edge shadow */
     box-shadow:
-      0 -6px 16px -8px color-mix(in srgb, var(--color-text) 3.5%, transparent),
-      0 -2px 6px -4px color-mix(in srgb, var(--color-text) 1.5%, transparent),
-      -4px 0 12px -4px color-mix(in srgb, var(--color-text) 1.2%, transparent),
-      4px 0 12px -4px color-mix(in srgb, var(--color-text) 1.2%, transparent);
-
-    border-radius: 2px;
+      inset 0 1px 0 color-mix(in srgb, var(--color-text) 6%, transparent),
+      0 1px 3px color-mix(in srgb, var(--color-text) 3%, transparent);
   }
 
-  /* Folder flap effect at top - subtle line */
-  .single-folder__flap {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 0;
-    pointer-events: none;
-    z-index: 3;
-    opacity: 0;
-    transition: opacity 280ms cubic-bezier(0.22, 1, 0.36, 1);
-    overflow: hidden;
+  @media (prefers-color-scheme: dark) {
+    .single-folder__backdrop {
+      background:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--color-bg) 70%, var(--color-text) 30%) 0%,
+          color-mix(in srgb, var(--color-bg) 85%, var(--color-text) 15%) 40%,
+          color-mix(in srgb, var(--color-bg) 96%, var(--color-text) 4%) 70%,
+          transparent 100%
+        );
+      background-blend-mode: soft-light, normal;
+    }
   }
 
-  .single-folder__flap::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--color-text) 2.5%, transparent) 0%,
-      transparent 100%
-    );
-  }
-
-  /* Hover: reveal backdrop and flap */
+  /* Hover: reveal paper effect */
   @media (hover: hover) and (pointer: fine) {
     .single-folder-wrap:hover .single-folder__backdrop {
       opacity: 1;
     }
-
-    .single-folder-wrap:hover .single-folder__flap {
-      opacity: 1;
-    }
   }
 
-  /* Also show on focus-within (keyboard navigation) */
-  .single-folder-wrap:focus-within .single-folder__backdrop,
-  .single-folder-wrap:focus-within .single-folder__flap {
+  /* Show on focus-within (keyboard navigation) */
+  .single-folder-wrap:focus-within .single-folder__backdrop {
     opacity: 1;
   }
 
@@ -91,8 +80,7 @@ const { className = '' } = Astro.props;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .single-folder__backdrop,
-    .single-folder__flap {
+    .single-folder__backdrop {
       transition: none;
     }
   }
