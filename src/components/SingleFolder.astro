@@ -1,0 +1,99 @@
+---
+interface Props {
+  className?: string;
+}
+
+const { className = '' } = Astro.props;
+---
+
+<div class={`single-folder-wrap ${className}`} data-single-folder>
+  <div class="single-folder__backdrop" aria-hidden="true"></div>
+  <div class="single-folder__flap" aria-hidden="true"></div>
+  <div class="single-folder__content">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .single-folder-wrap {
+    position: relative;
+    overflow: visible;
+    isolation: isolate;
+  }
+
+  /* Backdrop shadow layer - invisible at rest */
+  .single-folder__backdrop {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 280ms cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Folder-like shadow casting upward and sides */
+    box-shadow:
+      0 -6px 16px -8px color-mix(in srgb, var(--color-text) 3.5%, transparent),
+      0 -2px 6px -4px color-mix(in srgb, var(--color-text) 1.5%, transparent),
+      -4px 0 12px -4px color-mix(in srgb, var(--color-text) 1.2%, transparent),
+      4px 0 12px -4px color-mix(in srgb, var(--color-text) 1.2%, transparent);
+
+    border-radius: 2px;
+  }
+
+  /* Folder flap effect at top - subtle line */
+  .single-folder__flap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    overflow: hidden;
+  }
+
+  .single-folder__flap::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-text) 2.5%, transparent) 0%,
+      transparent 100%
+    );
+  }
+
+  /* Hover: reveal backdrop and flap */
+  @media (hover: hover) and (pointer: fine) {
+    .single-folder-wrap:hover .single-folder__backdrop {
+      opacity: 1;
+    }
+
+    .single-folder-wrap:hover .single-folder__flap {
+      opacity: 1;
+    }
+  }
+
+  /* Also show on focus-within (keyboard navigation) */
+  .single-folder-wrap:focus-within .single-folder__backdrop,
+  .single-folder-wrap:focus-within .single-folder__flap {
+    opacity: 1;
+  }
+
+  .single-folder__content {
+    position: relative;
+    z-index: 2;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .single-folder__backdrop,
+    .single-folder__flap {
+      transition: none;
+    }
+  }
+</style>

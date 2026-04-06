@@ -14,7 +14,7 @@ const { src, alt, caption, wide = false, credit } = Astro.props;
 
 <figure class={`image-figure ${wide ? 'image-figure--wide' : 'image-figure--narrow'}`}>
   <HalftonePolaroid
-    client:only="react"
+    client:load
     src={src}
     alt={alt}
     caption={caption}

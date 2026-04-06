@@ -46,7 +46,7 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     /* Separate more on hover */
     --folder-lift: 14px;
 
-    /* How much “tighter” the stack starts before it relaxes into place */
+    /* How much "tighter" the stack starts before it relaxes into place */
     --stack-compress-step: 12px;
 
     /* Make this an offset context so item.offsetTop is stable & transform-independent. */
@@ -85,8 +85,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
 
   .folder-stack__tail-mask {
     position: absolute;
-    left: calc(-2 * var(--folder-pad-x));
-    right: calc(-2 * var(--folder-pad-x));
+    left: calc(-1 * var(--folder-pad-x));
+    right: calc(-1 * var(--folder-pad-x));
     bottom: 0;
     height: var(--folder-tail-mask-h);
     background: linear-gradient(
@@ -98,12 +98,12 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       var(--color-bg) 100%
     );
     pointer-events: none;
-    z-index: 40;
+    z-index: 20;
   }
 
   /* Shadow: almost invisible while stacked (avoid a dark band), comes alive on hover. */
   .folder-stack [data-folder] {
-    /* Near-transparent at rest: should read as “almost none”. */
+    /* Near-transparent at rest: should read as "almost none". */
     --folder-shadow-filter:
       drop-shadow(0 -3px 8px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.32%, transparent))
       drop-shadow(0 -1px 2px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.12%, transparent));
@@ -113,7 +113,7 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     position: relative;
 
     /*
-      Critical: let “empty” parts of the folder bounding box pass through.
+      Critical: let "empty" parts of the folder bounding box pass through.
       The only clickable/hoverable element is the clipped .folder-stack__hit link.
     */
     pointer-events: none;
@@ -282,7 +282,7 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     The hit-area is clipped to the real folder SVG path via --folder-clip-path
     (set by folder-shapes-client.ts).
 
-    This lets the “empty” parts of the folder bounding box pass pointer events
+    This lets the "empty" parts of the folder bounding box pass pointer events
     through to the folders below.
   */
   .folder-stack__card,
@@ -428,24 +428,45 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       transform: translateY(0) scaleY(1);
     }
 
-    .folder-stack__item [data-folder] {
+    /* ===== NUCLEAR: kill ALL hover/focus/active visual effects on mobile ===== */
+    .folder-stack__item [data-folder],
+    .folder-stack__hit:hover ~ .folder-stack__card [data-folder],
+    .folder-stack__item:focus-within [data-folder],
+    .folder-stack__item[data-hovered-preview] [data-folder],
+    .folder-stack__item[data-preview-open='true'] [data-folder] {
+      --folder-fill: var(--folder-base-fill, var(--color-bg)) !important;
       --folder-shadow-filter: none !important;
     }
 
+    /* Selected: keep fill color but no hover transform */
     .folder-stack__item[data-active='true'] [data-folder] {
-      --folder-fill: color-mix(in srgb, var(--color-bg) 80%, var(--color-text) 20%) !important;
+      --folder-fill: var(--folder-hover-fill, color-mix(in srgb, var(--color-bg) 92%, var(--color-text) 8%)) !important;
       --folder-shadow-filter: none !important;
     }
 
     .folder-stack__card,
-    .folder-stack__hit {
-      transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+    .folder-stack__hit,
+    .folder-stack__hit:hover,
+    .folder-stack__hit:active,
+    .folder-stack__hit:focus,
+    .folder-stack__hit:hover ~ .folder-stack__card,
+    .folder-stack__hit:active ~ .folder-stack__card,
+    .folder-stack__item:focus-within .folder-stack__card,
+    .folder-stack__item:focus-within .folder-stack__hit,
+    .folder-stack__item[data-hovered-preview] .folder-stack__card,
+    .folder-stack__item[data-hovered-preview] .folder-stack__hit {
+      transition: none !important;
       transform: none !important;
       will-change: auto;
     }
 
+    .folder-stack__hit {
+      -webkit-tap-highlight-color: transparent;
+    }
+
     .folder-stack__item[data-active='true'] :is(.folder-stack__card, .folder-stack__hit) {
       transform: translate3d(0, -1.5px, 0) scale(1.001) !important;
+      transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1) !important;
     }
 
     .folder-stack__preview {
@@ -534,8 +555,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
 
     .folder-stack__tail-mask {
       display: block;
-      left: calc(-1.5 * var(--folder-pad-x));
-      right: calc(-1.5 * var(--folder-pad-x));
+      left: calc(-1 * var(--folder-pad-x));
+      right: calc(-1 * var(--folder-pad-x));
       height: var(--folder-tail-mask-h);
       transform: none;
     }
@@ -601,16 +622,26 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
+    /* Hover fill nudge (desktop only) */
+    .folder-stack__hit:hover ~ .folder-stack__card [data-folder],
+    .folder-stack__item[data-hovered-preview] [data-folder] {
+      --folder-fill: var(--folder-hover-fill, color-mix(in srgb, var(--color-bg) 92%, var(--color-text) 8%));
+      --folder-shadow-filter:
+        drop-shadow(0 -8px 16px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 2.1%, transparent))
+        drop-shadow(0 -2px 5px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.9%, transparent));
+    }
   }
 
-  /* Keyboard focus tilt */
-  .folder-stack__item:focus-within :is(.folder-stack__card, .folder-stack__hit) {
-    transform: translate3d(0, calc(-1 * var(--folder-lift)), var(--folder-hover-z))
-      rotateX(var(--folder-hover-rx)) rotateY(var(--folder-hover-ry)) rotateZ(var(--folder-hover-rz))
-      scale(1.0005);
+  /* Keyboard focus tilt (desktop only — tap focus on mobile triggers this unwantedly) */
+  @media (hover: hover) and (pointer: fine) {
+    .folder-stack__item:focus-within :is(.folder-stack__card, .folder-stack__hit) {
+      transform: translate3d(0, calc(-1 * var(--folder-lift)), var(--folder-hover-z))
+        rotateX(var(--folder-hover-rx)) rotateY(var(--folder-hover-ry)) rotateZ(var(--folder-hover-rz))
+        scale(1.0005);
 
-    transition-duration: 240ms;
-    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+      transition-duration: 240ms;
+      transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
   }
 
 
@@ -669,21 +700,20 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       scale(0.84) rotate(var(--preview-right-hover-rot));
   }
 
-  /* Press feedback (only within the clipped hit area) */
-  .folder-stack__hit:active,
-  .folder-stack__hit:active + .folder-stack__card {
-    transform: translate3d(0, calc(-1 * (var(--folder-lift) - 2px)), 10px)
-      rotateX(-2.7deg) rotateY(var(--folder-hover-ry)) rotateZ(var(--folder-hover-rz)) scale(1);
+  /* Press feedback (desktop only – mobile uses scroll-active state) */
+  @media (hover: hover) and (pointer: fine) {
+    .folder-stack__hit:active,
+    .folder-stack__hit:active + .folder-stack__card {
+      transform: translate3d(0, calc(-1 * (var(--folder-lift) - 2px)), 10px)
+        rotateX(-2.7deg) rotateY(var(--folder-hover-ry)) rotateZ(var(--folder-hover-rz)) scale(1);
 
-    transition-duration: 110ms;
-    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+      transition-duration: 110ms;
+      transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+    }
   }
 
-  /* Delight: subtle fill nudge + shadow ramps up only when a folder is “picked up”. */
-  .folder-stack__hit:hover ~ .folder-stack__card [data-folder],
-  .folder-stack__item[data-hovered-preview] [data-folder],
+  /* Delight: subtle fill nudge + shadow on active/preview. */
   .folder-stack__item[data-preview-open='true'] [data-folder],
-  .folder-stack__item:focus-within [data-folder],
   .folder-stack__item[data-active='true'] [data-folder] {
     --folder-fill: var(--folder-hover-fill, color-mix(in srgb, var(--color-bg) 92%, var(--color-text) 8%));
     --folder-shadow-filter:

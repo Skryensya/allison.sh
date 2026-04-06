@@ -97,11 +97,11 @@ const { title, description, className = '' } = Astro.props;
   @media (max-width: 768px) {
     [data-folder-fill-path],
     [data-folder-svg] {
-      transition: none;
+      transition: none !important;
     }
 
     [data-folder-svg] {
-      filter: none;
+      filter: none !important;
       will-change: auto;
     }
   }

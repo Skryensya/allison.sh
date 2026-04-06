@@ -23,7 +23,7 @@ const nextProject = sorted[(currentIndex + 1) % sorted.length];
 ---
 
 <Project title={entry.data.title} description={entry.data.description} year={entry.data.year}>
-  <article class="space-y-6 font-mono text-base leading-[1.85] text-text">
+  <article class="space-y-6 font-sans text-base leading-[1.75] text-text">
     <Content components={{ ImageFigure }} />
     <TechChips tech={entry.data.tech || []} />
   </article>

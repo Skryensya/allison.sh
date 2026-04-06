@@ -126,7 +126,7 @@ function setupFolderStacks() {
         item.dataset.previewLoaded = 'true';
       }
 
-      const PREVIEW_OPEN_DELAY = isMobile ? 600 : 500;
+      const PREVIEW_OPEN_DELAY = isMobile ? 700 : 500;
       const previewableItems: HTMLElement[] = [];
       const previewOpenTimers = new Map<HTMLElement, number>();
       let activeItem: HTMLElement | null = null;
@@ -236,18 +236,9 @@ function setupFolderStacks() {
 
         if (!isMobile) {
           hit.addEventListener('pointerenter', openPreview, { signal: ac.signal });
+          hit.addEventListener('focus', openPreview, { signal: ac.signal });
         }
-        hit.addEventListener('focus', openPreview, { signal: ac.signal });
-        hit.addEventListener(
-          'click',
-          (event) => {
-            if (!isMobile) return;
-            if (item.dataset.active === 'true' || item.dataset.previewOpen === 'true') return;
-            event.preventDefault();
-            setActiveItem(item);
-          },
-          { signal: ac.signal }
-        );
+
 
         if (!isMobile) {
           item.addEventListener(
