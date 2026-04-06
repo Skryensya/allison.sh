@@ -89,9 +89,16 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     right: calc(-2 * var(--folder-pad-x));
     bottom: 0;
     height: var(--folder-tail-mask-h);
-    background: linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--color-bg) 76%, transparent) 48%, var(--color-bg) 100%);
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      color-mix(in srgb, var(--color-bg) 18%, transparent) 22%,
+      color-mix(in srgb, var(--color-bg) 52%, transparent) 54%,
+      color-mix(in srgb, var(--color-bg) 84%, transparent) 78%,
+      var(--color-bg) 100%
+    );
     pointer-events: none;
-    z-index: 3;
+    z-index: 40;
   }
 
   /* Shadow: almost invisible while stacked (avoid a dark band), comes alive on hover. */
@@ -526,7 +533,11 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     }
 
     .folder-stack__tail-mask {
-      display: none;
+      display: block;
+      left: calc(-1.5 * var(--folder-pad-x));
+      right: calc(-1.5 * var(--folder-pad-x));
+      height: var(--folder-tail-mask-h);
+      transform: none;
     }
   }
 

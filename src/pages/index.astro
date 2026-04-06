@@ -51,16 +51,19 @@ const previewImages: Record<string, string[]> = {
 
   <main id="main-content" class="max-w-[58ch] mx-auto px-6 md:px-8 pt-4 pb-16 md:pb-24">
 
-    <section class="min-h-[45vh] mt-20 md:mt-28 mb-28 md:mb-36">
-      <h1 class="hero-heading font-display text-5xl md:text-6xl xl:text-7xl leading-[1.05] font-normal tracking-tight">
+    <section class="min-h-[52svh] sm:min-h-[48svh] md:min-h-[38vh] mt-12 sm:mt-16 md:mt-24 mb-14 md:mb-18 flex flex-col justify-center md:justify-end gap-7 md:gap-9">
+      <h1 class="hero-heading font-display text-5xl md:text-6xl xl:text-7xl leading-[1.05] font-normal tracking-tight max-w-[11ch]">
         Interfaces que se olvidan <span class="text-muted">de existir.</span>
       </h1>
-      <p class="hero-subtitle font-sans text-base md:text-lg leading-[1.6] text-muted mt-6">
+      <p class="hero-subtitle max-w-[34ch] font-sans text-base md:text-lg leading-[1.6] text-muted">
         Me interesa cómo el código se vuelve invisible. Cómo lo que construyes importa más que cómo lo construyes.
       </p>
     </section>
 
-    <section id="proyectos" class="mb-32 md:mb-40 scroll-mt-20">
+    <section id="proyectos" class="mb-6 md:mb-8 scroll-mt-20">
+      <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-muted mb-5 md:mb-7">
+        Selected work
+      </p>
       <FolderStack>
         {projects.map((p, i) => (
           <FolderStackItem
@@ -75,7 +78,7 @@ const previewImages: Record<string, string[]> = {
       </FolderStack>
     </section>
 
-    <section id="sobre-mi" class="mb-32 md:mb-40 scroll-mt-20">
+    <section id="sobre-mi" class="-mt-4 md:-mt-6 mb-32 md:mb-40 scroll-mt-20">
       <div class="flex flex-col gap-8 items-start">
         <Avatar id="about-avatar" className="w-[160px] h-[160px] rounded-full border border-border" />
         <div class="space-y-6">

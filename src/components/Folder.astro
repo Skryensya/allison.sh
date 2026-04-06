@@ -78,12 +78,13 @@ const { title, description, className = '' } = Astro.props;
   }
 
   [data-folder-fill-path] {
-    transition: fill 220ms cubic-bezier(0.2, 0, 0, 1);
+    /* Hover color change only; theme switching is disabled globally in Base.astro */
+    transition: fill 150ms ease;
   }
 
   /* Sombra hacia arriba (overrideable from outside via --folder-shadow-filter) */
   [data-folder-svg] {
-    transition: filter 220ms cubic-bezier(0.2, 0, 0, 1);
+    transition: filter 180ms cubic-bezier(0.23, 1, 0.32, 1);
     will-change: filter;
 
     filter: var(
