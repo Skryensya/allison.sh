@@ -242,6 +242,11 @@ const { title, description } = Astro.props;
     var isHidden = false;
     var rafId = null;
     var threshold = 20;
+    var navbarExtraOffset = 50;
+
+    // Medir anchos reales para el translate
+    var logoWidth = logo.getBoundingClientRect().width + navbarExtraOffset;
+    var linksWidth = links.getBoundingClientRect().width + navbarExtraOffset;
 
     function animate() {
       if (!mql.matches) {
@@ -256,9 +261,9 @@ const { title, description } = Astro.props;
       var isBase = scrollY <= threshold;
 
       if (shouldHide && !isHidden) {
-        logo.style.transform = 'translateX(-130%)';
+        logo.style.transform = 'translateX(-' + logoWidth + 'px)';
         logo.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
-        links.style.transform = 'translateX(120%)';
+        links.style.transform = 'translateX(' + linksWidth + 'px)';
         links.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
         isHidden = true;
       } else if (isHidden && isBase) {
