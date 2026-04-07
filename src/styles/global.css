@@ -152,14 +152,12 @@ body {
 
 a:hover .name-normal {
   opacity: 0;
-  transform: translateX(6px) scaleX(0.97);
-  margin-left: -0.75rem;
+  transform: translateX(4px) scaleX(0.97);
 }
 
 a:hover .name-hover {
   opacity: 1;
   transform: translateX(0) scaleX(1);
-  margin-left: -0.75rem;
 }
 
 a:hover .glitch-char {
