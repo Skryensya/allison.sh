@@ -2,6 +2,7 @@
 import Base from './Base.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
+import Folder from '@/components/Folder.astro';
 
 interface Props {
   title: string;
@@ -15,21 +16,88 @@ const { title, description, year } = Astro.props;
 <Base title={`${title} | Allison Peña`} description={description}>
   <Navbar showBack={true} />
 
-  <main class="max-w-[58ch] mx-auto px-6 md:px-8 pt-4 pb-16 md:pb-24">
+  <main class="pb-16 md:pb-24">
 
-    <header class="mt-12 md:mt-16 mb-8 md:mb-10">
-      <h1 class="font-sans text-2xl md:text-3xl tracking-tight text-text leading-[1.1]">{title}</h1>
-      <p class="mt-3 font-sans text-base leading-[1.55] text-muted">{description}</p>
-      {year && (
-        <p class="mt-2 font-mono text-xs text-subtle">{year}</p>
-      )}
-    </header>
+    <div class="max-w-[58ch] mx-auto px-6 md:px-8">
+      <div class="project-folder folder-bleed" data-folder>
+        <div class="project-folder__gradient" aria-hidden="true"></div>
+        <div data-folder-shell class="relative">
+          <svg
+            data-folder-svg
+            height="480"
+            class="block w-full"
+            aria-hidden="true"
+            preserveAspectRatio="none"
+          >
+            <path data-folder-fill-path fill="var(--folder-fill, var(--folder-base-fill, var(--color-bg)))"></path>
+          </svg>
+          <div data-folder-text-layer class="pointer-events-none absolute inset-0 z-[2]">
+            <div
+              data-folder-label
+              class="absolute left-[var(--folder-pad-x)] top-[20px] text-text font-sans text-2xl md:text-3xl leading-[1.1] tracking-tight font-normal whitespace-nowrap pointer-events-auto select-text"
+            >
+              {title}
+            </div>
+            <div
+              data-folder-description
+              class="absolute left-[var(--folder-pad-x)] top-[82px] right-[var(--folder-pad-x)] text-muted font-sans text-base leading-[1.55] pointer-events-auto select-text"
+            >
+              {description}
+            </div>
+            {year && (
+              <p class="absolute left-[var(--folder-pad-x)] top-[116px] font-mono text-xs text-subtle">{year}</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <article class="project-article font-sans text-base leading-[1.75] text-text tracking-tight">
-      <slot />
-    </article>
+    <div class="max-w-[58ch] mx-auto px-6 md:px-8">
+      <article class="project-article font-sans text-base leading-[1.75] text-text tracking-tight">
+        <slot />
+      </article>
+    </div>
 
     <style>
+      .project-folder {
+        position: relative;
+        --folder-min-h: 480px;
+        --folder-base-fill: var(--color-bg);
+      }
+
+      .project-folder__gradient {
+        position: absolute;
+        left: -10%;
+        right: -10%;
+        bottom: 0;
+        width: 120%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          transparent 0%,
+          transparent 40%,
+          color-mix(in srgb, var(--color-bg) 40%, transparent) 55%,
+          color-mix(in srgb, var(--color-bg) 80%, transparent) 70%,
+          var(--color-bg) 80% 100%
+        );
+        pointer-events: none;
+        z-index: 26;
+      }
+
+      .project-folder [data-folder-shell] {
+        clip-path: inset(-56px -88px 0 -88px);
+      }
+
+      .project-folder [data-folder-svg] {
+        filter: drop-shadow(0 -7px 13px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 5%, transparent))
+                drop-shadow(0 -2px 4px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 2.5%, transparent));
+      }
+
+      /* Always show as active/hover state */
+      .project-folder [data-folder-fill-path] {
+        --folder-fill: var(--folder-hover-fill, color-mix(in srgb, var(--color-bg) 92%, var(--color-text) 8%));
+      }
+
       .project-article :global(h2) {
         font-family: var(--font-sans);
         font-size: 1.125rem;

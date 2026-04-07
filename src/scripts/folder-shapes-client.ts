@@ -116,6 +116,14 @@ function setupFolderShapes() {
     const prevHeight = Number(svg.getAttribute('height')) || 0;
     if (desiredSvgHeight !== prevHeight) svg.setAttribute('height', String(desiredSvgHeight));
 
+    // Expose content bottom so the stack can compute per-item overlap
+    const contentBottomPx = `${Math.ceil(contentBottom)}px`;
+    root.style.setProperty('--folder-content-bottom', contentBottomPx);
+    const parentItem = root.closest('[data-folder-stack-item]');
+    if (parentItem instanceof HTMLElement) {
+      parentItem.style.setProperty('--folder-content-bottom', contentBottomPx);
+    }
+
     // --- Width / flap geometry ---
     const flapStart = Number.parseFloat(styles.getPropertyValue('--folder-pad-x')) || 24;
     const rootWidth = root.clientWidth || 0;

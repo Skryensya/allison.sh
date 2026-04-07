@@ -107,6 +107,39 @@ function setupFolderStacks() {
       const items = Array.from(stack.children).filter((el): el is HTMLElement => el instanceof HTMLElement);
       if (!items.length) return;
 
+      // --- Equalize visual spacing between folders ---
+      // After folder shapes set --folder-content-bottom on each item,
+      // adjust per-item negative margin so the gap from text bottom
+      // to next folder top is optically consistent.
+      function equalizeSpacing() {
+        const stackStyles = getComputedStyle(stack);
+        const gap = parseFloat(stackStyles.getPropertyValue('--folder-gap')) || 48;
+
+        for (let i = 1; i < items.length; i++) {
+          const prev = items[i - 1];
+          const prevFolder = prev.querySelector('[data-folder]');
+          if (!prevFolder) continue;
+
+          const prevStyles = getComputedStyle(prevFolder);
+          const prevMinH = parseFloat(prevStyles.getPropertyValue('--folder-min-h')) || 400;
+          const contentBottom = parseFloat(prev.style.getPropertyValue('--folder-content-bottom')) || 160;
+
+          // How much empty space is below content in the previous folder
+          const emptyBelow = prevMinH - contentBottom;
+          // Pull up by that empty space, then add back the desired gap
+          const margin = -emptyBelow + gap;
+          items[i].style.marginTop = `${margin}px`;
+        }
+      }
+
+      // Run after folder shapes have been computed (they use rAF)
+      requestAnimationFrame(() => requestAnimationFrame(equalizeSpacing));
+
+      // Re-equalize on resize
+      const eqRo = new ResizeObserver(() => requestAnimationFrame(equalizeSpacing));
+      state.observers.push(eqRo);
+      eqRo.observe(stack);
+
       const ac = new AbortController();
       state.controllers.push(ac);
 
