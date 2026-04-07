@@ -17,6 +17,9 @@ function setupFolderStacks() {
   if (window.__folderStackScriptLoaded) return;
   window.__folderStackScriptLoaded = true;
 
+  const reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const mobileMql = window.matchMedia('(max-width: 768px)');
+
   const state: FolderStackRuntimeState = (window.__folderStackState ||= {
     controllers: [],
     observers: [],
@@ -52,8 +55,7 @@ function setupFolderStacks() {
     const stacks = document.querySelectorAll('[data-folder-stack]');
     if (!stacks.length) return;
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const isMobile = mobileMql.matches;
     const enableAutoActive = isMobile;
 
     stacks.forEach((stack) => {
@@ -80,7 +82,7 @@ function setupFolderStacks() {
         }, total);
       };
 
-      if (prefersReducedMotion || isMobile) {
+      if (reducedMotionMql.matches || isMobile) {
         stack.classList.remove('is-pre');
         stack.classList.add('is-relaxed');
       } else {
@@ -143,6 +145,24 @@ function setupFolderStacks() {
       const ac = new AbortController();
       state.controllers.push(ac);
 
+      const handleReducedMotionChange = () => {
+        syncReducedMotionState();
+      };
+
+      if (reducedMotionMql.addEventListener) {
+        reducedMotionMql.addEventListener('change', handleReducedMotionChange);
+      } else if (reducedMotionMql.addListener) {
+        reducedMotionMql.addListener(handleReducedMotionChange);
+      }
+
+      ac.signal.addEventListener('abort', () => {
+        if (reducedMotionMql.removeEventListener) {
+          reducedMotionMql.removeEventListener('change', handleReducedMotionChange);
+        } else if (reducedMotionMql.removeListener) {
+          reducedMotionMql.removeListener(handleReducedMotionChange);
+        }
+      });
+
       // --- Lazy-load folder previews on first hover/focus ---
       function ensurePreviewLoaded(item: HTMLElement) {
         if (item.dataset.previewLoaded === 'true') return;
@@ -159,7 +179,11 @@ function setupFolderStacks() {
         item.dataset.previewLoaded = 'true';
       }
 
-      const PREVIEW_OPEN_DELAY = isMobile ? 700 : 120;
+      const getPreviewOpenDelay = () => {
+        if (reducedMotionMql.matches) return 0;
+        return mobileMql.matches ? 700 : 120;
+      };
+
       const previewableItems: HTMLElement[] = [];
       const previewOpenTimers = new Map<HTMLElement, number>();
       let activeItem: HTMLElement | null = null;
@@ -181,10 +205,17 @@ function setupFolderStacks() {
       const openItemPreview = (item: HTMLElement) => {
         if (item.dataset.previewOpen === 'true' || previewOpenTimers.has(item)) return;
         ensurePreviewLoaded(item);
+
+        const delay = getPreviewOpenDelay();
+        if (delay <= 0) {
+          applyItemPreviewOpen(item);
+          return;
+        }
+
         const timer = window.setTimeout(() => {
           previewOpenTimers.delete(item);
           applyItemPreviewOpen(item);
-        }, PREVIEW_OPEN_DELAY);
+        }, delay);
         previewOpenTimers.set(item, timer);
       };
 
@@ -202,6 +233,23 @@ function setupFolderStacks() {
         activeItem.dataset.active = 'false';
         closeItemPreview(activeItem);
         activeItem = null;
+      };
+
+      const syncReducedMotionState = () => {
+        if (!reducedMotionMql.matches) return;
+
+        stack.classList.remove('is-pre', 'is-relaxing');
+        stack.classList.add('is-relaxed');
+
+        previewOpenTimers.forEach((timer) => window.clearTimeout(timer));
+        previewOpenTimers.clear();
+
+        items.forEach((item) => {
+          if (item.dataset.active === 'true' || item.dataset.previewOpen === 'true' || item.dataset.hoveredPreview !== undefined) {
+            ensurePreviewLoaded(item);
+            applyItemPreviewOpen(item);
+          }
+        });
       };
 
       const setActiveItem = (item: HTMLElement) => {
@@ -304,6 +352,8 @@ function setupFolderStacks() {
           item.dataset.active = 'false';
         });
       }
+
+      syncReducedMotionState();
 
       // --- Mobile: keep one folder “current” while scrolling ---
       if (!enableAutoActive) return;

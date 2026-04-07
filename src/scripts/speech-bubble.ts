@@ -129,6 +129,7 @@ export class SpeechBubble {
   private hideTransitionTimer: number | null = null;
   private avatarRoot: HTMLElement | null = null;
   private prefersReducedMotion: boolean;
+  private reducedMotionQuery: MediaQueryList;
 
   private currentAnchor: HTMLElement | null = null;
   private viewportListenersAttached = false;
@@ -145,9 +146,32 @@ export class SpeechBubble {
     });
   };
 
+  private onReducedMotionChange = (event: MediaQueryListEvent): void => {
+    this.prefersReducedMotion = event.matches;
+
+    if (!event.matches) return;
+
+    if (this.state === 'typing') {
+      this.revealInstantly();
+      return;
+    }
+
+    if (this.state === 'visible') {
+      this.cancelTimers();
+      this.dispatchMouth('default');
+      this.scheduleAutoHide();
+      return;
+    }
+
+    if (this.state === 'hiding') {
+      this.hideInstant();
+    }
+  };
+
   constructor(options: SpeechBubbleOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
-    this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    this.prefersReducedMotion = this.reducedMotionQuery.matches;
 
     this.container = document.createElement('div');
     this.container.className = 'avatar-speech-bubble';
@@ -168,6 +192,12 @@ export class SpeechBubble {
       style.id = 'avatar-speech-bubble-styles';
       style.textContent = SpeechBubble.CSS;
       document.head.appendChild(style);
+    }
+
+    if (this.reducedMotionQuery.addEventListener) {
+      this.reducedMotionQuery.addEventListener('change', this.onReducedMotionChange);
+    } else if (this.reducedMotionQuery.addListener) {
+      this.reducedMotionQuery.addListener(this.onReducedMotionChange);
     }
   }
 
@@ -314,6 +344,13 @@ export class SpeechBubble {
     this.cancelTimers();
     this.removeViewportListeners();
     this.dispatchMouth('default');
+
+    if (this.reducedMotionQuery.removeEventListener) {
+      this.reducedMotionQuery.removeEventListener('change', this.onReducedMotionChange);
+    } else if (this.reducedMotionQuery.removeListener) {
+      this.reducedMotionQuery.removeListener(this.onReducedMotionChange);
+    }
+
     this.container.remove();
   }
 
@@ -475,6 +512,18 @@ export class SpeechBubble {
     this.container.style.top = `${best.centerY}px`;
 
     return best.side;
+  }
+
+  private revealInstantly(): void {
+    this.cancelTimers();
+    this.inner.querySelectorAll<HTMLSpanElement>('.avatar-speech-bubble__char').forEach((char) => {
+      char.classList.add('revealed');
+    });
+    this.container.classList.remove('hiding');
+    this.container.classList.add('visible');
+    this.state = 'visible';
+    this.dispatchMouth('default');
+    this.scheduleAutoHide();
   }
 
   private hideInstant(): void {

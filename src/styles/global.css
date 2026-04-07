@@ -303,13 +303,50 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :where(#nav-links a, #theme-toggle, #contacto a),
-  :where(#nav-links a, #theme-toggle, #contacto a)::before {
-    transition: none;
+  html {
+    scroll-behavior: auto !important;
   }
 
-  :where(#nav-links a, #theme-toggle, #contacto a):hover {
+  :where(#nav-links a, #theme-toggle, #contacto a),
+  :where(#nav-links a, #theme-toggle, #contacto a)::before,
+  .name-normal,
+  .name-hover,
+  .glitch-char,
+  #mobile-home-btn .name-normal,
+  #mobile-home-btn .name-hover,
+  #mobile-home-btn .mobile-glitch-char {
+    transition: none !important;
+  }
+
+  :where(#nav-links a, #theme-toggle, #contacto a):hover,
+  :where(#nav-links a, #theme-toggle, #contacto a):focus-visible,
+  a.group:hover .transition-transform,
+  a.group:focus-visible .transition-transform,
+  #theme-toggle:active {
+    transform: none !important;
+  }
+
+  :where(#nav-links a, #theme-toggle, #contacto a)::before,
+  :where(#nav-links a, #theme-toggle, #contacto a):hover::before,
+  :where(#nav-links a, #theme-toggle, #contacto a):focus-visible::before {
     transform: none;
+  }
+
+  a:hover .name-normal,
+  #mobile-home-btn .name-normal.is-glitching {
+    opacity: 1;
+    transform: none;
+  }
+
+  a:hover .name-hover,
+  #mobile-home-btn .name-hover.is-glitching {
+    opacity: 0;
+    transform: none;
+  }
+
+  a:hover .glitch-char,
+  #mobile-home-btn .mobile-glitch-char {
+    letter-spacing: -0.05em;
   }
 }
 

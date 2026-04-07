@@ -196,6 +196,7 @@ const { title, description } = Astro.props;
     if (!header || !logo || !links) return;
 
     var mql = window.matchMedia('(min-width: 1024px)');
+    var reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)');
     function reset() {
       logo.style.transition = 'none';
       links.style.transition = 'none';
@@ -203,15 +204,23 @@ const { title, description } = Astro.props;
       links.style.transform = 'translateX(0)';
     }
 
-    if (!mql.matches) reset();
+    function handleViewportModeChange() {
+      if (!mql.matches || reducedMotionMql.matches) {
+        reset();
+      }
+    }
+
+    handleViewportModeChange();
     if (mql.addEventListener) {
-      mql.addEventListener('change', function () {
-        if (!mql.matches) reset();
-      });
+      mql.addEventListener('change', handleViewportModeChange);
     } else if (mql.addListener) {
-      mql.addListener(function () {
-        if (!mql.matches) reset();
-      });
+      mql.addListener(handleViewportModeChange);
+    }
+
+    if (reducedMotionMql.addEventListener) {
+      reducedMotionMql.addEventListener('change', handleViewportModeChange);
+    } else if (reducedMotionMql.addListener) {
+      reducedMotionMql.addListener(handleViewportModeChange);
     }
 
     var lastScrollY = 0;
@@ -225,7 +234,7 @@ const { title, description } = Astro.props;
     var linksWidth = links.getBoundingClientRect().width + navbarExtraOffset;
 
     function animate() {
-      if (!mql.matches) {
+      if (!mql.matches || reducedMotionMql.matches) {
         reset();
         isHidden = false;
         lastScrollY = window.scrollY;
@@ -267,14 +276,43 @@ const { title, description } = Astro.props;
     var sequence = ['/', '-', '\\', '|', '/'];
     var tid = null;
     var anim = false;
+    var reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function resetChars(chars) {
+      chars.forEach(function (ch) {
+        ch.textContent = ch.getAttribute('data-char') || '/';
+      });
+    }
+
+    var wrapper = document.querySelector('.name-wrapper');
+    var glitchChars = document.querySelectorAll('.glitch-char');
+    var mobileBtn = document.getElementById('mobile-home-btn');
+    var mobileGlitchChars = document.querySelectorAll('.mobile-glitch-char');
+    var mobileNameNormal = mobileBtn ? mobileBtn.querySelector('.name-normal') : null;
+    var mobileNameHover = mobileBtn ? mobileBtn.querySelector('.name-hover') : null;
+
+    function resetVisualState() {
+      if (tid) clearTimeout(tid);
+      tid = null;
+      anim = false;
+      resetChars(glitchChars);
+      resetChars(mobileGlitchChars);
+      if (mobileNameNormal) mobileNameNormal.classList.remove('is-glitching');
+      if (mobileNameHover) mobileNameHover.classList.remove('is-glitching');
+    }
 
     function cycle(chars) {
-      if (anim) return;
+      if (anim || reducedMotionMql.matches) return;
       anim = true;
       var i = 0;
       var c = 0;
 
       function next() {
+        if (reducedMotionMql.matches) {
+          resetVisualState();
+          return;
+        }
+
         chars.forEach(function (ch) {
           ch.textContent = sequence[i];
         });
@@ -283,11 +321,7 @@ const { title, description } = Astro.props;
         if (i === 0) {
           c++;
           if (c >= 5) {
-            tid = null;
-            anim = false;
-            chars.forEach(function (ch) {
-              ch.textContent = ch.getAttribute('data-char') || '/';
-            });
+            resetVisualState();
             return;
           }
         }
@@ -298,38 +332,46 @@ const { title, description } = Astro.props;
       next();
     }
 
+    function handleReducedMotionChange(event) {
+      if (event.matches) resetVisualState();
+    }
+
+    if (window.__glitchReducedMotionHandler) {
+      if (reducedMotionMql.removeEventListener) {
+        reducedMotionMql.removeEventListener('change', window.__glitchReducedMotionHandler);
+      } else if (reducedMotionMql.removeListener) {
+        reducedMotionMql.removeListener(window.__glitchReducedMotionHandler);
+      }
+    }
+
+    window.__glitchReducedMotionHandler = handleReducedMotionChange;
+
+    if (reducedMotionMql.addEventListener) {
+      reducedMotionMql.addEventListener('change', handleReducedMotionChange);
+    } else if (reducedMotionMql.addListener) {
+      reducedMotionMql.addListener(handleReducedMotionChange);
+    }
+
     // Desktop: hover effect
-    var wrapper = document.querySelector('.name-wrapper');
-    var glitchChars = document.querySelectorAll('.glitch-char');
     if (wrapper && glitchChars.length) {
       wrapper.addEventListener('mouseenter', function () {
+        if (reducedMotionMql.matches) return;
         if (tid) clearTimeout(tid);
         anim = false;
         setTimeout(function () { cycle(glitchChars); }, 250);
       });
 
-      wrapper.addEventListener('mouseleave', function () {
-        if (tid) clearTimeout(tid);
-        tid = null;
-        anim = false;
-        glitchChars.forEach(function (ch) {
-          ch.textContent = ch.getAttribute('data-char') || '/';
-        });
-      });
+      wrapper.addEventListener('mouseleave', resetVisualState);
     }
 
     // Mobile: click on button triggers glitch on home page
-    var mobileBtn = document.getElementById('mobile-home-btn');
-    var mobileGlitchChars = document.querySelectorAll('.mobile-glitch-char');
-    var mobileNameNormal = mobileBtn ? mobileBtn.querySelector('.name-normal') : null;
-    var mobileNameHover = mobileBtn ? mobileBtn.querySelector('.name-hover') : null;
-
     if (mobileBtn && mobileGlitchChars.length) {
       var isHome = mobileBtn.getAttribute('data-is-home') === 'true';
 
       if (isHome) {
         mobileBtn.addEventListener('click', function (e) {
           e.preventDefault();
+          if (reducedMotionMql.matches) return;
 
           // Visual transition (same as hover)
           if (mobileNameNormal) mobileNameNormal.classList.add('is-glitching');
@@ -340,6 +382,10 @@ const { title, description } = Astro.props;
 
           // Reset visual after animation + hang time
           setTimeout(function () {
+            if (reducedMotionMql.matches) {
+              resetVisualState();
+              return;
+            }
             if (mobileNameNormal) mobileNameNormal.classList.remove('is-glitching');
             if (mobileNameHover) mobileNameHover.classList.remove('is-glitching');
           }, 4200);
