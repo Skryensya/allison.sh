@@ -18,7 +18,13 @@ const { title, description, year } = Astro.props;
 
   <main class="pb-16 md:pb-24">
 
-    <div class="max-w-[58ch] mx-auto px-6 md:px-8">
+    <div class="max-w-[58ch] mx-auto px-6 md:px-8 pt-10 md:pt-12">
+      <a href="/" class="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wide transition-colors duration-200 text-muted hover:text-text group mb-6">
+        <svg class="w-3 h-3 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        ir al inicio
+      </a>
       <div class="project-folder folder-bleed" data-folder>
         <div class="project-folder__gradient" aria-hidden="true"></div>
         <div data-folder-shell class="relative">
@@ -34,13 +40,13 @@ const { title, description, year } = Astro.props;
           <div data-folder-text-layer class="pointer-events-none absolute inset-0 z-[2]">
             <div
               data-folder-label
-              class="absolute left-[var(--folder-pad-x)] top-[20px] text-text font-sans text-2xl md:text-3xl leading-[1.1] tracking-tight font-normal whitespace-nowrap pointer-events-auto select-text"
+              class="absolute left-[var(--folder-pad-x)] top-[32px] text-text font-sans text-2xl md:text-3xl leading-[1.1] tracking-tight font-normal whitespace-nowrap pointer-events-auto select-text"
             >
               {title}
             </div>
             <div
               data-folder-description
-              class="absolute left-[var(--folder-pad-x)] top-[82px] right-[var(--folder-pad-x)] text-muted font-sans text-base leading-[1.55] pointer-events-auto select-text"
+              class="absolute left-[var(--folder-pad-x)] top-[100px] right-[var(--folder-pad-x)] text-text font-sans text-base leading-[1.65] pointer-events-auto select-text"
             >
               {description}
             </div>
@@ -52,10 +58,21 @@ const { title, description, year } = Astro.props;
       </div>
     </div>
 
-    <div class="max-w-[58ch] mx-auto px-6 md:px-8">
+    <div class="max-w-[58ch] mx-auto px-6 md:px-8 relative z-30" data-project-article-wrap>
       <article class="project-article font-sans text-base leading-[1.75] text-text tracking-tight">
         <slot />
       </article>
+
+      <footer class="mt-12 md:mt-14 mb-8">
+        <a href="/" class="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wide transition-colors duration-200 text-muted hover:text-text group">
+          <svg class="w-3 h-3 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          ir al inicio
+        </a>
+      </footer>
+
+      <Footer />
     </div>
 
     <style>
@@ -74,11 +91,17 @@ const { title, description, year } = Astro.props;
         height: 100%;
         background: linear-gradient(
           to bottom,
-          transparent 0%,
-          transparent 40%,
-          color-mix(in srgb, var(--color-bg) 40%, transparent) 55%,
-          color-mix(in srgb, var(--color-bg) 80%, transparent) 70%,
-          var(--color-bg) 80% 100%
+          color-mix(in srgb, var(--color-bg) 10%, transparent) 0%,
+          color-mix(in srgb, var(--color-bg) 25%, transparent) 2%,
+          color-mix(in srgb, var(--color-bg) 40%, transparent) 5%,
+          color-mix(in srgb, var(--color-bg) 55%, transparent) 8%,
+          color-mix(in srgb, var(--color-bg) 68%, transparent) 12%,
+          color-mix(in srgb, var(--color-bg) 78%, transparent) 18%,
+          color-mix(in srgb, var(--color-bg) 86%, transparent) 25%,
+          color-mix(in srgb, var(--color-bg) 92%, transparent) 34%,
+          color-mix(in srgb, var(--color-bg) 96%, transparent) 44%,
+          color-mix(in srgb, var(--color-bg) 99%, transparent) 55%,
+          var(--color-bg) 65%
         );
         pointer-events: none;
         z-index: 26;
@@ -104,8 +127,12 @@ const { title, description, year } = Astro.props;
         font-weight: 500;
         letter-spacing: -0.02em;
         color: var(--color-text);
-        margin-top: 2.75rem;
-        margin-bottom: 0.875rem;
+        margin-top: 3.25rem;
+        margin-bottom: 1.125rem;
+      }
+
+      .project-article :global(h2:first-child) {
+        margin-top: 0;
       }
 
       .project-article :global(p) {
@@ -114,20 +141,59 @@ const { title, description, year } = Astro.props;
       }
 
       .project-article :global(p + p) {
-        margin-top: 1.25rem;
+        margin-top: 1.375rem;
       }
     </style>
 
-    <footer class="mt-12 md:mt-14">
-      <a href="/" class="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wide transition-colors duration-200 text-muted hover:text-text group">
-        <svg class="w-3 h-3 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        volver
-      </a>
-    </footer>
+    <script>
+      function positionArticle() {
+        const folder = document.querySelector('.project-folder') as HTMLElement;
+        const wrap = document.querySelector('[data-project-article-wrap]') as HTMLElement;
+        if (!folder || !wrap) return;
 
-    <Footer />
+        const desc = folder.querySelector('[data-folder-description]') as HTMLElement;
+        const label = folder.querySelector('[data-folder-label]') as HTMLElement;
+        if (!desc && !label) return;
+
+        const contentBottom = desc
+          ? desc.offsetTop + desc.offsetHeight
+          : label!.offsetTop + label!.offsetHeight;
+
+        // Measure up to the end of the "siguiente" nav, not the footer
+        const article = wrap.querySelector('.project-article') as HTMLElement;
+        if (!article) return;
+        const articleBottom = article.offsetTop + article.offsetHeight;
+
+        // Gap between description end and article start
+        const gap = 36;
+        const desiredH = contentBottom + gap + articleBottom;
+
+        const finalH = Math.max(480, desiredH);
+
+        // Set --folder-min-h so the shapes script doesn't shrink it
+        folder.style.setProperty('--folder-min-h', `${finalH}px`);
+
+        // Also set the SVG height directly for immediate effect
+        const svg = folder.querySelector('[data-folder-svg]') as SVGSVGElement;
+        if (svg) svg.setAttribute('height', String(finalH));
+
+        // Trigger shapes recalc
+        window.dispatchEvent(new Event('resize'));
+
+        const svgH = svg ? Number(svg.getAttribute('height')) || finalH : finalH;
+        const pull = svgH - contentBottom - gap;
+        wrap.style.marginTop = `-${pull}px`;
+      }
+
+      // Run after folder shapes are computed (they use rAF)
+      requestAnimationFrame(() => requestAnimationFrame(positionArticle));
+      window.addEventListener('resize', () => requestAnimationFrame(positionArticle));
+      document.addEventListener('astro:page-load', () => {
+        requestAnimationFrame(() => requestAnimationFrame(positionArticle));
+      });
+    </script>
+
+
 
   </main>
 </Base>

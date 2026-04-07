@@ -3,6 +3,9 @@ import { getCollection, render } from 'astro:content';
 import Project from '@/layouts/Project.astro';
 import TechChips from '@/components/TechChips.astro';
 import ImageFigure from '@/components/ImageFigure.astro';
+import Folder from '@/components/Folder.astro';
+import FolderStack from '@/components/FolderStack.astro';
+import FolderStackItem from '@/components/FolderStackItem.astro';
 
 export async function getStaticPaths() {
   const proyectos = await getCollection('proyectos');
@@ -20,6 +23,28 @@ const allProyectos = await getCollection('proyectos');
 const sorted = allProyectos.sort((a, b) => (a.data.year || '').localeCompare(b.data.year || ''));
 const currentIndex = sorted.findIndex(p => p.id === entry.id);
 const nextProject = sorted[(currentIndex + 1) % sorted.length];
+
+const previewImages: Record<string, string[]> = {
+  'agenda-uc': [
+    'https://dummyimage.com/940x620/e8c9b0/2b2b2b',
+    'https://dummyimage.com/780x980/b0cce8/2b2b2b',
+  ],
+  barrancas: [
+    'https://dummyimage.com/1020x680/e8a8a0/2b2b2b',
+    'https://dummyimage.com/760x920/a8d4b8/2b2b2b',
+    'https://dummyimage.com/1100x620/e8d4a0/2b2b2b',
+  ],
+  'kit-digital-uc': [
+    'https://dummyimage.com/900x700/a0c8e8/2b2b2b',
+    'https://dummyimage.com/1180x620/e8c0a8/2b2b2b',
+  ],
+  'portal-uc': [
+    'https://dummyimage.com/1080x640/b0b8e8/2b2b2b',
+    'https://dummyimage.com/820x1020/e0d0a0/2b2b2b',
+  ],
+};
+
+const nextPreviews = previewImages[nextProject.id] || [];
 ---
 
 <Project title={entry.data.title} description={entry.data.description} year={entry.data.year}>
@@ -28,15 +53,18 @@ const nextProject = sorted[(currentIndex + 1) % sorted.length];
     <TechChips tech={entry.data.tech || []} />
   </article>
 
-  <footer class="mt-16 pt-10">
-    <a href={`/proyectos/${nextProject.id}`} class="group">
-      <p class="font-mono text-[11px] tracking-wide text-subtle mb-2">leer siguiente →</p>
-      <p class="font-sans text-xl tracking-tight text-muted group-hover:text-text transition-colors duration-200 mb-2">
-        {nextProject.data.title}
-      </p>
-      <p class="font-mono text-[12px] text-muted leading-[1.5]">
-        {nextProject.data.description}
-      </p>
-    </a>
-  </footer>
+  <nav class="mt-20">
+    <p class="font-mono text-[11px] tracking-wide text-subtle mb-8">siguiente</p>
+    <FolderStack>
+      <FolderStackItem
+        href={`/proyectos/${nextProject.id}`}
+        index={0}
+        ariaLabel={`Ir a ${nextProject.data.title}`}
+        previewSrcs={nextPreviews}
+        previewAlt={`Preview de ${nextProject.data.title}`}
+      >
+        <Folder title={nextProject.data.title} description={nextProject.data.description} className="w-full" />
+      </FolderStackItem>
+    </FolderStack>
+  </nav>
 </Project>
