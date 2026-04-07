@@ -133,7 +133,11 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     width: calc(100% + var(--folder-pad-x) + var(--folder-pad-x));
     margin-left: calc(0px - var(--folder-pad-x));
     margin-right: calc(0px - var(--folder-pad-x));
+  }
 
+  /* Invisible hover cushion below each folder — prevents hover flicker when
+     the folder lifts up and momentarily leaves the cursor behind. */
+  .folder-stack__item {
     /*
       3D context for hover tilt (applies to the hit + card children).
       Keeping it per-item avoids the whole stack becoming one 3D scene.
@@ -609,11 +613,10 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       scale(1.004);
   }
 
-  /* Hover tilt only on devices that truly hover (and only inside the clipped hit area) */
+  /* Hover tilt only on devices that truly hover.
+     Only the card transforms — the hit stays put to avoid flicker. */
   @media (hover: hover) and (pointer: fine) {
-    .folder-stack__hit:hover,
     .folder-stack__hit:hover ~ .folder-stack__card,
-    .folder-stack__item[data-hovered-preview] .folder-stack__hit,
     .folder-stack__item[data-hovered-preview] .folder-stack__card {
       transform: translate3d(0, calc(-1 * var(--folder-lift)), var(--folder-hover-z))
         rotateX(var(--folder-hover-rx)) rotateY(var(--folder-hover-ry)) rotateZ(var(--folder-hover-rz))
@@ -623,6 +626,12 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
+    /* Hit never transforms — keeps hover stable even when card lifts */
+    .folder-stack__hit:hover,
+    .folder-stack__item[data-hovered-preview] .folder-stack__hit {
+      transform: none;
+    }
+
     /* Hover fill nudge (desktop only) */
     .folder-stack__hit:hover ~ .folder-stack__card [data-folder],
     .folder-stack__item[data-hovered-preview] [data-folder] {
@@ -630,6 +639,14 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       --folder-shadow-filter:
         drop-shadow(0 -8px 16px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 2.1%, transparent))
         drop-shadow(0 -2px 5px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.9%, transparent));
+    }
+
+    /* White text on hover (desktop only) */
+    .folder-stack__hit:hover ~ .folder-stack__card [data-folder-label],
+    .folder-stack__hit:hover ~ .folder-stack__card [data-folder-description],
+    .folder-stack__item[data-hovered-preview] [data-folder-label],
+    .folder-stack__item[data-hovered-preview] [data-folder-description] {
+      color: white;
     }
   }
 

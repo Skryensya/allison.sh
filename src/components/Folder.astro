@@ -25,7 +25,7 @@ const { title, description, className = '' } = Astro.props;
     <div data-folder-text-layer class="pointer-events-none absolute inset-0 z-[2]">
       <div
         data-folder-label
-        class="absolute left-[var(--folder-pad-x)] top-[20px] text-text font-sans text-xl sm:text-2xl md:text-3xl leading-[1.1] tracking-tight font-normal whitespace-nowrap pointer-events-auto select-text"
+        class="absolute left-[var(--folder-pad-x)] top-[20px] text-text font-sans text-xl sm:text-2xl md:text-3xl leading-[1.1] tracking-tight font-normal whitespace-nowrap pointer-events-auto select-text transition-colors duration-200"
       >
         {title}
       </div>
@@ -34,7 +34,7 @@ const { title, description, className = '' } = Astro.props;
         description && (
           <div
             data-folder-description
-            class="absolute left-[var(--folder-pad-x)] top-[72px] md:top-[82px] right-[var(--folder-pad-x)] text-muted font-sans text-base leading-[1.55] pointer-events-auto select-text"
+            class="absolute left-[var(--folder-pad-x)] top-[72px] md:top-[82px] right-[var(--folder-pad-x)] text-muted font-sans text-base leading-[1.55] pointer-events-auto select-text transition-colors duration-200"
           >
             {description}
           </div>
