@@ -1,9 +1,4 @@
 ---
-interface Props {
-  showBack?: boolean;
-}
-
-const { showBack = false } = Astro.props;
 const currentPath = Astro.url.pathname;
 const isHome = currentPath === '/' || currentPath === '';
 ---

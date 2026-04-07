@@ -1,22 +1,13 @@
 ---
-import PolaroidFigure from './PolaroidFigure';
+import PolaroidFigure from './PolaroidFigure.astro';
 
 interface Props {
   src: string;
   alt: string;
   caption?: string;
-  credit?: string;
-  color?: string;
 }
 
-const { src, alt, caption, credit, color } = Astro.props;
+const { src, alt, caption } = Astro.props;
 ---
 
-<PolaroidFigure 
-  client:load
-  src={src} 
-  alt={alt} 
-  caption={caption}
-  showCaption={true}
-  color={color}
-/>
+<PolaroidFigure src={src} alt={alt} caption={caption} />

@@ -1,0 +1,20 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+}
+
+const { src, alt, caption } = Astro.props;
+const captionText = caption || alt;
+---
+
+<figure class="polaroid-figure">
+  <div class="polaroid-figure__frame">
+    <div class="polaroid-figure__media">
+      <img class="polaroid-figure__img" src={src} alt={alt} loading="lazy" />
+    </div>
+
+    <figcaption class="polaroid-figure__caption" aria-hidden="true">{captionText}</figcaption>
+  </div>
+</figure>
