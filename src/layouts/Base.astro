@@ -45,8 +45,7 @@ const { title, description } = Astro.props;
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-bg focus:text-text focus:px-4 focus:py-2 focus:outline-none focus:ring-2 focus:ring-border">
       Saltar al contenido principal
     </a>
-    <!-- Noise texture overlay -->
-    <div class="pointer-events-none fixed inset-0 z-[60] opacity-[0.035] dark:opacity-[0.04]" style="background-image: url('data:image/svg+xml,<svg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22><filter id=%22noise%22><feTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/></svg>'); background-repeat: repeat; background-size: 256px 256px;"></div>
+
     <!-- Luz tenue desde arriba a la derecha -->
     <div id="light-overlay" class="pointer-events-none fixed inset-0 z-50" style="background: radial-gradient(ellipse 100vw 100vh at 100% 0%, oklab(0.92 0.05 0.08 / 0.45), transparent 60%);"></div>
     <!-- Fade en la parte superior -->

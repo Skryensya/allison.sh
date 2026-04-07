@@ -78,15 +78,7 @@ body {
   position: relative;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.025;
-  pointer-events: none;
-  z-index: 9999;
-}
+
 
 @theme {
   --text-xs: 0.75rem;
@@ -135,7 +127,8 @@ body::before {
 .name-hover {
   display: inline-block;
   transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+              transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .name-hover {
@@ -160,11 +153,13 @@ body::before {
 a:hover .name-normal {
   opacity: 0;
   transform: translateX(6px) scaleX(0.97);
+  margin-left: -0.75rem;
 }
 
 a:hover .name-hover {
   opacity: 1;
   transform: translateX(0) scaleX(1);
+  margin-left: -0.75rem;
 }
 
 a:hover .glitch-char {
