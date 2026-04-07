@@ -48,9 +48,8 @@ const { title, description } = Astro.props;
 
     <!-- Luz tenue desde arriba a la derecha -->
     <div id="light-overlay" class="pointer-events-none fixed inset-0 z-50" style="background: radial-gradient(ellipse 100vw 100vh at 100% 0%, oklab(0.92 0.05 0.08 / 0.45), transparent 60%);"></div>
-    <!-- Fade en la parte superior -->
-    <div id="top-fade" class="pointer-events-none fixed top-0 left-0 right-0 z-30 transition-all duration-300" style="height: 0px; background: linear-gradient(to bottom, var(--color-bg) 0%, transparent 80%); -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 80%); mask-image: linear-gradient(to bottom, black 0%, transparent 80%);"></div>
-    <div id="bottom-fade" class="pointer-events-none fixed bottom-0 left-0 right-0 z-30 transition-all duration-300" style="height: 0px; background: linear-gradient(to top, var(--color-bg) 0%, transparent 80%); -webkit-mask-image: linear-gradient(to top, black 0%, transparent 80%); mask-image: linear-gradient(to top, black 0%, transparent 80%);"></div>
+    <!-- Velo vertical sobre el contenido, debajo del navbar y de la luz -->
+    <div id="viewport-gradient" class="pointer-events-none fixed inset-x-0 top-0 h-[100dvh] z-40" style="background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 97%, transparent) 0%, color-mix(in srgb, var(--color-bg) 97%, transparent) 6%, color-mix(in srgb, var(--color-bg) 6%, transparent) 16%, color-mix(in srgb, var(--color-bg) 2%, transparent) 50%, transparent 84%, transparent 100%);"></div>
     <div class="min-h-[100dvh]">
       <slot />
     </div>
@@ -187,27 +186,6 @@ const { title, description } = Astro.props;
     if (!overlay) return;
     function update() {
       overlay.style.opacity = '0.4';
-    }
-    window.addEventListener('scroll', update, { passive: true });
-    update();
-  }
-
-  function initTopFade() {
-    var fade = document.getElementById('top-fade');
-    if (!fade) return;
-    function update() {
-      var scrollY = window.scrollY;
-      fade.style.height = Math.min(scrollY, 200) + 'px';
-    }
-    window.addEventListener('scroll', update, { passive: true });
-    update();
-  }
-
-  function initBottomFade() {
-    var fade = document.getElementById('bottom-fade');
-    if (!fade) return;
-    function update() {
-      fade.style.height = Math.min(window.scrollY * 0.5, 200) + 'px';
     }
     window.addEventListener('scroll', update, { passive: true });
     update();
@@ -395,8 +373,6 @@ const { title, description } = Astro.props;
     updateToggleIcons();
     restoreScrollPosition();
     initLightOverlay();
-    initTopFade();
-    initBottomFade();
     initNavbarScroll();
     initGlitch();
     bindThemeToggle();

@@ -330,15 +330,15 @@ body {
   transform: translateY(0) scale(0.96);
 }
 
-/* Halftone polaroid */
-.halftone-polaroid {
+/* Polaroid figure */
+.polaroid-figure {
   --polaroid-bottom: 28px;
   --polaroid-frame: var(--color-bg);
 
   margin: 1.5rem 0;
 }
 
-.halftone-polaroid__frame {
+.polaroid-figure__frame {
   position: relative;
   padding: 8px;
   padding-bottom: var(--polaroid-bottom);
@@ -347,7 +347,7 @@ body {
   border-radius: 4px;
 }
 
-.halftone-polaroid__media {
+.polaroid-figure__media {
   position: relative;
   overflow: hidden;
   aspect-ratio: 16 / 10;
@@ -355,14 +355,14 @@ body {
   isolation: isolate;
 }
 
-.halftone-polaroid__img {
+.polaroid-figure__img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.halftone-polaroid__caption {
+.polaroid-figure__caption {
   position: absolute;
   left: 8px;
   right: 8px;
@@ -374,7 +374,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .halftone-polaroid__frame {
+  .polaroid-figure__frame {
     transition: none;
   }
 }

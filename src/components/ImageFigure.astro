@@ -1,5 +1,5 @@
 ---
-import HalftonePolaroid from './HalftonePolaroid';
+import PolaroidFigure from './PolaroidFigure';
 
 interface Props {
   src: string;
@@ -12,7 +12,7 @@ interface Props {
 const { src, alt, caption, credit, color } = Astro.props;
 ---
 
-<HalftonePolaroid 
+<PolaroidFigure 
   client:load
   src={src} 
   alt={alt} 

@@ -512,7 +512,7 @@ export class SpeechBubble {
   private static CSS = `
     .avatar-speech-bubble {
       position: absolute;
-      /* Keep the bubble under the fixed top/bottom fades so it gets “masked” with the content */
+      /* Keep the bubble below the navbar and other high-priority UI */
       z-index: 25;
       pointer-events: none;
       display: none;
