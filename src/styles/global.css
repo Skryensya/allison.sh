@@ -114,58 +114,60 @@ body {
   --color-border: #4a453e;
 }
 
-/* Name hover effect */
-.name-wrapper {
-  position: relative;
-  display: inline-block;
-  width: max-content;
-  vertical-align: top;
-  white-space: nowrap;
-}
+/* Name hover effect — only on devices with actual hover (no mobile tap triggers) */
+@media (hover: hover) and (pointer: fine) {
+  .name-wrapper {
+    position: relative;
+    display: inline-block;
+    width: max-content;
+    vertical-align: top;
+    white-space: nowrap;
+  }
 
-.name-normal,
-.name-hover {
-  display: inline-block;
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
+  .name-normal,
+  .name-hover {
+    display: inline-block;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-.name-hover {
-  position: absolute;
-  left: 0;
-  top: 0;
-  opacity: 0;
-  transform: translateX(-6px) scaleX(0.97);
-}
+  .name-hover {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    transform: translateX(-6px) scaleX(0.97);
+  }
 
-.glitch-char {
-  display: inline-block;
-  font-family: var(--font-mono);
-  letter-spacing: -0.05em;
-  transition: letter-spacing 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
-}
+  .glitch-char {
+    display: inline-block;
+    font-family: var(--font-mono);
+    letter-spacing: -0.05em;
+    transition: letter-spacing 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
 
-.glitch-char:last-child {
-  letter-spacing: -0.05em;
-}
+  .glitch-char:last-child {
+    letter-spacing: -0.05em;
+  }
 
-a:hover .name-normal {
-  opacity: 0;
-  transform: translateX(4px) scaleX(0.97);
-}
+  a:hover .name-normal {
+    opacity: 0;
+    transform: translateX(4px) scaleX(0.97);
+  }
 
-a:hover .name-hover {
-  opacity: 1;
-  transform: translateX(0) scaleX(1);
-}
+  a:hover .name-hover {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+  }
 
-a:hover .glitch-char {
-  letter-spacing: 0.03em;
-}
+  a:hover .glitch-char {
+    letter-spacing: 0.03em;
+  }
 
-a:hover .glitch-char:nth-child(2) {
-  transition-delay: 0.04s;
+  a:hover .glitch-char:nth-child(2) {
+    transition-delay: 0.04s;
+  }
 }
 
 /* Hover swipe (highlight) — direction-aware

@@ -1,5 +1,10 @@
-// Glitch text effect for name
+// Glitch text effect for name — only on devices with hover capability
 (function () {
+  // Skip on touch devices
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    return;
+  }
+
   const wrapper = document.querySelector('.name-wrapper');
   const glitchChars = document.querySelectorAll('.glitch-char');
   const sequence = ['/', '-', '\\', '|', '/'];
