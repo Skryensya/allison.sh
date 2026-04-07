@@ -288,22 +288,18 @@ const { title, description } = Astro.props;
   }
 
   function initGlitch() {
-    var wrapper = document.querySelector('.name-wrapper');
-    var glitchChars = document.querySelectorAll('.glitch-char');
-    if (!wrapper || !glitchChars.length) return;
-
     var sequence = ['/', '-', '\\', '|', '/'];
     var tid = null;
     var anim = false;
 
-    function cycle() {
+    function cycle(chars) {
       if (anim) return;
       anim = true;
       var i = 0;
       var c = 0;
 
       function next() {
-        glitchChars.forEach(function (ch) {
+        chars.forEach(function (ch) {
           ch.textContent = sequence[i];
         });
         i = (i + 1) % sequence.length;
@@ -313,7 +309,7 @@ const { title, description } = Astro.props;
           if (c >= 5) {
             tid = null;
             anim = false;
-            glitchChars.forEach(function (ch) {
+            chars.forEach(function (ch) {
               ch.textContent = ch.getAttribute('data-char') || '/';
             });
             return;
@@ -326,20 +322,58 @@ const { title, description } = Astro.props;
       next();
     }
 
-    wrapper.addEventListener('mouseenter', function () {
-      if (tid) clearTimeout(tid);
-      anim = false;
-      setTimeout(cycle, 250);
-    });
-
-    wrapper.addEventListener('mouseleave', function () {
-      if (tid) clearTimeout(tid);
-      tid = null;
-      anim = false;
-      glitchChars.forEach(function (ch) {
-        ch.textContent = ch.getAttribute('data-char') || '/';
+    // Desktop: hover effect
+    var wrapper = document.querySelector('.name-wrapper');
+    var glitchChars = document.querySelectorAll('.glitch-char');
+    if (wrapper && glitchChars.length) {
+      wrapper.addEventListener('mouseenter', function () {
+        if (tid) clearTimeout(tid);
+        anim = false;
+        setTimeout(function () { cycle(glitchChars); }, 250);
       });
-    });
+
+      wrapper.addEventListener('mouseleave', function () {
+        if (tid) clearTimeout(tid);
+        tid = null;
+        anim = false;
+        glitchChars.forEach(function (ch) {
+          ch.textContent = ch.getAttribute('data-char') || '/';
+        });
+      });
+    }
+
+    // Mobile: click on button triggers glitch on home page
+    var mobileBtn = document.getElementById('mobile-home-btn');
+    var mobileGlitchChars = document.querySelectorAll('.mobile-glitch-char');
+    var mobileNameNormal = mobileBtn ? mobileBtn.querySelector('.name-normal') : null;
+    var mobileNameHover = mobileBtn ? mobileBtn.querySelector('.name-hover') : null;
+
+    if (mobileBtn && mobileGlitchChars.length) {
+      var isHome = mobileBtn.getAttribute('data-is-home') === 'true';
+
+      if (isHome) {
+        mobileBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+
+          // Visual transition (same as hover)
+          if (mobileNameNormal) mobileNameNormal.classList.add('is-glitching');
+          if (mobileNameHover) mobileNameHover.classList.add('is-glitching');
+
+          // Start glitch animation (5 cycles × 5 chars × 120ms = 3000ms + 400ms hang)
+          cycle(mobileGlitchChars);
+
+          // Reset visual after animation + hang time
+          setTimeout(function () {
+            if (mobileNameNormal) mobileNameNormal.classList.remove('is-glitching');
+            if (mobileNameHover) mobileNameHover.classList.remove('is-glitching');
+          }, 4200);
+        });
+      } else {
+        mobileBtn.addEventListener('click', function () {
+          window.location.href = '/';
+        });
+      }
+    }
   }
 
   function bindThemeToggle() {

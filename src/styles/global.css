@@ -170,6 +170,62 @@ body {
   }
 }
 
+/* Mobile glitch effect (triggered by click) */
+@media (max-width: 767px) {
+  #mobile-home-btn .name-wrapper {
+    position: relative;
+    display: inline-block;
+    width: max-content;
+    vertical-align: top;
+    white-space: nowrap;
+  }
+
+  #mobile-home-btn .name-normal,
+  #mobile-home-btn .name-hover {
+    display: inline-block;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #mobile-home-btn .name-hover {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    transform: translateX(-6px) scaleX(0.97);
+  }
+
+  #mobile-home-btn .mobile-glitch-char {
+    display: inline-block;
+    font-family: var(--font-mono);
+    letter-spacing: -0.05em;
+    transition: letter-spacing 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
+
+  #mobile-home-btn .mobile-glitch-char:last-child {
+    letter-spacing: -0.05em;
+  }
+
+  /* Glitch active state (triggered by JS) */
+  #mobile-home-btn .name-normal.is-glitching {
+    opacity: 0;
+    transform: translateX(4px) scaleX(0.97);
+  }
+
+  #mobile-home-btn .name-hover.is-glitching {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+  }
+
+  #mobile-home-btn .mobile-glitch-char {
+    letter-spacing: 0.03em;
+  }
+
+  #mobile-home-btn .mobile-glitch-char:nth-child(2) {
+    transition-delay: 0.04s;
+  }
+}
+
 /* Hover swipe (highlight) — direction-aware
    - JS setea:
      --nav-origin-in / --nav-origin-out
