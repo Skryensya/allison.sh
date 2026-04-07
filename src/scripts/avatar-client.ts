@@ -2,30 +2,22 @@ import { avatarHats, avatarOutfits, avatarSpecialConfigs } from '@/data/avatarSp
 import { SpeechBubble } from './speech-bubble';
 
 // Phrases the avatar cycles through on click.
-// Tone: personal, specific, quiet — like thinking out loud.
 const AVATAR_PHRASES = [
-  // Presentación
   'Hola, soy Allison',
   'Bienvenido a mi sitio',
-  // Proceso
   'Llevo rato ajustando este espaciado',
   'Lo mejor que escribí hoy lo borré',
   'Esto se ve mejor de lo que costó',
   'Todavía no sé si este color está bien',
   'Cambié tres veces la tipografía',
   'Estuve una hora en un detalle que nadie va a notar',
-  // Filosofía
   'Si no se nota, está bien hecho',
   'Diseñar es decidir qué sobra',
   'La mejor feature es la que no hace falta',
   'Un buen sitio no se siente como un sitio',
   'Lo difícil es que se vea fácil',
   'Menos capas, menos problemas',
-  // Contexto
-  'Esto lo hice con Astro',
   'Este avatar tiene más estados que mi app',
-  'Esta burbuja usa pretext para el layout',
-  // Mood
   'Me falta un café para seguir',
   'Hoy es buen día para borrar código',
   'Debería estar durmiendo',
