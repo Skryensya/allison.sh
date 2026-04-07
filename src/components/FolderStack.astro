@@ -417,26 +417,7 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       perspective: none;
     }
 
-    .folder-stack__item::before {
-      content: '';
-      position: absolute;
-      top: 34px;
-      left: calc(var(--folder-pad-x) - 16px);
-      width: 4px;
-      height: 26px;
-      border-radius: 999px;
-      background: var(--color-text);
-      opacity: 0;
-      transform: translateY(2px) scaleY(0.94);
-      transition:
-        opacity 150ms cubic-bezier(0.16, 1, 0.3, 1),
-        transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
-    }
 
-    .folder-stack__item[data-active='true']::before {
-      opacity: 0.82;
-      transform: translateY(0) scaleY(1);
-    }
 
     /* ===== NUCLEAR: kill ALL hover/focus/active visual effects on mobile ===== */
     .folder-stack__item [data-folder],
@@ -444,12 +425,25 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     .folder-stack__item:focus-within [data-folder],
     .folder-stack__item[data-hovered-preview] [data-folder],
     .folder-stack__item[data-preview-open='true'] [data-folder] {
+      /* EXCEPT: when the item is also scroll-active, keep hover fill */
       --folder-fill: var(--folder-base-fill, var(--color-bg)) !important;
       --folder-shadow-filter: none !important;
     }
 
-    /* Selected: keep fill color but no hover transform */
-    .folder-stack__item[data-active='true'] [data-folder] {
+    .folder-stack__item:not([data-active='true']) [data-folder],
+    .folder-stack__item:not([data-active='true']):hover [data-folder],
+    .folder-stack__item:not([data-active='true']):focus-within [data-folder],
+    .folder-stack__item:not([data-active='true'])[data-hovered-preview] [data-folder],
+    .folder-stack__item:not([data-active='true'])[data-preview-open='true'] [data-folder] {
+      --folder-fill: var(--folder-base-fill, var(--color-bg)) !important;
+    }
+
+    /* Selected: keep fill color and shadow when active */
+    .folder-stack__item[data-active='true'] [data-folder],
+    .folder-stack__item[data-active='true']:hover [data-folder],
+    .folder-stack__item[data-active='true']:focus-within [data-folder],
+    .folder-stack__item[data-active='true'][data-hovered-preview] [data-folder],
+    .folder-stack__item[data-active='true'][data-preview-open='true'] [data-folder] {
       --folder-fill: var(--folder-hover-fill, color-mix(in srgb, var(--color-bg) 92%, var(--color-text) 8%)) !important;
       --folder-shadow-filter: none !important;
     }
