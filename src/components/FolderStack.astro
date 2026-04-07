@@ -83,23 +83,34 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     }
   }
 
-  .folder-stack__tail-mask {
+  .folder-stack__gradient {
     position: absolute;
-    left: calc(-1 * var(--folder-pad-x));
-    right: calc(-1 * var(--folder-pad-x));
+    left: -10%;
+    right: -10%;
     bottom: 0;
-    height: var(--folder-tail-mask-h);
+    width: 120%;
+    height: 100%;
     background: linear-gradient(
       to bottom,
       transparent 0%,
-      color-mix(in srgb, var(--color-bg) 18%, transparent) 22%,
-      color-mix(in srgb, var(--color-bg) 52%, transparent) 54%,
-      color-mix(in srgb, var(--color-bg) 84%, transparent) 78%,
-      var(--color-bg) 100%
+      transparent 40%,
+      color-mix(in srgb, var(--color-bg) 40%, transparent) 55%,
+      color-mix(in srgb, var(--color-bg) 80%, transparent) 70%,
+      var(--color-bg) 80% 100%
     );
     pointer-events: none;
-    z-index: 20;
+    z-index: 26;
   }
+
+  /* .folder-stack__item:last-child .folder-stack__gradient {
+    display: none;
+  } */
+
+  .folder-stack__item:first-child .folder-stack__gradient {
+    display: none;
+  }
+
+
 
   /* Shadow: almost invisible while stacked (avoid a dark band), comes alive on hover. */
   .folder-stack [data-folder] {
@@ -556,11 +567,7 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     }
 
     .folder-stack__tail-mask {
-      display: block;
-      left: calc(-1 * var(--folder-pad-x));
-      right: calc(-1 * var(--folder-pad-x));
-      height: var(--folder-tail-mask-h);
-      transform: none;
+      display: none;
     }
   }
 

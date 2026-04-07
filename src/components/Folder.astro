@@ -69,13 +69,15 @@ const { title, description, className = '' } = Astro.props;
   }
 
   /* Clip: permite que la sombra salga por arriba y a los lados,
-     pero corta cualquier blur que intente “caer” debajo del folder. */
+     pero corta cualquier blur que intente "caer" debajo del folder. */
   [data-folder-shell] {
-    /* Deja respirar la sombra arriba y a los lados, pero la mantiene “apretada”. */
+    /* Deja respirar la sombra arriba y a los lados, pero la mantiene "apretada". */
     position: relative;
     z-index: 2;
     clip-path: inset(-56px -88px 0 -88px);
   }
+
+
 
   [data-folder-fill-path] {
     /* Hover color change only; theme switching is disabled globally in Base.astro */

@@ -9,15 +9,15 @@ if (typeof window !== 'undefined') {
       document.documentElement.classList.toggle('dark', saved === 'dark' || (!saved && prefersDark));
     }
 
-    function updateToggleText() {
+    function updateToggleIcons() {
       var toggle = document.getElementById('theme-toggle');
       if (!toggle) return;
-      var darkSpan = toggle.querySelector('.dark-label');
-      var lightSpan = toggle.querySelector('.light-label');
-      if (darkSpan && lightSpan) {
+      var sunIcon = toggle.querySelector('.sun-icon') as HTMLElement;
+      var moonIcon = toggle.querySelector('.moon-icon') as HTMLElement;
+      if (sunIcon && moonIcon) {
         var isDark = document.documentElement.classList.contains('dark');
-        darkSpan.style.setProperty('display', isDark ? 'inline' : 'none');
-        lightSpan.style.setProperty('display', isDark ? 'none' : 'inline');
+        sunIcon.style.display = isDark ? 'block' : 'none';
+        moonIcon.style.display = isDark ? 'none' : 'block';
       }
     }
 
@@ -92,7 +92,7 @@ if (typeof window !== 'undefined') {
 
     function init() {
       applyTheme();
-      updateToggleText();
+      updateToggleIcons();
       restoreScrollPosition();
       initLightOverlay();
       initTopFade();
@@ -102,7 +102,7 @@ if (typeof window !== 'undefined') {
       document.getElementById('theme-toggle')?.addEventListener('click', () => {
         const isDark = document.documentElement.classList.toggle('dark');
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        updateToggleText();
+        updateToggleIcons();
       });
     }
 
