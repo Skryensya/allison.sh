@@ -448,6 +448,12 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       --folder-shadow-filter: none !important;
     }
 
+    /* White text on active (mobile) — matches desktop hover behavior */
+    .folder-stack__item[data-active='true'] [data-folder-label],
+    .folder-stack__item[data-active='true'] [data-folder-description] {
+      color: white !important;
+    }
+
     .folder-stack__card,
     .folder-stack__hit,
     .folder-stack__hit:hover,
@@ -479,8 +485,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       visibility: visible;
       pointer-events: auto;
       transition:
-        opacity 100ms cubic-bezier(0.16, 1, 0.3, 1),
-        transform 280ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+        opacity 60ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 180ms cubic-bezier(0.16, 1, 0.3, 1) !important;
       will-change: auto;
     }
 
