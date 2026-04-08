@@ -2,10 +2,13 @@ import path from 'node:path';
 
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
-export const OG_IMAGE_EXTENSION = 'jpg';
-export const OG_JPEG_QUALITY = 86;
+export const TWITTER_WIDTH = 1200;
+export const TWITTER_HEIGHT = 600;
+export const SOCIAL_IMAGE_EXTENSION = 'jpg';
+export const SOCIAL_JPEG_QUALITY = 86;
 export const ROOT_DIR = process.cwd();
-export const OUTPUT_DIR = path.join(ROOT_DIR, 'public', 'og');
+export const OG_OUTPUT_DIR = path.join(ROOT_DIR, 'public', 'og');
+export const TWITTER_OUTPUT_DIR = path.join(ROOT_DIR, 'public', 'twitter');
 export const PROJECTS_DIR = path.join(ROOT_DIR, 'src', 'content', 'proyectos');
 export const FONT_REGULAR_PATH = path.join(ROOT_DIR, 'src', 'assets', 'fonts', 'satoshi-400.ttf');
 export const FONT_BOLD_PATH = path.join(ROOT_DIR, 'src', 'assets', 'fonts', 'satoshi-700.ttf');
@@ -21,6 +24,8 @@ export const COLORS = {
   folderShadow: 'rgba(0, 0, 0, 0.22)',
   glow: 'rgba(244, 241, 235, 0.08)',
 } as const;
+
+export type SocialVariant = 'og' | 'twitter';
 
 export interface PageEntry {
   title: string;

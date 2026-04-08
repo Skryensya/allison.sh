@@ -9,6 +9,7 @@ import FolderStack from '@/components/FolderStack.astro';
 import FolderStackItem from '@/components/FolderStackItem.astro';
 import {
   DEFAULT_OG_IMAGE,
+  DEFAULT_TWITTER_IMAGE,
   SITE_DESCRIPTION,
   SITE_LOCALE,
   SITE_NAME,
@@ -68,10 +69,12 @@ const previewImages: Record<string, string[]> = {
 ---
 
 <Base
-  title="Allison Peña — Desarrollador web full stack"
+  title="Allison Peña — Interfaces web claras, rápidas y accesibles"
   description={SITE_DESCRIPTION}
   image={DEFAULT_OG_IMAGE}
   imageAlt="Allison.sh — Interfaces con intención"
+  twitterImage={DEFAULT_TWITTER_IMAGE}
+  twitterImageAlt="Allison.sh — Vista previa para X"
   canonical="/"
   structuredData={homeStructuredData}
 >

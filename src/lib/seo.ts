@@ -11,11 +11,14 @@ export const SITE_AUTHOR = 'Allison Peña';
 export const SITE_ROLE = 'Desarrollador web full stack';
 export const SITE_LOCALE = 'es_CL';
 export const SITE_DESCRIPTION =
-  'Soy Allison Peña, desarrollador web full stack. Me interesa construir interfaces claras, accesibles y rápidas, donde la tecnología importa menos que lo que permite hacer.';
-export const OG_IMAGE_EXTENSION = 'jpg';
-export const DEFAULT_OG_IMAGE = `/og/index.${OG_IMAGE_EXTENSION}`;
+  'Diseño y desarrollo interfaces web claras, accesibles y rápidas. Me interesan los sistemas y las decisiones que hacen útil una experiencia.';
+export const SOCIAL_IMAGE_EXTENSION = 'jpg';
+export const DEFAULT_OG_IMAGE = `/og/index.${SOCIAL_IMAGE_EXTENSION}`;
+export const DEFAULT_TWITTER_IMAGE = `/twitter/index.${SOCIAL_IMAGE_EXTENSION}`;
 export const OG_IMAGE_WIDTH = 1200;
 export const OG_IMAGE_HEIGHT = 630;
+export const TWITTER_IMAGE_WIDTH = 1200;
+export const TWITTER_IMAGE_HEIGHT = 600;
 
 export const SOCIAL_PROFILES = [
   'https://linkedin.com/in/skryensya',
@@ -28,7 +31,12 @@ export function toAbsoluteUrl(path: string) {
 
 export function getOgImagePath(slug: string) {
   const normalizedSlug = slug.replace(/^\/+|\/+$/g, '') || 'index';
-  return `/og/${normalizedSlug}.${OG_IMAGE_EXTENSION}`;
+  return `/og/${normalizedSlug}.${SOCIAL_IMAGE_EXTENSION}`;
+}
+
+export function getTwitterImagePath(slug: string) {
+  const normalizedSlug = slug.replace(/^\/+|\/+$/g, '') || 'index';
+  return `/twitter/${normalizedSlug}.${SOCIAL_IMAGE_EXTENSION}`;
 }
 
 export function getSocialImageType(path: string) {

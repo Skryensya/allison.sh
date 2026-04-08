@@ -3,7 +3,7 @@ import Base from './Base.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import Folder from '@/components/Folder.astro';
-import { getOgImagePath } from '@/lib/seo';
+import { getOgImagePath, getTwitterImagePath } from '@/lib/seo';
 
 interface StructuredData {
   [key: string]: unknown;
@@ -26,6 +26,8 @@ const publishedTime = year ? `${year}-01-01` : undefined;
   description={description}
   image={getOgImagePath(slug)}
   imageAlt={`Vista previa del proyecto ${title}`}
+  twitterImage={getTwitterImagePath(slug)}
+  twitterImageAlt={`Vista previa en X del proyecto ${title}`}
   canonical={`/proyectos/${slug}`}
   type="article"
   publishedTime={publishedTime}

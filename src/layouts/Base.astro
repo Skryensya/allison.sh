@@ -4,6 +4,7 @@ import { ClientRouter } from 'astro:transitions';
 import { Font } from 'astro:assets';
 import {
   DEFAULT_OG_IMAGE,
+  DEFAULT_TWITTER_IMAGE,
   getSocialImageType,
   OG_IMAGE_HEIGHT,
   OG_IMAGE_WIDTH,
@@ -12,6 +13,8 @@ import {
   SITE_LOCALE,
   SITE_NAME,
   SITE_URL,
+  TWITTER_IMAGE_HEIGHT,
+  TWITTER_IMAGE_WIDTH,
 } from '@/lib/seo';
 
 interface StructuredData {
@@ -23,6 +26,8 @@ interface Props {
   description?: string;
   image?: string;
   imageAlt?: string;
+  twitterImage?: string;
+  twitterImageAlt?: string;
   canonical?: string;
   type?: 'website' | 'article' | 'profile';
   noindex?: boolean;
@@ -36,6 +41,8 @@ const {
   description = SITE_DESCRIPTION,
   image = DEFAULT_OG_IMAGE,
   imageAlt = title,
+  twitterImage = DEFAULT_TWITTER_IMAGE,
+  twitterImageAlt = imageAlt,
   canonical,
   type = 'website',
   noindex = false,
@@ -48,6 +55,8 @@ const siteBase = Astro.site ?? new URL(SITE_URL);
 const canonicalUrl = new URL(canonical || Astro.url.pathname, siteBase).toString();
 const ogImageUrl = new URL(image, siteBase).toString();
 const ogImageType = getSocialImageType(image);
+const twitterImageUrl = new URL(twitterImage, siteBase).toString();
+const twitterImageType = getSocialImageType(twitterImage);
 const robotsContent = noindex
   ? 'noindex, nofollow'
   : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
@@ -92,9 +101,12 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     <meta name="twitter:url" content={canonicalUrl} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImageUrl} />
-    <meta name="twitter:image:src" content={ogImageUrl} />
-    <meta name="twitter:image:alt" content={imageAlt} />
+    <meta name="twitter:image" content={twitterImageUrl} />
+    <meta name="twitter:image:src" content={twitterImageUrl} />
+    <meta name="twitter:image:alt" content={twitterImageAlt} />
+    <meta name="twitter:image:type" content={twitterImageType} />
+    <meta name="twitter:image:width" content={String(TWITTER_IMAGE_WIDTH)} />
+    <meta name="twitter:image:height" content={String(TWITTER_IMAGE_HEIGHT)} />
     <meta name="theme-color" content="#f4f1eb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)" />
     {schemas.map((schema) => (

@@ -4,25 +4,45 @@ import path from 'node:path';
 import { Resvg } from '@resvg/resvg-js';
 import sharp from 'sharp';
 
-import { OG_IMAGE_EXTENSION, OG_JPEG_QUALITY, OG_WIDTH, OUTPUT_DIR } from './config';
+import {
+  OG_OUTPUT_DIR,
+  OG_WIDTH,
+  SOCIAL_IMAGE_EXTENSION,
+  SOCIAL_JPEG_QUALITY,
+  TWITTER_OUTPUT_DIR,
+  TWITTER_WIDTH,
+  type SocialVariant,
+} from './config';
 import { loadFonts } from './fonts';
-import { renderOgSvg } from './template';
+import { renderSocialSvg } from './template';
 
-export async function generateOgImage(
+const VARIANT_OUTPUT_DIR: Record<SocialVariant, string> = {
+  og: OG_OUTPUT_DIR,
+  twitter: TWITTER_OUTPUT_DIR,
+};
+
+const VARIANT_WIDTH: Record<SocialVariant, number> = {
+  og: OG_WIDTH,
+  twitter: TWITTER_WIDTH,
+};
+
+export async function generateSocialImage(
   title: string,
   description: string,
   slug: string,
+  variant: SocialVariant,
 ): Promise<void> {
   const safeSlug = slug.replace(/^\/+|\/+$/g, '') || 'index';
-  const outputPath = path.join(OUTPUT_DIR, `${safeSlug}.${OG_IMAGE_EXTENSION}`);
-  const legacyPngPath = path.join(OUTPUT_DIR, `${safeSlug}.png`);
+  const outputDir = VARIANT_OUTPUT_DIR[variant];
+  const outputPath = path.join(outputDir, `${safeSlug}.${SOCIAL_IMAGE_EXTENSION}`);
+  const legacyPngPath = path.join(outputDir, `${safeSlug}.png`);
   const fonts = await loadFonts();
-  const svg = await renderOgSvg(title, description, safeSlug, fonts);
+  const svg = await renderSocialSvg(title, description, safeSlug, fonts, variant);
 
   const png = new Resvg(svg, {
     fitTo: {
       mode: 'width',
-      value: OG_WIDTH,
+      value: VARIANT_WIDTH[variant],
     },
   })
     .render()
@@ -30,7 +50,7 @@ export async function generateOgImage(
 
   const jpeg = await sharp(png)
     .jpeg({
-      quality: OG_JPEG_QUALITY,
+      quality: SOCIAL_JPEG_QUALITY,
       mozjpeg: true,
       progressive: true,
       chromaSubsampling: '4:4:4',
@@ -42,4 +62,12 @@ export async function generateOgImage(
     writeFile(outputPath, jpeg),
     rm(legacyPngPath, { force: true }),
   ]);
+}
+
+export function generateOgImage(title: string, description: string, slug: string) {
+  return generateSocialImage(title, description, slug, 'og');
+}
+
+export function generateTwitterImage(title: string, description: string, slug: string) {
+  return generateSocialImage(title, description, slug, 'twitter');
 }

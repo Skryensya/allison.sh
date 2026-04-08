@@ -36,7 +36,7 @@ export async function getAllOgPages(): Promise<PageEntry[]> {
     {
       title: 'Allison Peña',
       description:
-        'Soy Allison Peña, desarrollador web full stack. Me interesa construir interfaces claras, accesibles y rápidas, donde la tecnología importa menos que lo que permite hacer.',
+        'Diseño y desarrollo interfaces web claras, accesibles y rápidas. Me interesan los sistemas y las decisiones que hacen útil una experiencia.',
       slug: 'index',
     },
     ...(await getProjectPages()),
