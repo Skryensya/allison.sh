@@ -5,7 +5,7 @@ import rehypeSlug from 'rehype-slug';
 import mdx from '@astrojs/mdx';
 
 // https://astro.build/config
-const siteUrl = (process.env.PUBLIC_SITE_URL || process.env.SITE_URL || 'https://allison.sh').replace(/\/$/, '');
+const siteUrl = (process.env.PUBLIC_SITE_URL || process.env.SITE_URL || 'https://dev.allison.sh').replace(/\/$/, '');
 
 export default defineConfig({
   site: siteUrl,

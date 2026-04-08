@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = 'https://allison.sh';
+const DEFAULT_SITE_URL = 'https://dev.allison.sh';
 
 function normalizeSiteUrl(value?: string) {
   if (!value) return DEFAULT_SITE_URL;
