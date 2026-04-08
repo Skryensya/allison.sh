@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { COLORS, ROOT_DIR } from './config';
 
-const AVATAR_IMAGE_PATH = path.join(ROOT_DIR, 'src', 'assets', 'avatar', 'base-og.jpeg');
+const AVATAR_IMAGE_PATH = path.join(ROOT_DIR, 'src', 'assets', 'avatar', 'base-og-site-colors.jpeg');
 const AVATAR_LIGHT = '#F4F1EB';
 const AVATAR_DARK = '#3D3832';
 
