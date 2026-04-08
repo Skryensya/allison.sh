@@ -10,6 +10,7 @@ import FolderStackItem from '@/components/FolderStackItem.astro';
 import {
   DEFAULT_OG_IMAGE,
   SITE_DESCRIPTION,
+  SITE_LOCALE,
   SITE_NAME,
   SITE_ROLE,
   SITE_URL,
@@ -29,7 +30,7 @@ const homeStructuredData = [
     url: SITE_URL,
     description: SITE_DESCRIPTION,
     image: toAbsoluteUrl(DEFAULT_OG_IMAGE),
-    inLanguage: 'es',
+    inLanguage: SITE_LOCALE,
   },
   {
     '@context': 'https://schema.org',
@@ -41,6 +42,7 @@ const homeStructuredData = [
     image: toAbsoluteUrl(DEFAULT_OG_IMAGE),
     email: 'mailto:contacto@allison.sh',
     sameAs: SOCIAL_PROFILES,
+    inLanguage: SITE_LOCALE,
   },
 ];
 

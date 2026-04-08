@@ -6,7 +6,7 @@ import ImageFigure from '@/components/ImageFigure.astro';
 import Folder from '@/components/Folder.astro';
 import FolderStack from '@/components/FolderStack.astro';
 import FolderStackItem from '@/components/FolderStackItem.astro';
-import { SITE_NAME, SITE_URL, toAbsoluteUrl } from '@/lib/seo';
+import { getOgImagePath, SITE_LOCALE, SITE_NAME, SITE_URL, toAbsoluteUrl } from '@/lib/seo';
 
 export async function getStaticPaths() {
   const proyectos = await getCollection('proyectos');
@@ -53,9 +53,15 @@ const projectStructuredData = {
   headline: entry.data.title,
   description: entry.data.description,
   url: toAbsoluteUrl(`/proyectos/${entry.id}`),
-  image: toAbsoluteUrl(`/og/${entry.id}.png`),
-  inLanguage: 'es',
+  image: toAbsoluteUrl(getOgImagePath(entry.id)),
+  inLanguage: SITE_LOCALE,
+  mainEntityOfPage: toAbsoluteUrl(`/proyectos/${entry.id}`),
   author: {
+    '@type': 'Person',
+    name: 'Allison Peña',
+    url: SITE_URL,
+  },
+  publisher: {
     '@type': 'Person',
     name: 'Allison Peña',
     url: SITE_URL,

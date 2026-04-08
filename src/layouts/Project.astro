@@ -3,6 +3,7 @@ import Base from './Base.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import Folder from '@/components/Folder.astro';
+import { getOgImagePath } from '@/lib/seo';
 
 interface StructuredData {
   [key: string]: unknown;
@@ -17,15 +18,17 @@ interface Props {
 }
 
 const { title, description, slug, year, structuredData } = Astro.props;
+const publishedTime = year ? `${year}-01-01` : undefined;
 ---
 
 <Base
   title={`${title} | Allison Peña`}
   description={description}
-  image={`/og/${slug}.png`}
+  image={getOgImagePath(slug)}
   imageAlt={`Vista previa del proyecto ${title}`}
   canonical={`/proyectos/${slug}`}
   type="article"
+  publishedTime={publishedTime}
   structuredData={structuredData}
 >
   <Navbar />
