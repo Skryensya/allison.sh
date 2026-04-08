@@ -104,6 +104,26 @@ export async function renderSocialSvg(
     height: layout.folderHeight ?? baseFolderGeometry.height + layout.folderHeightBoost,
   };
   const folderPath = createFolderPath(folderGeometry);
+  const backFolders = [
+    {
+      x: 42,
+      y: -68,
+      fill: '#24221F',
+      sheenOpacity: 0.07,
+      shadowOpacity: 0.11,
+      scaleX: 0.97,
+      scaleY: 0.952,
+    },
+    {
+      x: 20,
+      y: -38,
+      fill: '#2F2C29',
+      sheenOpacity: 0.1,
+      shadowOpacity: 0.12,
+      scaleX: 0.982,
+      scaleY: 0.97,
+    },
+  ];
 
   return satori(
     html(`
@@ -160,15 +180,15 @@ export async function renderSocialSvg(
         >
           <svg
             width="${folderGeometry.width}"
-            height="${folderGeometry.height}"
-            viewBox="0 0 ${folderGeometry.width} ${folderGeometry.height}"
-            style="position: absolute; inset: 0; display: flex; overflow: visible;"
+            height="${folderGeometry.height + 140}"
+            viewBox="0 -140 ${folderGeometry.width} ${folderGeometry.height + 140}"
+            style="position: absolute; left: 0; top: -140px; display: flex; overflow: visible;"
           >
             <defs>
               <linearGradient id="folder-fill-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#4C4943" />
-                <stop offset="46%" stop-color="#413E39" />
-                <stop offset="100%" stop-color="#34322F" />
+                <stop offset="0%" stop-color="#4A4640" />
+                <stop offset="46%" stop-color="#3D3A35" />
+                <stop offset="100%" stop-color="#312F2C" />
               </linearGradient>
               <linearGradient id="folder-inner-glow" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stop-color="rgba(255,255,255,0.065)" />
@@ -181,6 +201,29 @@ export async function renderSocialSvg(
                 <stop offset="100%" stop-color="rgba(255,255,255,0)" />
               </linearGradient>
             </defs>
+            ${backFolders
+              .map(
+                (folder) => `
+                  <path
+                    d="${folderPath}"
+                    fill="${COLORS.folderShadow}"
+                    transform="translate(${folder.x} ${folder.y - 16}) scale(${folder.scaleX} ${folder.scaleY})"
+                    opacity="${folder.shadowOpacity.toFixed(3)}"
+                  />
+                  <path
+                    d="${folderPath}"
+                    fill="${folder.fill}"
+                    transform="translate(${folder.x} ${folder.y}) scale(${folder.scaleX} ${folder.scaleY})"
+                  />
+                  <path
+                    d="${folderPath}"
+                    fill="url(#folder-top-sheen)"
+                    transform="translate(${folder.x} ${folder.y}) scale(${folder.scaleX} ${folder.scaleY})"
+                    opacity="${folder.sheenOpacity.toFixed(3)}"
+                  />
+                `,
+              )
+              .join('')}
             <path d="${folderPath}" fill="${COLORS.folderShadow}" transform="translate(0 -26)" opacity="0.26" />
             <path d="${folderPath}" fill="#57524B" transform="translate(0 -8)" opacity="0.18" />
             <path d="${folderPath}" fill="${COLORS.border}" transform="translate(0 1)" opacity="0.92" />
