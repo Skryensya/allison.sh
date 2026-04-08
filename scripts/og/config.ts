@@ -2,6 +2,8 @@ import path from 'node:path';
 
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
+export const OG_IMAGE_EXTENSION = 'jpg';
+export const OG_JPEG_QUALITY = 86;
 export const ROOT_DIR = process.cwd();
 export const OUTPUT_DIR = path.join(ROOT_DIR, 'public', 'og');
 export const PROJECTS_DIR = path.join(ROOT_DIR, 'src', 'content', 'proyectos');

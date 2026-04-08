@@ -12,7 +12,8 @@ export const SITE_ROLE = 'Desarrollador web full stack';
 export const SITE_LOCALE = 'es_CL';
 export const SITE_DESCRIPTION =
   'Soy Allison Peña, desarrollador web full stack. Me interesa construir interfaces claras, accesibles y rápidas, donde la tecnología importa menos que lo que permite hacer.';
-export const DEFAULT_OG_IMAGE = '/og/index.png';
+export const OG_IMAGE_EXTENSION = 'jpg';
+export const DEFAULT_OG_IMAGE = `/og/index.${OG_IMAGE_EXTENSION}`;
 export const OG_IMAGE_WIDTH = 1200;
 export const OG_IMAGE_HEIGHT = 630;
 
@@ -23,6 +24,11 @@ export const SOCIAL_PROFILES = [
 
 export function toAbsoluteUrl(path: string) {
   return new URL(path, SITE_URL).toString();
+}
+
+export function getOgImagePath(slug: string) {
+  const normalizedSlug = slug.replace(/^\/+|\/+$/g, '') || 'index';
+  return `/og/${normalizedSlug}.${OG_IMAGE_EXTENSION}`;
 }
 
 export function getSocialImageType(path: string) {
