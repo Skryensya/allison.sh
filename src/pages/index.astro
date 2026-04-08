@@ -7,10 +7,42 @@ import Footer from '@/components/Footer.astro';
 import Folder from '@/components/Folder.astro';
 import FolderStack from '@/components/FolderStack.astro';
 import FolderStackItem from '@/components/FolderStackItem.astro';
+import {
+  DEFAULT_OG_IMAGE,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_ROLE,
+  SITE_URL,
+  SOCIAL_PROFILES,
+  toAbsoluteUrl,
+} from '@/lib/seo';
 
 const proyectos = await getCollection('proyectos');
 const projects = proyectos
   .sort((a, b) => (b.data.year || '').localeCompare(a.data.year || ''));
+
+const homeStructuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: SITE_URL,
+    description: SITE_DESCRIPTION,
+    image: toAbsoluteUrl(DEFAULT_OG_IMAGE),
+    inLanguage: 'es',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Allison Peña',
+    url: SITE_URL,
+    jobTitle: SITE_ROLE,
+    description: SITE_DESCRIPTION,
+    image: toAbsoluteUrl(DEFAULT_OG_IMAGE),
+    email: 'mailto:contacto@allison.sh',
+    sameAs: SOCIAL_PROFILES,
+  },
+];
 
 const previewImages: Record<string, string[]> = {
   'agenda-uc': [
@@ -33,7 +65,14 @@ const previewImages: Record<string, string[]> = {
 };
 ---
 
-<Base title="Allison Peña — Desarrollador web full stack">
+<Base
+  title="Allison Peña — Desarrollador web full stack"
+  description={SITE_DESCRIPTION}
+  image={DEFAULT_OG_IMAGE}
+  imageAlt="Allison.sh — Interfaces con intención"
+  canonical="/"
+  structuredData={homeStructuredData}
+>
   <Navbar />
 
   <main id="main-content" class="max-w-[58ch] mx-auto px-6 md:px-8 pt-4 pb-16 md:pb-24">

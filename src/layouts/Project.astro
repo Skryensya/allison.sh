@@ -4,19 +4,33 @@ import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import Folder from '@/components/Folder.astro';
 
+interface StructuredData {
+  [key: string]: unknown;
+}
+
 interface Props {
   title: string;
   description: string;
+  slug: string;
   year?: string;
+  structuredData?: StructuredData | StructuredData[];
 }
 
-const { title, description, year } = Astro.props;
+const { title, description, slug, year, structuredData } = Astro.props;
 ---
 
-<Base title={`${title} | Allison Peña`} description={description}>
+<Base
+  title={`${title} | Allison Peña`}
+  description={description}
+  image={`/og/${slug}.png`}
+  imageAlt={`Vista previa del proyecto ${title}`}
+  canonical={`/proyectos/${slug}`}
+  type="article"
+  structuredData={structuredData}
+>
   <Navbar />
 
-  <main class="pb-16 md:pb-24">
+  <main id="main-content" class="pb-16 md:pb-24">
 
     <div class="max-w-[58ch] mx-auto px-6 md:px-8 pt-10 md:pt-12">
       <a href="/" class="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wide transition-colors duration-200 text-muted hover:text-text group mb-6">
@@ -38,18 +52,18 @@ const { title, description, year } = Astro.props;
             <path data-folder-fill-path fill="var(--folder-fill, var(--folder-base-fill, var(--color-bg)))"></path>
           </svg>
           <div data-folder-text-layer class="pointer-events-none absolute inset-0 z-[2]">
-            <div
+            <h1
               data-folder-label
               class="absolute left-[var(--folder-pad-x)] top-[32px] text-text font-sans text-2xl md:text-3xl leading-[1.1] tracking-tight font-normal whitespace-nowrap pointer-events-auto select-text"
             >
               {title}
-            </div>
-            <div
+            </h1>
+            <p
               data-folder-description
               class="absolute left-[var(--folder-pad-x)] top-[100px] right-[var(--folder-pad-x)] text-text font-sans text-base leading-[1.65] pointer-events-auto select-text"
             >
               {description}
-            </div>
+            </p>
             {year && (
               <p class="absolute left-[var(--folder-pad-x)] top-[116px] font-mono text-xs text-subtle">{year}</p>
             )}

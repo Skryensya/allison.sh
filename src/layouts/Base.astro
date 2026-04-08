@@ -2,13 +2,47 @@
 import '@/styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import { Font } from 'astro:assets';
+import {
+  DEFAULT_OG_IMAGE,
+  SITE_AUTHOR,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+} from '@/lib/seo';
+
+interface StructuredData {
+  [key: string]: unknown;
+}
 
 interface Props {
   title: string;
   description?: string;
+  image?: string;
+  imageAlt?: string;
+  canonical?: string;
+  type?: 'website' | 'article' | 'profile';
+  noindex?: boolean;
+  structuredData?: StructuredData | StructuredData[];
 }
 
-const { title, description } = Astro.props;
+const {
+  title,
+  description = SITE_DESCRIPTION,
+  image = DEFAULT_OG_IMAGE,
+  imageAlt = title,
+  canonical,
+  type = 'website',
+  noindex = false,
+  structuredData,
+} = Astro.props;
+
+const siteBase = Astro.site ?? new URL(SITE_URL);
+const canonicalUrl = new URL(canonical || Astro.url.pathname, siteBase).toString();
+const ogImageUrl = new URL(image, siteBase).toString();
+const robotsContent = noindex
+  ? 'noindex, nofollow'
+  : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData : [structuredData]) : [];
 ---
 
 <!doctype html>
@@ -16,12 +50,43 @@ const { title, description } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={description || 'Allison Peña — Desarrollador web full stack'} />
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={SITE_AUTHOR} />
+    <meta name="robots" content={robotsContent} />
+    <meta name="googlebot" content={robotsContent} />
+    <meta name="image" content={ogImageUrl} />
+    <meta itemprop="name" content={title} />
+    <meta itemprop="description" content={description} />
+    <meta itemprop="image" content={ogImageUrl} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="image_src" href={ogImageUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:url" content={ogImageUrl} />
+    <meta property="og:image:secure_url" content={ogImageUrl} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:image:src" content={ogImageUrl} />
+    <meta name="twitter:image:alt" content={imageAlt} />
     <meta name="theme-color" content="#f4f1eb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)" />
+    {schemas.map((schema) => (
+      <script type="application/ld+json" set:html={JSON.stringify(schema)}></script>
+    ))}
     <!-- Prevent FOUC: apply theme before render -->
     <script is:inline>
       (function() {
