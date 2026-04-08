@@ -9,7 +9,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
-RUN npm run build
+RUN echo "Building with PUBLIC_SITE_URL=${PUBLIC_SITE_URL}" && npm run build
 
 FROM node:22-alpine AS runtime
 
