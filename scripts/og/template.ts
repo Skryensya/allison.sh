@@ -127,11 +127,11 @@ export async function renderSocialSvg(
             inset: 0;
             display: flex;
             background:
-              radial-gradient(circle at 100% 0%, rgba(244,241,235,0.12) 0%, rgba(244,241,235,0.06) 18%, transparent 48%),
-              radial-gradient(circle at 84% 60%, rgba(233,219,196,0.09) 0%, rgba(233,219,196,0.035) 20%, transparent 42%),
-              radial-gradient(circle at 78% 66%, rgba(244,241,235,0.04) 0%, rgba(244,241,235,0.014) 16%, transparent 36%),
-              linear-gradient(180deg, rgba(255,255,255,0.024) 0%, rgba(255,255,255,0.01) 22%, rgba(255,255,255,0) 56%),
-              linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 100%);
+              radial-gradient(ellipse 68% 54% at 100% 0%, rgba(244,241,235,0.12) 0%, rgba(244,241,235,0.05) 18%, rgba(244,241,235,0.014) 34%, transparent 58%),
+              radial-gradient(ellipse 72% 58% at 6% 100%, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.14) 30%, rgba(0,0,0,0.05) 48%, transparent 70%),
+              radial-gradient(ellipse 58% 42% at 50% 58%, rgba(255,255,255,0.018) 0%, rgba(255,255,255,0.006) 18%, transparent 52%),
+              linear-gradient(180deg, rgba(255,255,255,0.014) 0%, rgba(255,255,255,0.004) 18%, rgba(255,255,255,0) 42%),
+              linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.11) 100%);
           "
         ></div>
 
@@ -141,10 +141,10 @@ export async function renderSocialSvg(
             inset: 0;
             display: flex;
             background:
-              radial-gradient(ellipse 92% 30% at 50% 100%, rgba(233,219,196,0.11) 0%, rgba(233,219,196,0.045) 24%, rgba(233,219,196,0.015) 42%, transparent 68%),
-              linear-gradient(180deg, rgba(255,255,255,0) 72%, rgba(244,241,235,0.028) 88%, rgba(244,241,235,0.045) 100%),
-              linear-gradient(90deg, rgba(255,255,255,0.012) 0%, rgba(255,255,255,0.004) 12%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.02) 100%);
-            opacity: 0.82;
+              linear-gradient(90deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.003) 12%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.014) 100%),
+              radial-gradient(ellipse 96% 24% at 50% 100%, rgba(233,219,196,0.07) 0%, rgba(233,219,196,0.024) 22%, rgba(233,219,196,0.008) 40%, transparent 68%),
+              linear-gradient(180deg, rgba(0,0,0,0) 66%, rgba(0,0,0,0.08) 100%);
+            opacity: 0.92;
           "
         ></div>
 
