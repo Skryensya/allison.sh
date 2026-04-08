@@ -448,10 +448,10 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       --folder-shadow-filter: none !important;
     }
 
-    /* White text on active (mobile) — matches desktop hover behavior */
+    /* Active text should use normal text color, not pure white */
     .folder-stack__item[data-active='true'] [data-folder-label],
     .folder-stack__item[data-active='true'] [data-folder-description] {
-      color: white !important;
+      color: var(--color-text) !important;
     }
 
     .folder-stack__card,
@@ -641,12 +641,12 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
         drop-shadow(0 -2px 5px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.9%, transparent));
     }
 
-    /* White text on hover (desktop only) */
+    /* Hover text should use normal text color, not pure white */
     .folder-stack__hit:hover ~ .folder-stack__card [data-folder-label],
     .folder-stack__hit:hover ~ .folder-stack__card [data-folder-description],
     .folder-stack__item[data-hovered-preview] [data-folder-label],
     .folder-stack__item[data-hovered-preview] [data-folder-description] {
-      color: white;
+      color: var(--color-text);
     }
   }
 
