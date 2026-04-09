@@ -1,9 +1,5 @@
 ---
 import {
-  avatarArtOffsetX,
-  avatarArtOffsetY,
-  avatarArtSize,
-  avatarCanvasSize,
   avatarGrid,
   avatarGridSize,
   avatarHatIndices,
@@ -22,11 +18,6 @@ const {
   className = '',
   id = 'avatar',
 } = Astro.props;
-
-const gridScale = avatarCanvasSize / avatarArtSize;
-const gridOffsetLeft = -(avatarArtOffsetX / avatarArtSize) * 100;
-const gridOffsetTop = -(avatarArtOffsetY / avatarArtSize) * 100;
-const gridSizePercent = gridScale * 100;
 ---
 
 <div
@@ -142,8 +133,6 @@ const gridSizePercent = gridScale * 100;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    /* Make hit area match the circular avatar, not the square box */
     border-radius: 9999px;
     -webkit-clip-path: circle(50% at 50% 50%);
     clip-path: circle(50% at 50% 50%);
@@ -166,5 +155,5 @@ const gridSizePercent = gridScale * 100;
     pointer-events: none;
     shape-rendering: crispEdges;
   }
-
 </style>
+

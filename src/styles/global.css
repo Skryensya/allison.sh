@@ -78,7 +78,36 @@ body {
   position: relative;
 }
 
+#viewport-gradient {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-bg) 97%, transparent) 0%,
+    color-mix(in srgb, var(--color-bg) 95%, transparent) 6%,
+    color-mix(in srgb, var(--color-bg) 72%, transparent) 14%,
+    color-mix(in srgb, var(--color-bg) 28%, transparent) 26%,
+    color-mix(in srgb, var(--color-bg) 8%, transparent) 42%,
+    color-mix(in srgb, var(--color-bg) 2%, transparent) 60%,
+    transparent 84%,
+    transparent 100%
+  );
+}
 
+@media (min-width: 48rem) {
+  #viewport-gradient {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-bg) 88%, transparent) 0%,
+      color-mix(in srgb, var(--color-bg) 80%, transparent) 7%,
+      color-mix(in srgb, var(--color-bg) 54%, transparent) 14%,
+      color-mix(in srgb, var(--color-bg) 24%, transparent) 24%,
+      color-mix(in srgb, var(--color-bg) 9%, transparent) 36%,
+      color-mix(in srgb, var(--color-bg) 3%, transparent) 50%,
+      color-mix(in srgb, var(--color-bg) 1%, transparent) 64%,
+      transparent 82%,
+      transparent 100%
+    );
+  }
+}
 
 @theme {
   --text-xs: 0.75rem;

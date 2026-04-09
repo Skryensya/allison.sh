@@ -1,5 +1,4 @@
 import { avatarHats, avatarOutfits, avatarSpecialConfigs } from '@/data/avatarSprite';
-import { SpeechBubble } from './speech-bubble';
 
 // Phrases the avatar cycles through on click.
 const AVATAR_PHRASES = [
@@ -34,9 +33,12 @@ type AvatarDirection =
   | 'bottom'
   | 'bottom-right';
 
+type SpeechBubbleModule = typeof import('./speech-bubble');
+
 type AvatarRoot = HTMLElement & {
   __avatarCleanup?: () => void;
   __avatarObserved?: boolean;
+  __avatarSpeechBubble?: InstanceType<SpeechBubbleModule['SpeechBubble']> | null;
 };
 
 type LeftEyeState = AvatarDirection | 'blink';
@@ -58,6 +60,7 @@ const SPRITE_PREFIX = 'avatar-sprite';
 
 let avatarObserver: IntersectionObserver | null = null;
 let lifecycleBound = false;
+let speechBubbleModulePromise: Promise<SpeechBubbleModule> | null = null;
 
 const LEFT_EYE_TILES: Record<LeftEyeState, string> = {
   base: 'left-eye-base',
@@ -255,6 +258,11 @@ function applyStoredAvatarConfig(root: HTMLElement) {
   applyNormalAvatarConfig(root);
 }
 
+function loadSpeechBubbleModule() {
+  speechBubbleModulePromise ??= import('./speech-bubble');
+  return speechBubbleModulePromise;
+}
+
 function initAvatar(root: AvatarRoot) {
   root.__avatarCleanup?.();
 
@@ -266,14 +274,17 @@ function initAvatar(root: AvatarRoot) {
 
   if (!button || !leftEye || !rightEye || !mouthLeft || !mouthRight) return;
 
-  // Initialize speech bubble (primary interaction: click avatar)
-  const speechBubble = new SpeechBubble({
-    charSpeed: 35,
-    displayDuration: 3500,
-    phrases: AVATAR_PHRASES,
-  });
+  const handleAvatarSpeak = async () => {
+    const speechBubble = root.__avatarSpeechBubble ?? await loadSpeechBubbleModule().then(({ SpeechBubble }) => {
+      const bubble = new SpeechBubble({
+        charSpeed: 35,
+        displayDuration: 3500,
+        phrases: AVATAR_PHRASES,
+      });
+      root.__avatarSpeechBubble = bubble;
+      return bubble;
+    });
 
-  const handleAvatarSpeak = () => {
     speechBubble.next(root, root);
   };
 
@@ -482,6 +493,7 @@ function initAvatar(root: AvatarRoot) {
     pointerX = event.clientX;
     pointerY = event.clientY;
     hasPointer = true;
+    void loadSpeechBubbleModule();
     scheduleDirectionUpdate();
   };
 
@@ -688,8 +700,8 @@ function initAvatar(root: AvatarRoot) {
       window.cancelAnimationFrame(rafId);
     }
 
-    // Cleanup speech bubble
-    speechBubble?.destroy();
+    root.__avatarSpeechBubble?.destroy();
+    root.__avatarSpeechBubble = null;
   };
 }
 
