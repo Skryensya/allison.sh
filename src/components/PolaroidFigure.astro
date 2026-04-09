@@ -12,7 +12,7 @@ const captionText = caption || alt;
 <figure class="polaroid-figure">
   <div class="polaroid-figure__frame">
     <div class="polaroid-figure__media">
-      <img class="polaroid-figure__img" src={src} alt={alt} loading="lazy" />
+      <img class="polaroid-figure__img" src={src} alt={alt} loading="lazy" decoding="async" />
     </div>
 
     <figcaption class="polaroid-figure__caption" aria-hidden="true">{captionText}</figcaption>

@@ -1,35 +1,17 @@
 /**
- * Speech Bubble — letter-by-letter typewriter with pretext layout + avatar mouth sync.
- *
- * Uses @chenglou/pretext for accurate multiline text measurement & layout
- * so the bubble has a stable size from the start (no reflow as letters appear).
- * Each grapheme fades in individually, synced with mouth animation.
+ * Speech Bubble — simplified letter-by-letter bubble with avatar mouth sync.
  */
 
-import { prepareWithSegments, layoutWithLines } from '@chenglou/pretext';
-
 export interface SpeechBubbleOptions {
-  /** ms per character reveal */
   charSpeed?: number;
-  /** ms to hold the complete message before hiding */
   displayDuration?: number;
-  /** Array of phrases the bubble cycles through */
   phrases?: string[];
-  /** CSS font shorthand for pretext measurement (must match rendered font) */
-  font?: string;
-  /** Max text width in px (excluding padding) */
-  maxTextWidth?: number;
-  /** Line height in px */
-  lineHeight?: number;
 }
 
 const DEFAULT_OPTIONS: Required<SpeechBubbleOptions> = {
   charSpeed: 35,
   displayDuration: 3200,
   phrases: [],
-  font: '14px Satoshi, system-ui, sans-serif',
-  maxTextWidth: 220,
-  lineHeight: 21,
 };
 
 /* ── Mouth phoneme helpers ──────────────────────────── */
@@ -222,47 +204,27 @@ export class SpeechBubble {
     // Initial position (will be refined once we know final bubble dimensions)
     this.positionSmart(anchorEl);
 
-    // ── Use pretext to measure & lay out lines ──
-    const { font, maxTextWidth, lineHeight } = this.options;
-    const prepared = prepareWithSegments(phrase, font);
-    const { lines, height } = layoutWithLines(prepared, maxTextWidth, lineHeight);
-
-    // Set bubble to exact measured size so it doesn't reflow
-    const maxLineWidth = Math.max(...lines.map((l) => l.width));
-    const paddingX = 16;
-    const paddingY = 10;
-    const innerWidth = Math.ceil(maxLineWidth) + paddingX * 2;
-    const innerHeight = Math.ceil(height) + paddingY * 2;
-    this.inner.style.width = `${innerWidth}px`;
-    this.inner.style.height = `${innerHeight}px`;
-
-    // Re-position now that we know the final bubble size
-    this.positionSmart(anchorEl, { width: innerWidth, height: innerHeight });
-
-    // ── Build character spans per line ──
     this.inner.innerHTML = '';
+    this.inner.style.width = '';
+    this.inner.style.height = '';
+
+    const lineEl = document.createElement('div');
+    lineEl.className = 'avatar-speech-bubble__line';
+
     const allCharSpans: HTMLSpanElement[] = [];
-    // Flat string of only the visible characters (for mouth sync)
-    let visibleChars = '';
 
-    lines.forEach((line, lineIdx) => {
-      const lineEl = document.createElement('div');
-      lineEl.className = 'avatar-speech-bubble__line';
-      lineEl.style.height = `${lineHeight}px`;
-
-      // Walk each grapheme in the line text
-      const graphemes = [...line.text];
-      graphemes.forEach((grapheme) => {
-        const span = document.createElement('span');
-        span.className = 'avatar-speech-bubble__char';
-        span.textContent = grapheme;
-        lineEl.appendChild(span);
-        allCharSpans.push(span);
-        visibleChars += grapheme;
-      });
-
-      this.inner.appendChild(lineEl);
+    [...phrase].forEach((grapheme) => {
+      const span = document.createElement('span');
+      span.className = 'avatar-speech-bubble__char';
+      span.textContent = grapheme;
+      lineEl.appendChild(span);
+      allCharSpans.push(span);
     });
+
+    this.inner.appendChild(lineEl);
+
+    const measureRect = this.inner.getBoundingClientRect();
+    this.positionSmart(anchorEl, { width: measureRect.width, height: measureRect.height });
 
     // ── Show bubble ──
     this.state = 'typing';
@@ -634,6 +596,7 @@ export class SpeechBubble {
 
     .avatar-speech-bubble__inner {
       position: relative;
+      max-width: 220px;
       background: transparent;
       color: var(--bubble-fg);
       border-radius: var(--bubble-radius);
@@ -642,7 +605,8 @@ export class SpeechBubble {
       font-size: 0.875rem;
       line-height: 1.5;
       letter-spacing: -0.01em;
-      white-space: pre;
+      white-space: normal;
+      text-wrap: balance;
       text-align: left;
       isolation: isolate;
       z-index: 0;
@@ -660,8 +624,7 @@ export class SpeechBubble {
     }
 
     .avatar-speech-bubble__line {
-      display: flex;
-      align-items: center;
+      display: block;
     }
 
     /* Tail (rounded) — keeps the "arrow" but matches the pill corner language */

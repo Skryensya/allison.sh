@@ -40,9 +40,6 @@ export default defineConfig({
       options: {
         variants: [
           { src: ['./src/assets/fonts/clash-grotesk-400.woff2'], weight: '400' },
-          { src: ['./src/assets/fonts/clash-grotesk-500.woff2'], weight: '500' },
-          { src: ['./src/assets/fonts/clash-grotesk-600.woff2'], weight: '600' },
-          { src: ['./src/assets/fonts/clash-grotesk-700.woff2'], weight: '700' },
         ],
       },
     },
@@ -55,7 +52,6 @@ export default defineConfig({
         variants: [
           { src: ['./src/assets/fonts/satoshi-400.woff2'], weight: '400' },
           { src: ['./src/assets/fonts/satoshi-500.woff2'], weight: '500' },
-          { src: ['./src/assets/fonts/satoshi-700.woff2'], weight: '700' },
         ],
       },
     },
