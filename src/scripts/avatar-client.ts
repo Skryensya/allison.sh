@@ -39,6 +39,10 @@ type AvatarRoot = HTMLElement & {
   __avatarCleanup?: () => void;
   __avatarObserved?: boolean;
   __avatarSpeechBubble?: InstanceType<SpeechBubbleModule['SpeechBubble']> | null;
+  __avatarPartCache?: {
+    outfitUses: SVGUseElement[];
+    hatUses: SVGUseElement[];
+  };
 };
 
 type LeftEyeState = AvatarDirection | 'blink';
@@ -207,18 +211,45 @@ function getRandomSpecialConfig() {
   return avatarSpecialConfigs[index] ?? null;
 }
 
+function getAvatarPartCache(root: HTMLElement) {
+  const cached = (root as HTMLElement & {
+    __avatarPartCache?: {
+      outfitUses: SVGUseElement[];
+      hatUses: SVGUseElement[];
+    };
+  }).__avatarPartCache;
+
+  if (cached) return cached;
+
+  const nextCache = {
+    outfitUses: Array.from(root.querySelectorAll<SVGUseElement>('.avatar__part--outfit')),
+    hatUses: Array.from(root.querySelectorAll<SVGUseElement>('.avatar__part--hat')),
+  };
+
+  (root as HTMLElement & {
+    __avatarPartCache?: {
+      outfitUses: SVGUseElement[];
+      hatUses: SVGUseElement[];
+    };
+  }).__avatarPartCache = nextCache;
+
+  return nextCache;
+}
+
 function applyOutfit(root: HTMLElement, outfitName: string) {
   const tiles = avatarOutfits[outfitName] || avatarOutfits.base;
+  const { outfitUses } = getAvatarPartCache(root);
 
-  root.querySelectorAll<SVGUseElement>('.avatar__part--outfit').forEach((use, i) => {
+  outfitUses.forEach((use, i) => {
     if (tiles[i]) setUseTarget(use, getSpriteHref(root, tiles[i]));
   });
 }
 
 function applyHat(root: HTMLElement, hatName: string) {
   const tiles = avatarHats[hatName] || avatarHats.none;
+  const { hatUses } = getAvatarPartCache(root);
 
-  root.querySelectorAll<SVGUseElement>('.avatar__part--hat').forEach((use, i) => {
+  hatUses.forEach((use, i) => {
     setUseTarget(use, getSpriteHref(root, tiles[i] || 'hat-empty'));
   });
 }
@@ -750,6 +781,7 @@ function resetAvatars() {
     avatar.__avatarCleanup?.();
     avatar.__avatarCleanup = undefined;
     avatar.__avatarObserved = false;
+    avatar.__avatarPartCache = undefined;
   });
 }
 

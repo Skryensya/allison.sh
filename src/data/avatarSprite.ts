@@ -1,9 +1,4 @@
 export const avatarGridSize = 6;
-export const avatarTileSize = 25;
-export const avatarCanvasSize = 150;
-export const avatarArtSize = 128;
-export const avatarArtOffsetX = 11;
-export const avatarArtOffsetY = 10;
 
 export const avatarGrid = [
   ['base-tile-00', 'base-tile-00', 'base-tile-01', 'base-tile-02', 'base-tile-00', 'base-tile-00'],
