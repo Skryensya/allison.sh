@@ -145,14 +145,14 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
         #viewport-gradient {
           background: linear-gradient(
             to bottom,
-            color-mix(in srgb, var(--color-bg) 92%, transparent) 0%,
-            color-mix(in srgb, var(--color-bg) 89%, transparent) 8%,
-            color-mix(in srgb, var(--color-bg) 68%, transparent) 16%,
-            color-mix(in srgb, var(--color-bg) 36%, transparent) 28%,
-            color-mix(in srgb, var(--color-bg) 14%, transparent) 42%,
-            color-mix(in srgb, var(--color-bg) 4%, transparent) 58%,
-            color-mix(in srgb, var(--color-bg) 1%, transparent) 74%,
-            transparent 90%,
+            color-mix(in srgb, var(--color-bg) 88%, transparent) 0%,
+            color-mix(in srgb, var(--color-bg) 80%, transparent) 7%,
+            color-mix(in srgb, var(--color-bg) 54%, transparent) 14%,
+            color-mix(in srgb, var(--color-bg) 24%, transparent) 24%,
+            color-mix(in srgb, var(--color-bg) 9%, transparent) 36%,
+            color-mix(in srgb, var(--color-bg) 3%, transparent) 50%,
+            color-mix(in srgb, var(--color-bg) 1%, transparent) 64%,
+            transparent 82%,
             transparent 100%
           ) !important;
         }
@@ -172,7 +172,8 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
 
     /* Folder surfaces / shadows */
     --folder-base-fill: var(--color-bg);
-    --folder-hover-fill: color-mix(in srgb, var(--color-bg) 94%, var(--color-text) 6%);
+    --folder-hover-fill-top: color-mix(in srgb, var(--color-bg) 78%, var(--color-text) 22%);
+    --folder-hover-fill-bottom: var(--color-bg);
     --folder-shadow-ink: var(--color-text);
   }
 
@@ -184,7 +185,8 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     --color-border: #4A4740;
 
     --folder-base-fill: var(--color-bg);
-    --folder-hover-fill: color-mix(in srgb, var(--color-bg) 80%, var(--color-text) 20%);
+    --folder-hover-fill-top: color-mix(in srgb, var(--color-bg) 62%, var(--color-text) 38%);
+    --folder-hover-fill-bottom: var(--color-bg);
     --folder-shadow-ink: #000;
     /* Avatar keeps light theme colors */
   }

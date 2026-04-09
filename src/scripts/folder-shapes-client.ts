@@ -5,27 +5,26 @@ type FolderParts = {
   fillPath: SVGPathElement;
 };
 
-type FolderShapesState = {
-  ro: ResizeObserver | null;
+type FolderShapesRuntime = {
+  observer: ResizeObserver | null;
   roots: Set<HTMLElement>;
-  rootToParts: WeakMap<HTMLElement, FolderParts>;
+  partsByRoot: WeakMap<HTMLElement, FolderParts>;
   dirty: Set<HTMLElement>;
-  raf: number;
+  rafId: number;
 };
 
 declare global {
   interface Window {
     __folderShapesInit?: boolean;
     __folderShapesBound?: boolean;
-    __folderShapesState?: FolderShapesState;
+    __folderShapesRuntime?: FolderShapesRuntime;
   }
 }
 
-const config = {
+const FOLDER_GEOMETRY = {
   flapHeight: 60,
   bottomPadding: 26,
   bottomRadius: 8,
-
   desktop: {
     padding: 56,
     flapCurve: 72,
@@ -33,7 +32,6 @@ const config = {
     rightInset: 56,
     rightDrop: 44,
   },
-
   mobile: {
     padding: 34,
     flapCurve: 52,
@@ -45,38 +43,20 @@ const config = {
 
 function setupFolderShapes() {
   if (typeof window === 'undefined') return;
-
-  // One runtime for all folders (this component is rendered many times).
   if (window.__folderShapesInit) return;
   window.__folderShapesInit = true;
 
-  const state: FolderShapesState = (window.__folderShapesState ||= {
-    ro: null,
+  const runtime: FolderShapesRuntime = (window.__folderShapesRuntime ||= {
+    observer: null,
     roots: new Set<HTMLElement>(),
-    rootToParts: new WeakMap<HTMLElement, FolderParts>(),
+    partsByRoot: new WeakMap<HTMLElement, FolderParts>(),
     dirty: new Set<HTMLElement>(),
-    raf: 0,
+    rafId: 0,
   });
 
-  function schedule(root: HTMLElement) {
-    state.dirty.add(root);
-    if (state.raf) return;
-    state.raf = window.requestAnimationFrame(flush);
-  }
-
-  function scheduleAll() {
-    state.roots.forEach(schedule);
-  }
-
-  function flush() {
-    state.raf = 0;
-    state.dirty.forEach((root) => updateShape(root));
-    state.dirty.clear();
-  }
-
-  function getParts(root: HTMLElement): FolderParts | null {
-    let parts = state.rootToParts.get(root);
-    if (parts) return parts;
+  function getFolderParts(root: HTMLElement): FolderParts | null {
+    const cached = runtime.partsByRoot.get(root);
+    if (cached) return cached;
 
     const label = root.querySelector('[data-folder-label]');
     const description = root.querySelector('[data-folder-description]');
@@ -87,141 +67,158 @@ function setupFolderShapes() {
     if (!(svg instanceof SVGSVGElement)) return null;
     if (!(fillPath instanceof SVGPathElement)) return null;
 
-    parts = {
+    const parts: FolderParts = {
       label,
       description: description instanceof HTMLElement ? description : null,
       svg,
       fillPath,
     };
 
-    state.rootToParts.set(root, parts);
+    runtime.partsByRoot.set(root, parts);
     return parts;
   }
 
-  function updateShape(root: HTMLElement) {
-    const parts = getParts(root);
-    if (!parts) return;
+  function setContentBottom(root: HTMLElement, contentBottom: number) {
+    const value = `${Math.ceil(contentBottom)}px`;
+    root.style.setProperty('--folder-content-bottom', value);
 
-    const { label, description, svg, fillPath } = parts;
-
-    // --- Height (grow based on content) ---
-    const styles = getComputedStyle(root);
-    const minH = Number.parseFloat(styles.getPropertyValue('--folder-min-h')) || 200;
-
-    const labelBottom = label.offsetTop + label.offsetHeight;
-    const descriptionBottom = description ? description.offsetTop + description.offsetHeight : 0;
-    const contentBottom = Math.max(labelBottom, descriptionBottom);
-
-    const desiredSvgHeight = Math.max(minH, Math.ceil(contentBottom + config.bottomPadding));
-    const prevHeight = Number(svg.getAttribute('height')) || 0;
-    if (desiredSvgHeight !== prevHeight) svg.setAttribute('height', String(desiredSvgHeight));
-
-    // Expose content bottom so the stack can compute per-item overlap
-    const contentBottomPx = `${Math.ceil(contentBottom)}px`;
-    root.style.setProperty('--folder-content-bottom', contentBottomPx);
-    const parentItem = root.closest('[data-folder-stack-item]');
-    if (parentItem instanceof HTMLElement) {
-      parentItem.style.setProperty('--folder-content-bottom', contentBottomPx);
-    }
-
-    // --- Width / flap geometry ---
-    const flapStart = Number.parseFloat(styles.getPropertyValue('--folder-pad-x')) || 24;
-    const rootWidth = root.clientWidth || 0;
-    if (!rootWidth) return;
-
-    const m = rootWidth <= 640 ? config.mobile : config.desktop;
-
-    // Ensure the flap fits *inside* the element.
-    const minFlapEnd = flapStart + m.topLeftRadius + m.flapCurve + 14;
-    const maxFlapEnd = Math.max(minFlapEnd, rootWidth - m.rightInset - m.flapCurve);
-    const maxLabelWidth = Math.max(48, maxFlapEnd - flapStart - m.padding);
-
-    // Keep the label bounded so its measured width can't force an impossible flap.
-    // Note: don't clip/truncate the title (keeps glyphs + text selection intact).
-    label.style.maxWidth = `${maxLabelWidth}px`;
-
-    const textWidth = Math.min(label.offsetWidth, maxLabelWidth);
-    const flapEnd = Math.max(minFlapEnd, flapStart + textWidth + m.padding);
-
-    // 1 SVG unit == 1 CSS pixel.
-    const totalWidth = rootWidth;
-    const svgHeight = Number(svg.getAttribute('height')) || desiredSvgHeight;
-    const viewBox = `0 0 ${totalWidth} ${svgHeight}`;
-    if (svg.getAttribute('viewBox') !== viewBox) svg.setAttribute('viewBox', viewBox);
-
-    const bottomY = svgHeight;
-
-    // Curve control points derived from flapCurve (keeps proportions consistent).
-    const c1 = Math.round(m.flapCurve * 0.56);
-    const c2 = Math.round(m.flapCurve * 0.17);
-    const c3 = Math.round(m.flapCurve * 0.06);
-    const c4 = Math.round(m.flapCurve * 0.25);
-    const c5 = Math.round(m.flapCurve * 0.5);
-
-    const br = Math.max(
-      0,
-      Math.min(
-        config.bottomRadius,
-        Math.floor(totalWidth / 2),
-        Math.floor((bottomY - config.flapHeight) / 2)
-      )
-    );
-
-    const d = `
-        M0 ${config.flapHeight}
-
-        Q0 0 ${m.topLeftRadius} 0
-        H ${flapEnd - m.flapCurve}
-
-        C ${flapEnd - c1} 0,
-          ${flapEnd - c2} 6,
-          ${flapEnd + c3} 20
-
-        C ${flapEnd + c4} 34,
-          ${flapEnd + c5} ${config.flapHeight - 4},
-          ${flapEnd + m.flapCurve} ${config.flapHeight}
-
-        H ${totalWidth - m.rightInset}
-
-        Q ${totalWidth} ${config.flapHeight}
-          ${totalWidth} ${config.flapHeight + m.rightDrop}
-
-        V ${bottomY - br}
-
-        Q ${totalWidth} ${bottomY}
-          ${totalWidth - br} ${bottomY}
-
-        H ${br}
-
-        Q 0 ${bottomY}
-          0 ${bottomY - br}
-
-        V ${config.flapHeight}
-        Z
-      `.trim();
-
-    fillPath.setAttribute('d', d);
-
-    // Expose a clip-path() version for HTML hit-testing.
-    // Used by FolderStackItem's invisible overlay link so the “empty” corners of the
-    // folder bounding box don't steal pointer events from the folders below.
-    const dForCss = d.replace(/\s+/g, ' ').trim();
-    const clip = `path('${dForCss}')`;
-
-    root.style.setProperty('--folder-clip-path', clip);
-
-    const stackItem = root.closest('[data-folder-stack-item]');
-    if (stackItem instanceof HTMLElement) {
-      stackItem.style.setProperty('--folder-clip-path', clip);
+    const card = root.closest('[data-project-folder-card]');
+    if (card instanceof HTMLElement) {
+      card.style.setProperty('--folder-content-bottom', value);
     }
   }
 
-  function ensureObserver() {
-    if (state.ro) return;
-    if (!('ResizeObserver' in window)) return;
+  function setClipPath(root: HTMLElement, pathData: string) {
+    const clipPath = `path('${pathData.replace(/\s+/g, ' ').trim()}')`;
+    root.style.setProperty('--folder-clip-path', clipPath);
 
-    // Observe ONLY roots: cheaper, and avoids RO loops caused by mutating the label.
-    state.ro = new ResizeObserver((entries) => {
+    const card = root.closest('[data-project-folder-card]');
+    if (card instanceof HTMLElement) {
+      card.style.setProperty('--folder-clip-path', clipPath);
+    }
+  }
+
+  function getMetrics(root: HTMLElement, parts: FolderParts) {
+    const styles = getComputedStyle(root);
+    const minHeight = Number.parseFloat(styles.getPropertyValue('--folder-min-h')) || 200;
+    const rootWidth = root.clientWidth || 0;
+    const flapStart = Number.parseFloat(styles.getPropertyValue('--folder-pad-x')) || 24;
+
+    const labelBottom = parts.label.offsetTop + parts.label.offsetHeight;
+    const descriptionBottom = parts.description ? parts.description.offsetTop + parts.description.offsetHeight : 0;
+    const contentBottom = Math.max(labelBottom, descriptionBottom);
+    const svgHeight = Math.max(minHeight, Math.ceil(contentBottom + FOLDER_GEOMETRY.bottomPadding));
+
+    return {
+      styles,
+      minHeight,
+      rootWidth,
+      flapStart,
+      contentBottom,
+      svgHeight,
+      shape: rootWidth <= 640 ? FOLDER_GEOMETRY.mobile : FOLDER_GEOMETRY.desktop,
+    };
+  }
+
+  function updateSvgHeight(svg: SVGSVGElement, height: number) {
+    const currentHeight = Number(svg.getAttribute('height')) || 0;
+    if (currentHeight !== height) {
+      svg.setAttribute('height', String(height));
+    }
+  }
+
+  function buildFolderPath(width: number, height: number, flapStart: number, labelWidth: number, mobile: boolean) {
+    const shape = mobile ? FOLDER_GEOMETRY.mobile : FOLDER_GEOMETRY.desktop;
+    const minFlapEnd = flapStart + shape.topLeftRadius + shape.flapCurve + 14;
+    const maxFlapEnd = Math.max(minFlapEnd, width - shape.rightInset - shape.flapCurve);
+    const maxLabelWidth = Math.max(48, maxFlapEnd - flapStart - shape.padding);
+    const flapEnd = Math.max(minFlapEnd, flapStart + Math.min(labelWidth, maxLabelWidth) + shape.padding);
+
+    const c1 = Math.round(shape.flapCurve * 0.56);
+    const c2 = Math.round(shape.flapCurve * 0.17);
+    const c3 = Math.round(shape.flapCurve * 0.06);
+    const c4 = Math.round(shape.flapCurve * 0.25);
+    const c5 = Math.round(shape.flapCurve * 0.5);
+
+    const radius = Math.max(
+      0,
+      Math.min(
+        FOLDER_GEOMETRY.bottomRadius,
+        Math.floor(width / 2),
+        Math.floor((height - FOLDER_GEOMETRY.flapHeight) / 2)
+      )
+    );
+
+    return {
+      maxLabelWidth,
+      path: `
+        M0 ${FOLDER_GEOMETRY.flapHeight}
+        Q0 0 ${shape.topLeftRadius} 0
+        H ${flapEnd - shape.flapCurve}
+        C ${flapEnd - c1} 0, ${flapEnd - c2} 6, ${flapEnd + c3} 20
+        C ${flapEnd + c4} 34, ${flapEnd + c5} ${FOLDER_GEOMETRY.flapHeight - 4}, ${flapEnd + shape.flapCurve} ${FOLDER_GEOMETRY.flapHeight}
+        H ${width - shape.rightInset}
+        Q ${width} ${FOLDER_GEOMETRY.flapHeight} ${width} ${FOLDER_GEOMETRY.flapHeight + shape.rightDrop}
+        V ${height - radius}
+        Q ${width} ${height} ${width - radius} ${height}
+        H ${radius}
+        Q 0 ${height} 0 ${height - radius}
+        V ${FOLDER_GEOMETRY.flapHeight}
+        Z
+      `.trim(),
+    };
+  }
+
+  function updateFolderShape(root: HTMLElement) {
+    const parts = getFolderParts(root);
+    if (!parts) return;
+
+    const metrics = getMetrics(root, parts);
+    if (!metrics.rootWidth) return;
+
+    updateSvgHeight(parts.svg, metrics.svgHeight);
+    setContentBottom(root, metrics.contentBottom);
+
+    const isMobile = metrics.rootWidth <= 640;
+    const pathDataInfo = buildFolderPath(
+      metrics.rootWidth,
+      metrics.svgHeight,
+      metrics.flapStart,
+      parts.label.offsetWidth,
+      isMobile
+    );
+
+    parts.label.style.maxWidth = `${pathDataInfo.maxLabelWidth}px`;
+
+    const viewBox = `0 0 ${metrics.rootWidth} ${metrics.svgHeight}`;
+    if (parts.svg.getAttribute('viewBox') !== viewBox) {
+      parts.svg.setAttribute('viewBox', viewBox);
+    }
+
+    parts.fillPath.setAttribute('d', pathDataInfo.path);
+    setClipPath(root, pathDataInfo.path);
+  }
+
+  function flush() {
+    runtime.rafId = 0;
+    runtime.dirty.forEach((root) => updateFolderShape(root));
+    runtime.dirty.clear();
+  }
+
+  function schedule(root: HTMLElement) {
+    runtime.dirty.add(root);
+    if (runtime.rafId) return;
+    runtime.rafId = window.requestAnimationFrame(flush);
+  }
+
+  function scheduleAll() {
+    runtime.roots.forEach(schedule);
+  }
+
+  function ensureObserver() {
+    if (runtime.observer || !('ResizeObserver' in window)) return;
+
+    runtime.observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         if (entry.target instanceof HTMLElement) schedule(entry.target);
       }
@@ -237,28 +234,28 @@ function setupFolderShapes() {
     roots.forEach((root) => {
       if (!(root instanceof HTMLElement)) return;
       if (root.dataset.folderInit === 'true') return;
-      root.dataset.folderInit = 'true';
 
-      // Cache parts early so updateShape is cheap.
-      const parts = getParts(root);
+      const parts = getFolderParts(root);
       if (!parts) return;
 
-      state.roots.add(root);
-      state.ro?.observe(root);
-
+      root.dataset.folderInit = 'true';
+      runtime.roots.add(root);
+      runtime.observer?.observe(root);
       schedule(root);
     });
   }
 
   function cleanup() {
-    // Release references so removed nodes can be GC'd between view transitions.
-    state.ro?.disconnect();
-    state.ro = null;
-    state.roots.clear();
-    state.rootToParts = new WeakMap<HTMLElement, FolderParts>();
-    state.dirty.clear();
-    if (state.raf) window.cancelAnimationFrame(state.raf);
-    state.raf = 0;
+    runtime.observer?.disconnect();
+    runtime.observer = null;
+    runtime.roots.clear();
+    runtime.partsByRoot = new WeakMap<HTMLElement, FolderParts>();
+    runtime.dirty.clear();
+
+    if (runtime.rafId) {
+      window.cancelAnimationFrame(runtime.rafId);
+      runtime.rafId = 0;
+    }
   }
 
   if (!window.__folderShapesBound) {
@@ -267,13 +264,8 @@ function setupFolderShapes() {
     document.addEventListener('astro:page-load', initAll);
     window.addEventListener('astro:before-preparation', cleanup);
     window.addEventListener('pagehide', cleanup);
-
-    // Fallbacks for cases where RO doesn't fire (e.g. font loading / late layout shifts).
     window.addEventListener('resize', scheduleAll);
     window.addEventListener('load', scheduleAll, { once: true });
-
-    // Font load can change label width without resizing the root.
-    // (Safe no-op on browsers without the Font Loading API.)
     void (document as any).fonts?.ready?.then(scheduleAll).catch(() => {});
   }
 

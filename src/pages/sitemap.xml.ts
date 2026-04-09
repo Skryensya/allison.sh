@@ -14,7 +14,11 @@ function escapeXml(value: string) {
 export const GET: APIRoute = async ({ site }) => {
   const base = site ?? new URL(SITE_URL);
   const proyectos = await getCollection('proyectos');
-  const urls = ['/', ...proyectos.map((entry) => `/proyectos/${entry.id}`)];
+  const urls = [
+    '/',
+    '/proyectos/',
+    ...proyectos.map((entry) => `/proyectos/${entry.id}/`),
+  ];
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

@@ -1,0 +1,182 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  titleTag?: 'div' | 'h1' | 'h2';
+  className?: string;
+  rootClassName?: string;
+  titleClassName?: string;
+  descriptionClassName?: string;
+  gradient?: boolean;
+  gradientClassName?: string;
+  minHeight?: string;
+  svgHeight?: string;
+  active?: boolean;
+  year?: string;
+  metaSlotClassName?: string;
+  gradientId?: string;
+}
+
+const {
+  title,
+  description,
+  titleTag = 'div',
+  className = '',
+  rootClassName = '',
+  titleClassName = '',
+  descriptionClassName = '',
+  gradient = false,
+  gradientClassName = '',
+  minHeight,
+  svgHeight,
+  active = false,
+  year,
+  metaSlotClassName = '',
+  gradientId = `folder-surface-fill-${Math.random().toString(36).slice(2, 10)}`,
+} = Astro.props;
+
+const TitleTag = titleTag;
+const styleParts: string[] = [];
+if (minHeight) styleParts.push(`--folder-min-h:${minHeight}`);
+const style = styleParts.length ? styleParts.join('; ') : undefined;
+---
+
+<div class={`folder-surface ${rootClassName} ${className}`.trim()} data-folder data-active={active ? 'true' : undefined} style={style}>
+  {gradient && <div class={`folder-surface__gradient ${gradientClassName}`.trim()} aria-hidden="true"></div>}
+
+  <div data-folder-shell class="folder-surface__shell relative">
+    <svg
+      data-folder-svg
+      height={svgHeight ?? minHeight ?? '400'}
+      class="folder-surface__svg block w-full"
+      aria-hidden="true"
+      preserveAspectRatio="none"
+    >
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" style={`stop-color:${active ? 'var(--folder-hover-fill-top, var(--folder-fill-top, var(--folder-base-fill, var(--color-bg))))' : 'var(--folder-fill-top, var(--folder-base-fill, var(--color-bg)))'}`} />
+          <stop offset="100%" style={`stop-color:${active ? 'var(--folder-hover-fill-bottom, var(--folder-fill-bottom, var(--folder-base-fill, var(--color-bg))))' : 'var(--folder-fill-bottom, var(--folder-base-fill, var(--color-bg)))'}`} />
+        </linearGradient>
+      </defs>
+      <path data-folder-fill-path fill={`url(#${gradientId})`}></path>
+    </svg>
+
+    <div data-folder-text-layer class="folder-surface__text-layer pointer-events-none absolute inset-0 z-[2]">
+      <TitleTag
+        data-folder-label
+        class={`folder-surface__title absolute left-[var(--folder-pad-x)] top-[20px] text-text font-sans text-xl sm:text-2xl md:text-3xl leading-[1.1] tracking-tight font-normal whitespace-nowrap pointer-events-auto select-text ${titleClassName}`.trim()}
+      >
+        {title}
+      </TitleTag>
+
+      {
+        description && (
+          <div
+            data-folder-description
+            class={`folder-surface__description absolute left-[var(--folder-pad-x)] top-[72px] md:top-[82px] right-[var(--folder-pad-x)] text-muted font-sans text-base leading-[1.55] pointer-events-auto select-text ${descriptionClassName}`.trim()}
+          >
+            {description}
+          </div>
+        )
+      }
+
+      {year && (
+        <p class={`folder-surface__meta absolute left-[var(--folder-pad-x)] top-[116px] font-mono text-xs text-subtle ${metaSlotClassName}`.trim()}>
+          {year}
+        </p>
+      )}
+    </div>
+  </div>
+</div>
+
+<style>
+  .folder-surface {
+    --folder-base-fill: var(--color-bg);
+    --folder-fill-top: var(--folder-base-fill);
+    --folder-fill-bottom: var(--folder-base-fill);
+    --folder-min-h: 400px;
+  }
+
+  .folder-surface__shell {
+    position: relative;
+    z-index: 2;
+    clip-path: inset(-56px -88px 0 -88px);
+  }
+
+  .folder-surface__gradient {
+    position: absolute;
+    left: -10%;
+    right: -10%;
+    bottom: 0;
+    width: 120%;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 40%,
+      color-mix(in srgb, var(--color-bg) 40%, transparent) 55%,
+      color-mix(in srgb, var(--color-bg) 80%, transparent) 70%,
+      var(--color-bg) 80% 100%
+    );
+    pointer-events: none;
+    z-index: 26;
+  }
+
+  .folder-surface__title,
+  .folder-surface__description {
+    transition: color 150ms ease;
+  }
+
+  .folder-surface [data-folder-fill-path] {
+    transition: fill 150ms ease;
+  }
+
+  .folder-surface [data-folder-svg] {
+    transition: filter 180ms cubic-bezier(0.23, 1, 0.32, 1);
+    will-change: filter;
+    filter: var(
+      --folder-shadow-filter,
+      drop-shadow(0 -7px 13px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 5%, transparent))
+        drop-shadow(0 -2px 4px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 2.5%, transparent))
+    );
+  }
+
+  .folder-surface[data-active],
+  .folder-surface[data-active='true'] {
+    --folder-fill-top: var(--folder-hover-fill-top, var(--folder-fill-top));
+    --folder-fill-bottom: var(--folder-hover-fill-bottom, var(--folder-fill-bottom));
+  }
+
+  @media (max-width: 640px) {
+    .folder-surface {
+      --folder-min-h: 360px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .folder-surface {
+      --folder-min-h: 340px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .folder-surface [data-folder-fill-path],
+    .folder-surface [data-folder-svg] {
+      transition: none !important;
+    }
+
+    .folder-surface [data-folder-svg] {
+      filter: none !important;
+      will-change: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .folder-surface__title,
+    .folder-surface__description,
+    .folder-surface [data-folder-fill-path],
+    .folder-surface [data-folder-svg] {
+      transition: none !important;
+    }
+  }
+</style>

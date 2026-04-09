@@ -3,9 +3,8 @@ import { getCollection, render } from 'astro:content';
 import Project from '@/layouts/Project.astro';
 import TechChips from '@/components/TechChips.astro';
 import ImageFigure from '@/components/ImageFigure.astro';
-import Folder from '@/components/Folder.astro';
-import FolderStack from '@/components/FolderStack.astro';
-import FolderStackItem from '@/components/FolderStackItem.astro';
+import ProjectFolderCard from '@/components/ProjectFolderCard.astro';
+import ProjectFolderStack from '@/components/ProjectFolderStack.astro';
 import { getOgImagePath, SITE_LOCALE, SITE_NAME, SITE_URL, toAbsoluteUrl } from '@/lib/seo';
 
 export async function getStaticPaths() {
@@ -82,7 +81,7 @@ const projectStructuredData = {
   year={entry.data.year}
   structuredData={projectStructuredData}
 >
-  <div class="space-y-6 font-sans text-base leading-[1.75] text-text">
+  <div class="space-y-6 font-sans text-base xl:text-[18px] leading-[1.75] text-text">
     <Content components={{ ImageFigure }} />
     <TechChips tech={entry.data.tech || []} />
   </div>
@@ -90,17 +89,15 @@ const projectStructuredData = {
   <nav class="mt-20">
     <p class="font-mono text-[11px] tracking-wide text-subtle mb-8">siguiente</p>
     <div class="next-folder-stack" data-next-folder-stack>
-      <FolderStack>
-        <FolderStackItem
+      <ProjectFolderStack>
+        <ProjectFolderCard
           href={`/proyectos/${nextProject.id}`}
-          index={0}
-          ariaLabel={`Ir a ${nextProject.data.title}`}
+          title={nextProject.data.title}
+          description={nextProject.data.description}
           previewSrcs={nextPreviews}
           previewAlt={`Preview de ${nextProject.data.title}`}
-        >
-          <Folder title={nextProject.data.title} description={nextProject.data.description} className="w-full" />
-        </FolderStackItem>
-      </FolderStack>
+        />
+      </ProjectFolderStack>
     </div>
 
     <script>
@@ -108,7 +105,7 @@ const projectStructuredData = {
         if (!window.matchMedia('(max-width: 768px)').matches) return;
         const wrap = document.querySelector('[data-next-folder-stack]');
         if (!wrap) return;
-        const item = wrap.querySelector('[data-folder-stack-item]') as HTMLElement;
+        const item = wrap.querySelector('[data-project-folder-card]') as HTMLElement;
         if (!item) return;
 
         item.dataset.active = 'true';
@@ -121,10 +118,7 @@ const projectStructuredData = {
           }
         });
 
-        // Set preview-open on each preview element
-        item.querySelectorAll('[data-preview-index]').forEach((el) => {
-          if (el instanceof HTMLElement) el.dataset.previewOpen = 'true';
-        });
+        // previews read the state from the card root
       }
 
       requestAnimationFrame(() => requestAnimationFrame(activateNextFolder));
@@ -137,18 +131,15 @@ const projectStructuredData = {
 
 <style is:global>
   @media (max-width: 768px) {
-    .next-folder-stack .folder-stack__item[data-active='true'] :is(.folder-stack__card, .folder-stack__hit) {
+    .next-folder-stack .project-folder-card[data-active='true'] .project-folder-card__link {
       transform: none !important;
       transition: none !important;
     }
 
-    .next-folder-stack .folder-stack__item [data-folder],
-    .next-folder-stack .folder-stack__item[data-active='true'] [data-folder] {
-      --folder-fill: var(--folder-hover-fill, color-mix(in srgb, var(--color-bg) 92%, var(--color-text) 8%)) !important;
-    }
-
-    .next-folder-stack .folder-stack__item::before {
-      display: none !important;
+    .next-folder-stack .project-folder-card [data-folder],
+    .next-folder-stack .project-folder-card[data-active='true'] [data-folder] {
+      --folder-fill-top: var(--folder-hover-fill-top, color-mix(in srgb, var(--color-bg) 98%, var(--color-text) 2%)) !important;
+      --folder-fill-bottom: var(--folder-hover-fill-bottom, color-mix(in srgb, var(--color-bg) 88%, var(--color-text) 12%)) !important;
     }
   }
 </style>

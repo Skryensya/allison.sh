@@ -1,0 +1,57 @@
+---
+import FolderSurface from '@/components/FolderSurface.astro';
+
+interface Props {
+  href: string;
+  title: string;
+  description?: string;
+  className?: string;
+  previewSrcs?: string[];
+  previewAlt?: string;
+}
+
+const {
+  href,
+  title,
+  description,
+  className = '',
+  previewSrcs = [],
+  previewAlt = '',
+} = Astro.props;
+
+const previews = previewSrcs.slice(0, 3);
+const previewCount = previews.length;
+---
+
+<li class={`project-folder-card ${className}`} data-project-folder-card data-preview-count={previewCount}>
+  <div class="project-folder-card__gradient" aria-hidden="true"></div>
+
+  {previewCount > 0 && (
+    <div class="project-folder-card__previews" aria-hidden="true">
+      {previews.map((src, index) => (
+        <span class="project-folder-card__preview" data-preview-index={index}>
+          <span class="project-folder-card__preview-frame">
+            <span class="project-folder-card__preview-media">
+              <img
+                class="project-folder-card__preview-img"
+                data-folder-preview-img
+                data-src={src}
+                alt={previewAlt}
+                loading="lazy"
+                decoding="async"
+              />
+            </span>
+          </span>
+        </span>
+      ))}
+    </div>
+  )}
+
+  <a href={href} class="project-folder-card__link" aria-label={`Abrir proyecto ${title}`}>
+    <FolderSurface
+      title={title}
+      description={description}
+      rootClassName="project-folder-card__folder"
+    />
+  </a>
+</li>
