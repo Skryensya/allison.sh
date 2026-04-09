@@ -6,7 +6,10 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "predev": "npm run build:client",
     "dev": "astro dev",
+    "build:client": "node scripts/build-client-modules.mjs",
+    "prebuild": "npm run build:client",
     "generate:og": "tsx scripts/generate-og-images.ts",
     "build": "npm run generate:og && astro build",
     "preview": "astro preview",

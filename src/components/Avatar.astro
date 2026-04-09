@@ -65,11 +65,13 @@ const {
   </button>
 </div>
 
-<script>
-  let avatarModulePromise: Promise<{ setupAvatars: () => void }> | null = null;
+<script is:inline>
+  const avatarClientUrl = '/client/avatar-client.js';
+
+  let avatarModulePromise;
 
   function loadAvatarModule() {
-    avatarModulePromise ??= import('../scripts/avatar-client').then((module) => {
+    avatarModulePromise ??= import(avatarClientUrl).then((module) => {
       module.setupAvatars();
       return module;
     });
@@ -78,7 +80,7 @@ const {
   }
 
   function observeAvatarBoot() {
-    const avatars = document.querySelectorAll<HTMLElement>('.avatar[data-avatar-id]');
+    const avatars = document.querySelectorAll('.avatar[data-avatar-id]');
     if (!avatars.length) return;
 
     if (!('IntersectionObserver' in window)) {

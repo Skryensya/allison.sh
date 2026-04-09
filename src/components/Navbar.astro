@@ -31,7 +31,7 @@ const isHome = currentPath === '/' || currentPath === '';
       </button>
     </div>
     <div id="nav-links" class="flex items-center gap-4 md:gap-6 pointer-events-auto">
-      <a href="/proyectos/" class="hidden md:inline-flex font-sans text-base font-normal tracking-[0.01em] text-text">work</a>
+      <a href={isHome ? '#proyectos' : '/#proyectos'} class="hidden md:inline-flex font-sans text-base font-normal tracking-[0.01em] text-text">work</a>
       <a href="/#sobre-mi" class="hidden md:inline-flex font-sans text-base font-normal tracking-[0.01em] text-text">about</a>
       <a href="/#contacto" class="hidden md:inline-flex font-sans text-base font-normal tracking-[0.01em] text-text">contact</a>
     </div>

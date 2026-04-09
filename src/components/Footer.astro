@@ -1,15 +1,12 @@
 ---
+const emailLinkMarkup = `<!--email_off--><a href="mailto:contacto@allison.sh" class="font-sans text-xl md:text-2xl leading-tight">contacto@allison.sh</a><!--/email_off-->`;
 ---
 
 <div class="relative z-[60]">
   <section id="contacto" aria-labelledby="contacto-heading" class="mb-32 md:mb-40">
     <h2 id="contacto-heading" class="sr-only">Contacto</h2>
     <ul class="space-y-3">
-      <li>
-        <a href="mailto:contacto@allison.sh" class="font-sans text-xl md:text-2xl leading-tight">
-          contacto@allison.sh
-        </a>
-      </li>
+      <li set:html={emailLinkMarkup}></li>
       <li>
         <a href="https://linkedin.com/in/skryensya" class="font-sans text-xl md:text-2xl leading-tight">
           linkedin.com/in/skryensya

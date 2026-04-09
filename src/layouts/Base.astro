@@ -124,8 +124,8 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     <!-- Critical CSS: inline for fast first paint with font fallback -->
     <style>:root{--color-bg:#f4f1eb;--color-text:#1f1c18;--color-muted:#4a4742;--color-border:#c8c3ba;--theme-colorful:#f4f1eb;--theme-contrasty:#3d3832}*,::before,::after{box-sizing:border-box;margin:0;padding:0}body{background-color:var(--color-bg);color:var(--color-text);line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased}h1,h2{line-height:1.05;font-weight:400;letter-spacing:-0.025em}.hero-heading{font-size:clamp(2.5rem,5vw,5.5rem);line-height:1.05}.font-display{font-family:var(--font-display)}.font-mono{font-family:var(--font-mono)}.font-sans{font-family:var(--font-sans)}.text-muted{color:var(--color-muted)}.text-text{color:var(--color-text)}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}img,video,svg{vertical-align:middle;max-width:100%;height:auto}@media(max-width:47.999rem){#nav-links a{display:none!important}}</style>
     <!-- Load fonts -->
-    <Font cssVariable="--font-display" />
-    <Font cssVariable="--font-sans" />
+    <Font cssVariable="--font-display" preload />
+    <Font cssVariable="--font-sans" preload={[{ weight: 400 }]} />
     <Font cssVariable="--font-mono" />
   </head>
   <body class="text-text antialiased min-h-screen bg-bg relative z-0">
@@ -225,21 +225,54 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
   }
 </style>
 
-<script>
-  const loadBaseClient = () => import('@/scripts/base-client');
-  const loadFolderShapesClient = () => import('@/scripts/folder-shapes-client');
+<script is:inline>
+  const baseClientUrl = '/client/base-client.js';
+  const folderShapesClientUrl = '/client/folder-shapes-client.js';
+
+  let baseClientPromise;
+  let folderShapesClientPromise;
+
+  const loadBaseClient = () => {
+    baseClientPromise ??= import(baseClientUrl);
+    return baseClientPromise;
+  };
+
+  const loadFolderShapesClient = () => {
+    if (!document.querySelector('[data-folder]')) return folderShapesClientPromise;
+    folderShapesClientPromise ??= import(folderShapesClientUrl);
+    return folderShapesClientPromise;
+  };
+
+  const scheduleBaseClient = () => {
+    const boot = () => {
+      void loadBaseClient();
+    };
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(boot, { timeout: 1200 });
+      return;
+    }
+
+    window.setTimeout(boot, 280);
+  };
+
+  void loadFolderShapesClient();
 
   if (document.readyState === 'complete') {
-    void loadBaseClient();
-    requestAnimationFrame(() => {
-      void loadFolderShapesClient();
-    });
+    scheduleBaseClient();
   } else {
-    window.addEventListener('load', () => {
-      void loadBaseClient();
-      requestAnimationFrame(() => {
-        void loadFolderShapesClient();
-      });
-    }, { once: true });
+    window.addEventListener('load', scheduleBaseClient, { once: true });
   }
+
+  window.addEventListener('pointerdown', () => {
+    void loadBaseClient();
+  }, { once: true, passive: true });
+
+  window.addEventListener('keydown', () => {
+    void loadBaseClient();
+  }, { once: true });
+
+  document.addEventListener('astro:page-load', () => {
+    void loadFolderShapesClient();
+  });
 </script>

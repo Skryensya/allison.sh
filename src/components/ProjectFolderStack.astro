@@ -424,6 +424,53 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   }
 </style>
 
-<script>
-  import '../scripts/project-folder-stack-client';
+<script is:inline>
+  const projectFolderStackClientUrl = '/client/project-folder-stack-client.js';
+
+  let projectFolderStackModulePromise;
+
+  function loadProjectFolderStackModule() {
+    projectFolderStackModulePromise ??= import(projectFolderStackClientUrl);
+    return projectFolderStackModulePromise;
+  }
+
+  function observeProjectFolderStacks() {
+    const stacks = document.querySelectorAll('[data-project-folder-stack]');
+    if (!stacks.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(() => {
+          void loadProjectFolderStackModule();
+        }, { timeout: 1200 });
+      } else {
+        window.setTimeout(() => {
+          void loadProjectFolderStackModule();
+        }, 320);
+      }
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        void loadProjectFolderStackModule();
+      },
+      {
+        rootMargin: '220px 0px',
+        threshold: 0.01,
+      }
+    );
+
+    stacks.forEach((stack) => observer.observe(stack));
+  }
+
+  observeProjectFolderStacks();
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', observeProjectFolderStacks, { once: true });
+  }
+
+  document.addEventListener('astro:page-load', observeProjectFolderStacks);
 </script>
