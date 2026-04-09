@@ -201,9 +201,6 @@ export class SpeechBubble {
     this.currentAnchor = anchorEl;
     this.addViewportListeners();
 
-    // Initial position (will be refined once we know final bubble dimensions)
-    this.positionSmart(anchorEl);
-
     this.inner.innerHTML = '';
     this.inner.style.width = '';
     this.inner.style.height = '';
@@ -223,14 +220,16 @@ export class SpeechBubble {
 
     this.inner.appendChild(lineEl);
 
-    const measureRect = this.inner.getBoundingClientRect();
-    this.positionSmart(anchorEl, { width: measureRect.width, height: measureRect.height });
-
-    // ── Show bubble ──
+    // Make it measurable before positioning, then reveal on the next frame.
     this.state = 'typing';
     this.container.style.display = 'block';
-    void this.container.offsetHeight;
-    this.container.classList.add('visible');
+
+    requestAnimationFrame(() => {
+      if (!this.currentAnchor) return;
+      const measureRect = this.inner.getBoundingClientRect();
+      this.positionSmart(this.currentAnchor, { width: measureRect.width, height: measureRect.height });
+      this.container.classList.add('visible');
+    });
 
     if (this.prefersReducedMotion) {
       allCharSpans.forEach((s) => s.classList.add('revealed'));

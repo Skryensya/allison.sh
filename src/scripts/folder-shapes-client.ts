@@ -5,11 +5,16 @@ type FolderParts = {
   fillPath: SVGPathElement;
 };
 
+type FolderResizeSnapshot = {
+  width?: number;
+};
+
 type FolderShapesRuntime = {
   observer: ResizeObserver | null;
   roots: Set<HTMLElement>;
   partsByRoot: WeakMap<HTMLElement, FolderParts>;
   dirty: Set<HTMLElement>;
+  snapshots: WeakMap<HTMLElement, FolderResizeSnapshot>;
   rafId: number;
 };
 
@@ -51,6 +56,7 @@ function setupFolderShapes() {
     roots: new Set<HTMLElement>(),
     partsByRoot: new WeakMap<HTMLElement, FolderParts>(),
     dirty: new Set<HTMLElement>(),
+    snapshots: new WeakMap<HTMLElement, FolderResizeSnapshot>(),
     rafId: 0,
   });
 
@@ -98,24 +104,29 @@ function setupFolderShapes() {
     }
   }
 
-  function getMetrics(root: HTMLElement, parts: FolderParts) {
+  function getMetrics(root: HTMLElement, parts: FolderParts, snapshot?: FolderResizeSnapshot) {
     const styles = getComputedStyle(root);
     const minHeight = Number.parseFloat(styles.getPropertyValue('--folder-min-h')) || 200;
-    const rootWidth = root.clientWidth || 0;
+    const rootWidth = snapshot?.width ?? (root.clientWidth || 0);
     const flapStart = Number.parseFloat(styles.getPropertyValue('--folder-pad-x')) || 24;
 
-    const labelBottom = parts.label.offsetTop + parts.label.offsetHeight;
-    const descriptionBottom = parts.description ? parts.description.offsetTop + parts.description.offsetHeight : 0;
+    const labelRect = parts.label.getBoundingClientRect();
+    const rootRect = root.getBoundingClientRect();
+    const labelBottom = labelRect.bottom - rootRect.top;
+
+    const descriptionRect = parts.description?.getBoundingClientRect();
+    const descriptionBottom = descriptionRect ? descriptionRect.bottom - rootRect.top : 0;
+
     const contentBottom = Math.max(labelBottom, descriptionBottom);
     const svgHeight = Math.max(minHeight, Math.ceil(contentBottom + FOLDER_GEOMETRY.bottomPadding));
 
     return {
-      styles,
       minHeight,
       rootWidth,
       flapStart,
       contentBottom,
       svgHeight,
+      labelWidth: labelRect.width,
       shape: rootWidth <= 640 ? FOLDER_GEOMETRY.mobile : FOLDER_GEOMETRY.desktop,
     };
   }
@@ -173,30 +184,37 @@ function setupFolderShapes() {
     const parts = getFolderParts(root);
     if (!parts) return;
 
-    const metrics = getMetrics(root, parts);
+    const snapshot = runtime.snapshots.get(root);
+    const metrics = getMetrics(root, parts, snapshot);
     if (!metrics.rootWidth) return;
-
-    updateSvgHeight(parts.svg, metrics.svgHeight);
-    setContentBottom(root, metrics.contentBottom);
 
     const isMobile = metrics.rootWidth <= 640;
     const pathDataInfo = buildFolderPath(
       metrics.rootWidth,
       metrics.svgHeight,
       metrics.flapStart,
-      parts.label.offsetWidth,
+      metrics.labelWidth,
       isMobile
     );
 
-    parts.label.style.maxWidth = `${pathDataInfo.maxLabelWidth}px`;
+    updateSvgHeight(parts.svg, metrics.svgHeight);
+    setContentBottom(root, metrics.contentBottom);
+
+    const maxWidth = `${pathDataInfo.maxLabelWidth}px`;
+    if (parts.label.style.maxWidth !== maxWidth) {
+      parts.label.style.maxWidth = maxWidth;
+    }
 
     const viewBox = `0 0 ${metrics.rootWidth} ${metrics.svgHeight}`;
     if (parts.svg.getAttribute('viewBox') !== viewBox) {
       parts.svg.setAttribute('viewBox', viewBox);
     }
 
-    parts.fillPath.setAttribute('d', pathDataInfo.path);
+    if (parts.fillPath.getAttribute('d') !== pathDataInfo.path) {
+      parts.fillPath.setAttribute('d', pathDataInfo.path);
+    }
     setClipPath(root, pathDataInfo.path);
+    runtime.snapshots.delete(root);
   }
 
   function flush() {
@@ -205,7 +223,14 @@ function setupFolderShapes() {
     runtime.dirty.clear();
   }
 
-  function schedule(root: HTMLElement) {
+  function schedule(root: HTMLElement, snapshot?: FolderResizeSnapshot) {
+    if (snapshot) {
+      runtime.snapshots.set(root, {
+        ...runtime.snapshots.get(root),
+        ...snapshot,
+      });
+    }
+
     runtime.dirty.add(root);
     if (runtime.rafId) return;
     runtime.rafId = window.requestAnimationFrame(flush);
@@ -220,7 +245,15 @@ function setupFolderShapes() {
 
     runtime.observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        if (entry.target instanceof HTMLElement) schedule(entry.target);
+        if (!(entry.target instanceof HTMLElement)) continue;
+
+        const boxSize = Array.isArray(entry.contentBoxSize)
+          ? entry.contentBoxSize[0]
+          : entry.contentBoxSize;
+
+        schedule(entry.target, {
+          width: boxSize?.inlineSize ?? entry.contentRect.width,
+        });
       }
     });
   }
@@ -250,6 +283,7 @@ function setupFolderShapes() {
     runtime.observer = null;
     runtime.roots.clear();
     runtime.partsByRoot = new WeakMap<HTMLElement, FolderParts>();
+    runtime.snapshots = new WeakMap<HTMLElement, FolderResizeSnapshot>();
     runtime.dirty.clear();
 
     if (runtime.rafId) {

@@ -226,9 +226,20 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
 </style>
 
 <script>
-  import '@/scripts/folder-shapes-client';
-</script>
+  const loadBaseClient = () => import('@/scripts/base-client');
+  const loadFolderShapesClient = () => import('@/scripts/folder-shapes-client');
 
-<script>
-  import '@/scripts/base-client';
+  if (document.readyState === 'complete') {
+    void loadBaseClient();
+    requestAnimationFrame(() => {
+      void loadFolderShapesClient();
+    });
+  } else {
+    window.addEventListener('load', () => {
+      void loadBaseClient();
+      requestAnimationFrame(() => {
+        void loadFolderShapesClient();
+      });
+    }, { once: true });
+  }
 </script>
