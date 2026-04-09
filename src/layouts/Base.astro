@@ -1,6 +1,7 @@
 ---
 import '@/styles/global.css';
 import { Font } from 'astro:assets';
+import clientModules from '@/generated/client-modules.json';
 import {
   DEFAULT_OG_IMAGE,
   DEFAULT_TWITTER_IMAGE,
@@ -225,9 +226,7 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
   }
 </style>
 
-<script is:inline>
-  const baseClientUrl = '/client/base-client.js';
-  const folderShapesClientUrl = '/client/folder-shapes-client.js';
+<script is:inline define:vars={{ baseClientUrl: clientModules['base-client'], folderShapesClientUrl: clientModules['folder-shapes-client'] }}>
 
   let baseClientPromise;
   let folderShapesClientPromise;
@@ -256,7 +255,33 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     window.setTimeout(boot, 280);
   };
 
-  void loadFolderShapesClient();
+  const observeFolders = () => {
+    const folders = document.querySelectorAll('[data-folder]');
+    if (!folders.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      window.setTimeout(() => {
+        void loadFolderShapesClient();
+      }, 320);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        void loadFolderShapesClient();
+      },
+      {
+        rootMargin: '240px 0px',
+        threshold: 0.01,
+      }
+    );
+
+    folders.forEach((folder) => observer.observe(folder));
+  };
+
+  observeFolders();
 
   if (document.readyState === 'complete') {
     scheduleBaseClient();
@@ -273,6 +298,6 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
   }, { once: true });
 
   document.addEventListener('astro:page-load', () => {
-    void loadFolderShapesClient();
+    observeFolders();
   });
 </script>

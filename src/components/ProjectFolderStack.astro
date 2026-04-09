@@ -1,4 +1,6 @@
 ---
+import clientModules from '@/generated/client-modules.json';
+
 interface Props {
   overlap?: string;
   gap?: string;
@@ -21,7 +23,7 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   </ul>
 </div>
 
-<style is:global>
+<style is:inline>
   .project-folder-stack-wrap {
     position: relative;
   }
@@ -424,8 +426,7 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   }
 </style>
 
-<script is:inline>
-  const projectFolderStackClientUrl = '/client/project-folder-stack-client.js';
+<script is:inline define:vars={{ projectFolderStackClientUrl: clientModules['project-folder-stack-client'] }}>
 
   let projectFolderStackModulePromise;
 
