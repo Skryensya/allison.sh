@@ -1,0 +1,17 @@
+:3000 {
+	root * /srv
+	encode gzip zstd
+	file_server
+
+	@hashedAssets path /_astro/*
+	header @hashedAssets Cache-Control "public, max-age=31536000, immutable"
+
+	@staticImages path *.svg *.png *.jpg *.jpeg *.webp *.avif *.gif *.ico
+	header @staticImages Cache-Control "public, max-age=604800"
+
+	@fonts path *.woff2 *.woff *.ttf *.otf
+	header @fonts Cache-Control "public, max-age=31536000, immutable"
+
+	@documents path *.html / /proyectos /proyectos/* /robots.txt /sitemap.xml
+	header @documents Cache-Control "public, max-age=0, must-revalidate"
+}

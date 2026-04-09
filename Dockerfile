@@ -16,15 +16,11 @@ RUN BUILD_PUBLIC_SITE_URL="$PUBLIC_SITE_URL" \
   && echo "Building with PUBLIC_SITE_URL=${PUBLIC_SITE_URL}" \
   && npm run build
 
-FROM node:22-alpine AS runtime
+FROM caddy:2-alpine AS runtime
 
-WORKDIR /app
+WORKDIR /srv
 
-ENV HOST=0.0.0.0
-ENV PORT=3000
-
-COPY --from=build /app/dist ./dist
+COPY --from=build /app/dist ./
+COPY Caddyfile /etc/caddy/Caddyfile
 
 EXPOSE 3000
-
-CMD ["npx", "serve", "dist", "-l", "3000"]
