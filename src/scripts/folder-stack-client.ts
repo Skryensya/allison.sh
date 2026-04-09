@@ -252,9 +252,46 @@ function setupFolderStacks() {
         });
       };
 
+      const syncMobileReadingState = (current: HTMLElement | null) => {
+        items.forEach((item, index) => {
+          delete item.dataset.readingCurrent;
+          delete item.dataset.readingPrev;
+          delete item.dataset.readingNext;
+          delete item.dataset.readingFar;
+          item.style.removeProperty('--mobile-reading-offset');
+
+          if (!current) return;
+
+          const currentIndex = items.indexOf(current);
+          const delta = index - currentIndex;
+
+          if (delta === 0) {
+            item.dataset.readingCurrent = 'true';
+            item.style.setProperty('--mobile-reading-offset', '-8px');
+            return;
+          }
+
+          if (delta === -1) {
+            item.dataset.readingPrev = 'true';
+            item.style.setProperty('--mobile-reading-offset', '-2px');
+            return;
+          }
+
+          if (delta === 1) {
+            item.dataset.readingNext = 'true';
+            item.style.setProperty('--mobile-reading-offset', '4px');
+            return;
+          }
+
+          item.dataset.readingFar = 'true';
+          item.style.setProperty('--mobile-reading-offset', delta < 0 ? '0px' : '8px');
+        });
+      };
+
       const setActiveItem = (item: HTMLElement) => {
         if (activeItem === item) {
           item.dataset.active = 'true';
+          syncMobileReadingState(activeItem);
           openItemPreview(item);
           return;
         }
@@ -266,6 +303,7 @@ function setupFolderStacks() {
 
         activeItem = item;
         activeItem.dataset.active = 'true';
+        syncMobileReadingState(activeItem);
         openItemPreview(activeItem);
       };
 
@@ -371,6 +409,7 @@ function setupFolderStacks() {
 
       function clearActive() {
         clearActiveItem();
+        syncMobileReadingState(null);
       }
 
       function setActive(item: HTMLElement) {

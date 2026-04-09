@@ -139,7 +139,25 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     <!-- Luz tenue desde arriba a la derecha -->
     <div id="light-overlay" class="pointer-events-none fixed inset-0 z-50" style="background: radial-gradient(ellipse 100vw 100vh at 100% 0%, oklab(0.92 0.05 0.08 / 0.45), transparent 60%);"></div>
     <!-- Velo vertical sobre el contenido, debajo del navbar y de la luz -->
-    <div id="viewport-gradient" class="pointer-events-none fixed inset-x-0 top-0 h-[100dvh] z-40" style="background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 97%, transparent) 0%, color-mix(in srgb, var(--color-bg) 97%, transparent) 6%, color-mix(in srgb, var(--color-bg) 6%, transparent) 16%, color-mix(in srgb, var(--color-bg) 2%, transparent) 50%, transparent 84%, transparent 100%);"></div>
+    <div id="viewport-gradient" class="pointer-events-none fixed inset-x-0 top-0 h-[100dvh] z-40" style="background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 97%, transparent) 0%, color-mix(in srgb, var(--color-bg) 95%, transparent) 6%, color-mix(in srgb, var(--color-bg) 72%, transparent) 14%, color-mix(in srgb, var(--color-bg) 28%, transparent) 26%, color-mix(in srgb, var(--color-bg) 8%, transparent) 42%, color-mix(in srgb, var(--color-bg) 2%, transparent) 60%, transparent 84%, transparent 100%);"></div>
+    <style is:inline>
+      @media (min-width: 48rem) {
+        #viewport-gradient {
+          background: linear-gradient(
+            to bottom,
+            color-mix(in srgb, var(--color-bg) 92%, transparent) 0%,
+            color-mix(in srgb, var(--color-bg) 89%, transparent) 8%,
+            color-mix(in srgb, var(--color-bg) 68%, transparent) 16%,
+            color-mix(in srgb, var(--color-bg) 36%, transparent) 28%,
+            color-mix(in srgb, var(--color-bg) 14%, transparent) 42%,
+            color-mix(in srgb, var(--color-bg) 4%, transparent) 58%,
+            color-mix(in srgb, var(--color-bg) 1%, transparent) 74%,
+            transparent 90%,
+            transparent 100%
+          ) !important;
+        }
+      }
+    </style>
     <div class="min-h-[100dvh]">
       <slot />
     </div>
