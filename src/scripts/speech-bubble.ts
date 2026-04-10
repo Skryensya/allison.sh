@@ -14,12 +14,16 @@ export interface SpeechBubbleOptions {
   charSpeed?: number;
   displayDuration?: number;
   phrases?: string[];
+  onTypingStart?: () => void;
+  onTypingEnd?: () => void;
 }
 
 const DEFAULT_OPTIONS: Required<SpeechBubbleOptions> = {
   charSpeed: 35,
   displayDuration: 3200,
   phrases: [],
+  onTypingStart: () => {},
+  onTypingEnd: () => {},
 };
 
 const preparedTextCache = new Map<string, PreparedTextWithSegments>();
@@ -164,6 +168,7 @@ export class SpeechBubble {
     if (this.state === 'visible') {
       this.cancelTimers();
       this.dispatchMouth('default');
+      this.notifyTypingEnd();
       this.scheduleAutoHide();
       return;
     }
@@ -235,6 +240,7 @@ export class SpeechBubble {
     this.typingTotalChars = totalChars;
 
     this.state = 'typing';
+    this.notifyTypingStart();
 
     requestAnimationFrame(() => {
       if (!this.currentAnchor) return;
@@ -245,6 +251,7 @@ export class SpeechBubble {
     if (this.prefersReducedMotion) {
       applyVisibleCharacters(totalChars);
       this.state = 'visible';
+      this.notifyTypingEnd();
       this.scheduleAutoHide();
       return;
     }
@@ -275,6 +282,7 @@ export class SpeechBubble {
     const doneTimer = window.setTimeout(() => {
       this.state = 'visible';
       this.dispatchMouth('default');
+      this.notifyTypingEnd();
       this.scheduleAutoHide();
     }, totalTypingTime + 80);
     this.charTimers.push(doneTimer);
@@ -298,6 +306,7 @@ export class SpeechBubble {
   hide(): void {
     if (this.state === 'hidden' || this.state === 'hiding') return;
     this.cancelTimers();
+    this.notifyTypingEnd();
     this.removeViewportListeners();
     this.disconnectBubbleSizeObserver();
     this.state = 'hiding';
@@ -317,6 +326,7 @@ export class SpeechBubble {
 
   destroy(): void {
     this.cancelTimers();
+    this.notifyTypingEnd();
     this.removeViewportListeners();
     this.disconnectBubbleSizeObserver();
     this.dispatchMouth('default');
@@ -660,11 +670,13 @@ export class SpeechBubble {
     this.container.classList.add('visible');
     this.state = 'visible';
     this.dispatchMouth('default');
+    this.notifyTypingEnd();
     this.scheduleAutoHide();
   }
 
   private hideInstant(): void {
     this.cancelTimers();
+    this.notifyTypingEnd();
     this.removeViewportListeners();
     this.disconnectBubbleSizeObserver();
     this.dispatchMouth('default');
@@ -693,6 +705,14 @@ export class SpeechBubble {
     this.avatarRoot.dispatchEvent(
       new CustomEvent('avatar:set-mouth', { detail: { state }, bubbles: true }),
     );
+  }
+
+  private notifyTypingStart(): void {
+    this.options.onTypingStart?.();
+  }
+
+  private notifyTypingEnd(): void {
+    this.options.onTypingEnd?.();
   }
 
 

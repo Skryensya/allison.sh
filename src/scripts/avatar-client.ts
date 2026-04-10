@@ -1,26 +1,70 @@
 import { avatarHats, avatarOutfits, avatarSpecialConfigs } from '@/data/avatarSprite';
+import voice00Short from '../assets/voices/00_short.mp3';
+import voice01Short from '../assets/voices/01_short.mp3';
+import voice02Short from '../assets/voices/02_short.mp3';
+import voice03Short from '../assets/voices/03_short.mp3';
+import voice04Short from '../assets/voices/04_short.mp3';
+import voice05Mid from '../assets/voices/05_mid.mp3';
+import voice06Mid from '../assets/voices/06_mid.mp3';
+import voice07Mid from '../assets/voices/07_mid.mp3';
+import voice08Mid from '../assets/voices/08_mid.mp3';
+import voice09Mid from '../assets/voices/09_mid.mp3';
+import voice10Long from '../assets/voices/10_long.mp3';
+import voice11Long from '../assets/voices/11_long.mp3';
+import voice12Long from '../assets/voices/12_long.mp3';
+import voice13Long from '../assets/voices/13_long.mp3';
+import voice14Long from '../assets/voices/14_long.mp3';
+import voice15Long from '../assets/voices/15_long.mp3';
 
-// Phrases the avatar cycles through on click.
-const AVATAR_PHRASES = [
-  'Hola, soy Allison',
-  'Bienvenido a mi sitio',
-  'Llevo rato ajustando este espaciado',
-  'Lo mejor que escribí hoy lo borré',
-  'Esto se ve mejor de lo que costó',
-  'Todavía no sé si este color está bien',
-  'Cambié tres veces la tipografía',
-  'Estuve una hora en un detalle que nadie va a notar',
-  'Si no se nota, está bien hecho',
-  'Diseñar es decidir qué sobra',
-  'La mejor feature es la que no hace falta',
-  'Un buen sitio no se siente como un sitio',
-  'Lo difícil es que se vea fácil',
-  'Menos capas, menos problemas',
-  'Este avatar tiene más estados que mi app',
-  'Me falta un café para seguir',
-  'Hoy es buen día para borrar código',
-  'Debería estar durmiendo',
+type PhraseCategory = 'short' | 'mid' | 'long';
+
+const toClientAssetUrl = (url: string) => new URL(url, import.meta.url).href;
+
+const AVATAR_PHRASES: Array<{ text: string; category: PhraseCategory }> = [
+  { text: 'Hola, soy Allison', category: 'short' },
+  { text: 'Bienvenido a mi sitio', category: 'short' },
+  { text: 'Si no se nota, está bien hecho', category: 'short' },
+  { text: 'Menos capas, menos problemas', category: 'short' },
+  { text: 'Lo difícil es que se vea fácil', category: 'mid' },
+  { text: 'Llevo rato ajustando este espaciado', category: 'mid' },
+  { text: 'Lo mejor que escribí hoy lo borré', category: 'mid' },
+  { text: 'Esto se ve mejor de lo que costó', category: 'mid' },
+  { text: 'Todavía no sé si este color está bien', category: 'mid' },
+  { text: 'Cambié tres veces la tipografía', category: 'mid' },
+  { text: 'Diseñar es decidir qué sobra', category: 'mid' },
+  { text: 'Me falta un café para seguir', category: 'mid' },
+  { text: 'Hoy es buen día para borrar código', category: 'long' },
+  { text: 'Debería estar durmiendo', category: 'long' },
+  { text: 'La mejor feature es la que no hace falta', category: 'long' },
+  { text: 'Un buen sitio no se siente como un sitio', category: 'long' },
+  { text: 'Este avatar tiene más estados que mi app', category: 'long' },
+  { text: 'Estuve una hora en un detalle que nadie va a notar', category: 'long' },
 ];
+
+const VOICES_BY_CATEGORY: Record<PhraseCategory, string[]> = {
+  short: [
+    toClientAssetUrl(voice00Short),
+    toClientAssetUrl(voice01Short),
+    toClientAssetUrl(voice02Short),
+    toClientAssetUrl(voice03Short),
+    toClientAssetUrl(voice04Short),
+  ],
+  mid: [
+    toClientAssetUrl(voice05Mid),
+    toClientAssetUrl(voice06Mid),
+    toClientAssetUrl(voice07Mid),
+    toClientAssetUrl(voice08Mid),
+    toClientAssetUrl(voice09Mid),
+  ],
+  long: [
+    toClientAssetUrl(voice10Long),
+    toClientAssetUrl(voice11Long),
+    toClientAssetUrl(voice12Long),
+    toClientAssetUrl(voice13Long),
+    toClientAssetUrl(voice14Long),
+    toClientAssetUrl(voice15Long),
+  ],
+};
 
 type AvatarDirection =
   | 'base'
@@ -39,6 +83,9 @@ type AvatarRoot = HTMLElement & {
   __avatarCleanup?: () => void;
   __avatarObserved?: boolean;
   __avatarSpeechBubble?: InstanceType<SpeechBubbleModule['SpeechBubble']> | null;
+  __avatarVoiceAudio?: HTMLAudioElement | null;
+  __avatarVoiceStopTimer?: number;
+  __avatarVoiceUrl?: string | null;
   __avatarPartCache?: {
     outfitUses: SVGUseElement[];
     hatUses: SVGUseElement[];
@@ -65,6 +112,7 @@ const SPRITE_PREFIX = 'avatar-sprite';
 let avatarObserver: IntersectionObserver | null = null;
 let lifecycleBound = false;
 let speechBubbleModulePromise: Promise<SpeechBubbleModule> | null = null;
+let speechBubbleCtor: SpeechBubbleModule['SpeechBubble'] | null = null;
 
 const LEFT_EYE_TILES: Record<LeftEyeState, string> = {
   base: 'left-eye-base',
@@ -290,7 +338,11 @@ function applyStoredAvatarConfig(root: HTMLElement) {
 }
 
 function loadSpeechBubbleModule() {
-  speechBubbleModulePromise ??= import('./speech-bubble');
+  speechBubbleModulePromise ??= import('./speech-bubble').then((module) => {
+    speechBubbleCtor = module.SpeechBubble;
+    return module;
+  });
+
   return speechBubbleModulePromise;
 }
 
@@ -305,21 +357,86 @@ function initAvatar(root: AvatarRoot) {
 
   if (!button || !leftEye || !rightEye || !mouthLeft || !mouthRight) return;
 
-  const handleAvatarSpeak = async () => {
-    const speechBubble = root.__avatarSpeechBubble ?? await loadSpeechBubbleModule().then(({ SpeechBubble }) => {
-      const bubble = new SpeechBubble({
-        charSpeed: 35,
-        displayDuration: 3500,
-        phrases: AVATAR_PHRASES,
-      });
-      root.__avatarSpeechBubble = bubble;
-      return bubble;
+  const pickRandom = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
+
+  const stopVoice = () => {
+    window.clearTimeout(root.__avatarVoiceStopTimer);
+    root.__avatarVoiceStopTimer = 0;
+
+    if (!root.__avatarVoiceAudio) {
+      root.__avatarVoiceUrl = null;
+      return;
+    }
+
+    root.__avatarVoiceAudio.pause();
+    root.__avatarVoiceAudio.currentTime = 0;
+    root.__avatarVoiceAudio = null;
+    root.__avatarVoiceUrl = null;
+  };
+
+  const getVoiceAudio = (voiceUrl: string) => {
+    if (root.__avatarVoiceAudio && root.__avatarVoiceUrl === voiceUrl) {
+      return root.__avatarVoiceAudio;
+    }
+
+    stopVoice();
+    const audio = new Audio(voiceUrl);
+    audio.preload = 'auto';
+    root.__avatarVoiceAudio = audio;
+    root.__avatarVoiceUrl = voiceUrl;
+    return audio;
+  };
+
+  const stopVoiceWithLead = (leadMs = 220) => {
+    window.clearTimeout(root.__avatarVoiceStopTimer);
+    root.__avatarVoiceStopTimer = window.setTimeout(() => {
+      stopVoice();
+    }, leadMs);
+  };
+
+  const playVoice = (voiceUrl: string) => {
+    const audio = getVoiceAudio(voiceUrl);
+    audio.currentTime = 0;
+    audio.muted = false;
+
+    void audio.play().catch(() => {
+      // ignore play edge cases
+    });
+  };
+
+  const handleAvatarSpeak = () => {
+    const phrase = pickRandom(AVATAR_PHRASES);
+    const voiceOptions = VOICES_BY_CATEGORY[phrase.category];
+    const voiceUrl = voiceOptions.length ? pickRandom(voiceOptions) : null;
+
+    const SpeechBubble = speechBubbleCtor;
+    if (!SpeechBubble) {
+      void loadSpeechBubbleModule();
+      return;
+    }
+
+    stopVoice();
+    root.__avatarSpeechBubble?.destroy();
+
+    const bubble = new SpeechBubble({
+      charSpeed: 35,
+      displayDuration: 3500,
+      phrases: [phrase.text],
+      onTypingStart: () => {
+        if (!voiceUrl) return;
+        playVoice(voiceUrl);
+      },
+      onTypingEnd: () => {
+        stopVoiceWithLead(220);
+      },
     });
 
-    speechBubble.next(root, root);
+    root.__avatarSpeechBubble = bubble;
+    bubble.next(root, root);
   };
 
   applyStoredAvatarConfig(root);
+  void loadSpeechBubbleModule();
 
   const symbolHref = (tileName: string) => getSpriteHref(root, tileName);
   const supportsFinePointer = window.matchMedia('(pointer: fine)').matches;
@@ -731,6 +848,7 @@ function initAvatar(root: AvatarRoot) {
       window.cancelAnimationFrame(rafId);
     }
 
+    stopVoice();
     root.__avatarSpeechBubble?.destroy();
     root.__avatarSpeechBubble = null;
   };
@@ -739,33 +857,7 @@ function initAvatar(root: AvatarRoot) {
 function observeAvatar(avatar: AvatarRoot) {
   if (avatar.__avatarObserved) return;
   avatar.__avatarObserved = true;
-
-  if (!('IntersectionObserver' in window)) {
-    initAvatar(avatar);
-    return;
-  }
-
-  avatarObserver ??= new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        const target = entry.target as AvatarRoot;
-
-        if (entry.isIntersecting) {
-          initAvatar(target);
-          return;
-        }
-
-        target.__avatarCleanup?.();
-        target.__avatarCleanup = undefined;
-      });
-    },
-    {
-      rootMargin: '200px 0px',
-      threshold: 0.01,
-    }
-  );
-
-  avatarObserver.observe(avatar);
+  initAvatar(avatar);
 }
 
 function initAvatars() {
