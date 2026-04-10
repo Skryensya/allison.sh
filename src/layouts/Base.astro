@@ -1,7 +1,10 @@
 ---
 import '@/styles/global.css';
-import { Font } from 'astro:assets';
 import clientModules from '@/generated/client-modules.json';
+import clashGrotesk400 from '@/assets/fonts/clash-grotesk-400.woff2';
+import satoshi400 from '@/assets/fonts/satoshi-400.woff2';
+import satoshi500 from '@/assets/fonts/satoshi-500.woff2';
+import ibmPlexMono400 from '@/assets/fonts/ibm-plex-mono-400.woff2';
 import {
   DEFAULT_OG_IMAGE,
   DEFAULT_TWITTER_IMAGE,
@@ -123,11 +126,12 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
       })();
     </script>
     <!-- Critical CSS: inline for fast first paint with font fallback -->
-    <style>:root{--color-bg:#f4f1eb;--color-text:#1f1c18;--color-muted:#4a4742;--color-border:#c8c3ba;--theme-colorful:#f4f1eb;--theme-contrasty:#3d3832}*,::before,::after{box-sizing:border-box;margin:0;padding:0}body{background-color:var(--color-bg);color:var(--color-text);line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased}h1,h2{line-height:1.05;font-weight:400;letter-spacing:-0.025em}.hero-heading{font-size:clamp(2.5rem,5vw,5.5rem);line-height:1.05}.font-display{font-family:var(--font-display)}.font-mono{font-family:var(--font-mono)}.font-sans{font-family:var(--font-sans)}.text-muted{color:var(--color-muted)}.text-text{color:var(--color-text)}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}img,video,svg{vertical-align:middle;max-width:100%;height:auto}@media(max-width:47.999rem){#nav-links a{display:none!important}}</style>
-    <!-- Load fonts -->
-    <Font cssVariable="--font-display" preload />
-    <Font cssVariable="--font-sans" preload={[{ weight: 400 }]} />
-    <Font cssVariable="--font-mono" />
+    <style>:root{--color-bg:#f4f1eb;--color-text:#1f1c18;--color-muted:#4a4742;--color-border:#c8c3ba;--theme-colorful:#f4f1eb;--theme-contrasty:#3d3832}*,::before,::after{box-sizing:border-box;margin:0;padding:0}html{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size-adjust:.52}body{background-color:var(--color-bg);color:var(--color-text);line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased}h1,h2{line-height:1.05;font-weight:400;letter-spacing:-0.025em}.hero-heading{font-size:clamp(2.5rem,5vw,5.5rem);line-height:1.05}.font-display{font-family:"Arial Narrow","Helvetica Neue",Arial,sans-serif;font-size-adjust:.5}.font-mono{font-family:"SFMono-Regular",ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size-adjust:.48}.font-sans{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size-adjust:.52}.text-muted{color:var(--color-muted)}.text-text{color:var(--color-text)}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}img,video,svg{vertical-align:middle;max-width:100%;height:auto}@media(max-width:47.999rem){#nav-links a{display:none!important}}</style>
+    <!-- Preload local fonts -->
+    <link rel="preload" href={clashGrotesk400} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={satoshi400} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={satoshi500} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={ibmPlexMono400} as="font" type="font/woff2" crossorigin />
   </head>
   <body class="text-text antialiased min-h-screen bg-bg relative z-0">
     <!-- Skip to main content link for keyboard users -->

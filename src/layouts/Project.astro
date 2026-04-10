@@ -36,7 +36,7 @@ const publishedTime = year ? `${year}-01-01` : undefined;
 
   <main id="main-content" class="pb-16 md:pb-24">
 
-    <div class="max-w-[58ch] mx-auto px-6 md:px-8 pt-10 md:pt-12">
+    <div class="max-w-[42rem] mx-auto px-6 md:px-8 pt-10 md:pt-12">
       <a href="/proyectos/" class="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wide text-muted hover:text-text hover:underline underline-offset-[0.22em] transition-colors duration-200 mb-8 md:mb-10">
         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -46,18 +46,18 @@ const publishedTime = year ? `${year}-01-01` : undefined;
 
       <header class="project-header mb-10 md:mb-12">
         <div class="flex items-start justify-between gap-6 mb-3">
-          <h1 class="font-sans text-[1.85rem] md:text-[2.15rem] leading-[1.08] tracking-[-0.028em] text-text max-w-[15ch]">
+          <h1 class="font-sans text-[1.85rem] md:text-[2.15rem] leading-[1.08] tracking-[-0.028em] text-text max-w-[18rem]">
             {title}
           </h1>
           {year && <span class="font-mono text-[11px] tracking-wide text-muted shrink-0 pt-2">{year}</span>}
         </div>
-        <p class="font-sans text-[1.03rem] md:text-[1.08rem] leading-[1.7] text-text max-w-[42ch] tracking-[-0.005em]">
+        <p class="font-sans text-[1.03rem] md:text-[1.08rem] leading-[1.7] text-text max-w-[30rem] tracking-[-0.005em]">
           {description}
         </p>
       </header>
     </div>
 
-    <div class="max-w-[58ch] mx-auto px-6 md:px-8 relative z-30">
+    <div class="max-w-[42rem] mx-auto px-6 md:px-8 relative z-30">
       <article class="project-article font-sans text-base xl:text-[18px] leading-[1.75] xl:leading-[1.8] text-text tracking-tight">
         <slot />
       </article>
