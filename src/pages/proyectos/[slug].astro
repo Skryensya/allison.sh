@@ -94,6 +94,8 @@ const projectStructuredData = {
         // Load preview images
         item.querySelectorAll('[data-folder-preview-img]').forEach((img) => {
           if (img instanceof HTMLImageElement && img.dataset.src) {
+            if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+            if (img.dataset.sizes) img.sizes = img.dataset.sizes;
             img.src = img.dataset.src;
           }
         });

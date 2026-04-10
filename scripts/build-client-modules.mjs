@@ -25,6 +25,9 @@ const result = await build({
   entryNames: '[name]-[hash]',
   chunkNames: 'chunks/[name]-[hash]',
   assetNames: 'assets/[name]-[hash]',
+  loader: {
+    '.mp3': 'file',
+  },
   tsconfig: path.join(root, 'tsconfig.json'),
   entryPoints: [
     'src/scripts/base-client.ts',

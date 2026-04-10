@@ -39,13 +39,9 @@ function setupBaseClient() {
     const toggle = document.getElementById('theme-toggle');
     if (!toggle) return;
 
-    const sunIcon = toggle.querySelector<HTMLElement>('.sun-icon');
-    const moonIcon = toggle.querySelector<HTMLElement>('.moon-icon');
-    if (!sunIcon || !moonIcon) return;
-
     const isDark = document.documentElement.classList.contains('dark');
-    sunIcon.style.display = isDark ? 'block' : 'none';
-    moonIcon.style.display = isDark ? 'none' : 'block';
+    toggle.setAttribute('aria-pressed', String(isDark));
+    toggle.setAttribute('title', isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro');
   }
 
   function initLightOverlay() {

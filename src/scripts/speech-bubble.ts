@@ -1,3 +1,11 @@
+import {
+  layoutWithLines,
+  measureLineStats,
+  measureNaturalWidth,
+  prepareWithSegments,
+  type PreparedTextWithSegments,
+} from '@chenglou/pretext';
+
 /**
  * Speech Bubble — simplified letter-by-letter bubble with avatar mouth sync.
  */
@@ -13,6 +21,18 @@ const DEFAULT_OPTIONS: Required<SpeechBubbleOptions> = {
   displayDuration: 3200,
   phrases: [],
 };
+
+const preparedTextCache = new Map<string, PreparedTextWithSegments>();
+
+function getPreparedText(text: string, font: string) {
+  const cacheKey = `${font}__${text}`;
+  const cached = preparedTextCache.get(cacheKey);
+  if (cached) return cached;
+
+  const prepared = prepareWithSegments(text, font);
+  preparedTextCache.set(cacheKey, prepared);
+  return prepared;
+}
 
 /* ── Mouth phoneme helpers ──────────────────────────── */
 
@@ -105,6 +125,8 @@ export class SpeechBubble {
   private options: Required<SpeechBubbleOptions>;
   private state: BubbleState = 'hidden';
   private phraseIndex = 0;
+  private typingApply: ((count: number) => void) | null = null;
+  private typingTotalChars = 0;
   private charTimers: number[] = [];
   private mouthTimers: number[] = [];
   private autoHideTimer: number | null = null;
@@ -116,6 +138,7 @@ export class SpeechBubble {
   private currentAnchor: HTMLElement | null = null;
   private viewportListenersAttached = false;
   private viewportRaf = 0;
+  private sizeObserver: ResizeObserver | null = null;
 
   private onViewportChange = (): void => {
     if (this.state === 'hidden' || !this.currentAnchor) return;
@@ -201,38 +224,26 @@ export class SpeechBubble {
     this.currentAnchor = anchorEl;
     this.addViewportListeners();
 
-    this.inner.innerHTML = '';
-    this.inner.style.width = '';
-    this.inner.style.height = '';
-
-    const lineEl = document.createElement('div');
-    lineEl.className = 'avatar-speech-bubble__line';
-
-    const allCharSpans: HTMLSpanElement[] = [];
-
-    [...phrase].forEach((grapheme) => {
-      const span = document.createElement('span');
-      span.className = 'avatar-speech-bubble__char';
-      span.textContent = grapheme;
-      lineEl.appendChild(span);
-      allCharSpans.push(span);
-    });
-
-    this.inner.appendChild(lineEl);
-
-    // Make it measurable before positioning, then reveal on the next frame.
-    this.state = 'typing';
+    // Must be visible before measuring.
     this.container.style.display = 'block';
+
+    const { width, height, totalChars, applyVisibleCharacters } = this.renderPhraseLayout(phrase);
+
+    this.observeBubbleSize();
+
+    this.typingApply = applyVisibleCharacters;
+    this.typingTotalChars = totalChars;
+
+    this.state = 'typing';
 
     requestAnimationFrame(() => {
       if (!this.currentAnchor) return;
-      const measureRect = this.inner.getBoundingClientRect();
-      this.positionSmart(this.currentAnchor, { width: measureRect.width, height: measureRect.height });
+      this.positionSmart(this.currentAnchor, { width, height });
       this.container.classList.add('visible');
     });
 
     if (this.prefersReducedMotion) {
-      allCharSpans.forEach((s) => s.classList.add('revealed'));
+      applyVisibleCharacters(totalChars);
       this.state = 'visible';
       this.scheduleAutoHide();
       return;
@@ -240,14 +251,14 @@ export class SpeechBubble {
 
     // ── Letter-by-letter reveal ──
     const cs = this.options.charSpeed;
-    const totalTypingTime = allCharSpans.length * cs;
+    const totalTypingTime = totalChars * cs;
 
-    allCharSpans.forEach((span, i) => {
+    for (let i = 0; i < totalChars; i++) {
       const t = window.setTimeout(() => {
-        span.classList.add('revealed');
+        applyVisibleCharacters(i + 1);
       }, i * cs);
       this.charTimers.push(t);
-    });
+    }
 
     // ── Mouth timeline ──
     if (this.avatarRoot) {
@@ -288,6 +299,7 @@ export class SpeechBubble {
     if (this.state === 'hidden' || this.state === 'hiding') return;
     this.cancelTimers();
     this.removeViewportListeners();
+    this.disconnectBubbleSizeObserver();
     this.state = 'hiding';
     this.dispatchMouth('default');
 
@@ -298,12 +310,15 @@ export class SpeechBubble {
       this.container.classList.remove('hiding');
       this.container.style.display = 'none';
       this.state = 'hidden';
+      this.typingApply = null;
+      this.typingTotalChars = 0;
     }, 200);
   }
 
   destroy(): void {
     this.cancelTimers();
     this.removeViewportListeners();
+    this.disconnectBubbleSizeObserver();
     this.dispatchMouth('default');
 
     if (this.reducedMotionQuery.removeEventListener) {
@@ -316,6 +331,22 @@ export class SpeechBubble {
   }
 
   /* ── Private ───────────────────────────────────────── */
+
+  private observeBubbleSize(): void {
+    if (typeof ResizeObserver === 'undefined') return;
+
+    if (!this.sizeObserver) {
+      this.sizeObserver = new ResizeObserver(() => {
+        this.onViewportChange();
+      });
+    }
+
+    this.sizeObserver.observe(this.inner);
+  }
+
+  private disconnectBubbleSizeObserver(): void {
+    this.sizeObserver?.disconnect();
+  }
 
   private addViewportListeners(): void {
     if (this.viewportListenersAttached) return;
@@ -357,6 +388,153 @@ export class SpeechBubble {
     if (r.width > 0 && r.height > 0) return { width: r.width, height: r.height };
 
     return null;
+  }
+
+  private getTypographyConfig() {
+    const isMobile = window.matchMedia('(max-width: 40rem)').matches;
+
+    return {
+      isMobile,
+      font: isMobile ? '400 13px Inter' : '400 14px Inter',
+      lineHeight: isMobile ? 18.2 : 20.3,
+      paddingX: isMobile ? 14 : 16,
+      paddingY: isMobile ? 9 : 10,
+      maxWidthCap: isMobile ? 228 : 280,
+      viewportPadding: isMobile ? 24 : 28,
+      preferredMaxLines: isMobile ? 3 : 2,
+      minContentWidth: isMobile ? 92 : 124,
+    };
+  }
+
+  private renderPhraseLayout(phrase: string): {
+    width: number;
+    height: number;
+    totalChars: number;
+    applyVisibleCharacters: (count: number) => void;
+  } {
+    const config = this.getTypographyConfig();
+    const prepared = getPreparedText(phrase, config.font);
+
+    const maxOuterWidth = Math.max(100, Math.min(config.maxWidthCap, window.innerWidth - config.viewportPadding));
+    const maxContentWidth = Math.max(56, maxOuterWidth - config.paddingX * 2);
+    const naturalContentWidth = Math.ceil(measureNaturalWidth(prepared));
+
+    let targetContentWidth = Math.min(naturalContentWidth, maxContentWidth);
+
+    if (naturalContentWidth > maxContentWidth) {
+      let low = Math.min(maxContentWidth, config.minContentWidth);
+      let high = maxContentWidth;
+      let best = maxContentWidth;
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        const { lineCount } = measureLineStats(prepared, mid);
+
+        if (lineCount <= config.preferredMaxLines) {
+          best = mid;
+          high = mid - 1;
+        } else {
+          low = mid + 1;
+        }
+      }
+
+      targetContentWidth = best;
+    }
+
+    this.inner.innerHTML = '';
+    this.inner.style.maxWidth = `${Math.ceil(maxOuterWidth)}px`;
+    this.inner.style.width = 'max-content';
+    this.inner.style.height = '';
+    this.inner.style.minHeight = '';
+
+    const renderLines = (texts: string[]) => {
+      this.inner.innerHTML = '';
+
+      return texts.map((lineText) => {
+        const lineEl = document.createElement('div');
+        lineEl.className = 'avatar-speech-bubble__line';
+        lineEl.textContent = lineText;
+        this.inner.appendChild(lineEl);
+        return lineEl;
+      });
+    };
+
+    const measureRequiredOuterWidth = (lineElements: HTMLDivElement[]) => {
+      const maxMeasuredLineWidth = lineElements.reduce((max, lineEl) => {
+        const previousWhiteSpace = lineEl.style.whiteSpace;
+        lineEl.style.whiteSpace = 'nowrap';
+        const measured = lineEl.scrollWidth;
+        lineEl.style.whiteSpace = previousWhiteSpace;
+        return Math.max(max, measured);
+      }, 0);
+
+      return Math.ceil(maxMeasuredLineWidth + config.paddingX * 2 + 8);
+    };
+
+    let probeWidth = targetContentWidth;
+    let layout = layoutWithLines(prepared, probeWidth, config.lineHeight);
+    let lineTexts = (layout.lines.length ? layout.lines : [{ text: '' }]).map((line) => line.text);
+    let lineElements = renderLines(lineTexts);
+    let requiredOuterWidth = measureRequiredOuterWidth(lineElements);
+
+    // Guard against under-measurement: if real DOM width overflows, request more line breaks.
+    const minProbeWidth = Math.max(56, config.minContentWidth);
+    while (requiredOuterWidth > maxOuterWidth && probeWidth > minProbeWidth) {
+      probeWidth = Math.max(minProbeWidth, probeWidth - 8);
+      layout = layoutWithLines(prepared, probeWidth, config.lineHeight);
+      lineTexts = (layout.lines.length ? layout.lines : [{ text: '' }]).map((line) => line.text);
+      lineElements = renderLines(lineTexts);
+      requiredOuterWidth = measureRequiredOuterWidth(lineElements);
+
+      if (probeWidth === minProbeWidth) break;
+    }
+
+    // Keep a small visual safety margin so text doesn't look "stuck" to the edge on some engines.
+    const safeOuterWidth = maxOuterWidth - 14;
+    while (
+      requiredOuterWidth > safeOuterWidth
+      && lineTexts.length < config.preferredMaxLines
+      && probeWidth > minProbeWidth
+    ) {
+      probeWidth = Math.max(minProbeWidth, probeWidth - 8);
+      layout = layoutWithLines(prepared, probeWidth, config.lineHeight);
+      lineTexts = (layout.lines.length ? layout.lines : [{ text: '' }]).map((line) => line.text);
+      lineElements = renderLines(lineTexts);
+      requiredOuterWidth = measureRequiredOuterWidth(lineElements);
+
+      if (probeWidth === minProbeWidth) break;
+    }
+
+    const width = Math.ceil(Math.min(maxOuterWidth, requiredOuterWidth));
+    this.inner.style.width = `${width}px`;
+
+    const height = Math.ceil(this.inner.scrollHeight + 2);
+    this.inner.style.height = '';
+    this.inner.style.minHeight = `${height}px`;
+
+    const lineGraphemes = lineTexts.map((line) => [...line]);
+    const lineLengths = lineGraphemes.map((line) => line.length);
+    const totalChars = lineLengths.reduce((sum, length) => sum + length, 0);
+
+    const applyVisibleCharacters = (count: number) => {
+      let remaining = Math.max(0, count);
+
+      lineGraphemes.forEach((graphemes, index) => {
+        const lineLength = lineLengths[index];
+        const visibleInLine = Math.max(0, Math.min(lineLength, remaining));
+        lineElements[index].textContent = graphemes.slice(0, visibleInLine).join('');
+        remaining -= lineLength;
+      });
+    };
+
+    applyVisibleCharacters(0);
+
+    return {
+      width,
+      height,
+      totalChars,
+      applyVisibleCharacters,
+    };
   }
 
   private positionSmart(
@@ -477,9 +655,7 @@ export class SpeechBubble {
 
   private revealInstantly(): void {
     this.cancelTimers();
-    this.inner.querySelectorAll<HTMLSpanElement>('.avatar-speech-bubble__char').forEach((char) => {
-      char.classList.add('revealed');
-    });
+    this.typingApply?.(this.typingTotalChars);
     this.container.classList.remove('hiding');
     this.container.classList.add('visible');
     this.state = 'visible';
@@ -490,10 +666,13 @@ export class SpeechBubble {
   private hideInstant(): void {
     this.cancelTimers();
     this.removeViewportListeners();
+    this.disconnectBubbleSizeObserver();
     this.dispatchMouth('default');
     this.container.classList.remove('visible', 'hiding');
     this.container.style.display = 'none';
     this.state = 'hidden';
+    this.typingApply = null;
+    this.typingTotalChars = 0;
   }
 
   private scheduleAutoHide(): void {
@@ -595,17 +774,23 @@ export class SpeechBubble {
 
     .avatar-speech-bubble__inner {
       position: relative;
-      max-width: 220px;
+      max-width: min(280px, calc(100vw - 28px));
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
       background: transparent;
       color: var(--bubble-fg);
       border-radius: var(--bubble-radius);
       padding: 10px 16px;
-      font-family: var(--font-sans, system-ui, sans-serif);
+      font-family: Inter, var(--font-sans, system-ui, sans-serif);
       font-size: 0.875rem;
-      line-height: 1.5;
+      line-height: 1.45;
       letter-spacing: -0.01em;
       white-space: normal;
-      text-wrap: balance;
+      text-wrap: wrap;
+      overflow-wrap: break-word;
       text-align: left;
       isolation: isolate;
       z-index: 0;
@@ -624,6 +809,10 @@ export class SpeechBubble {
 
     .avatar-speech-bubble__line {
       display: block;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: inherit;
+      width: 100%;
     }
 
     /* Tail (rounded) — keeps the "arrow" but matches the pill corner language */
@@ -666,21 +855,19 @@ export class SpeechBubble {
       transform: translate(20%, -50%) rotate(45deg) skewX(var(--bubble-skew));
     }
 
-    /* Character animation */
-    .avatar-speech-bubble__char {
-      opacity: 0;
-      transition: opacity 80ms ease-out;
-      white-space: pre;
-    }
-
-    .avatar-speech-bubble__char.revealed {
-      opacity: 1;
-    }
-
     /* Dark mode (set explicit fallbacks) */
     html.dark .avatar-speech-bubble {
       --bubble-bg: var(--color-text, #E8E4DD);
       --bubble-fg: var(--color-bg, #0F0F0E);
+    }
+
+    @media (max-width: 40rem) {
+      .avatar-speech-bubble__inner {
+        max-width: min(228px, calc(100vw - 24px));
+        padding: 9px 14px;
+        font-size: 0.8125rem;
+        line-height: 1.4;
+      }
     }
 
     /* Reduced motion */
@@ -691,17 +878,9 @@ export class SpeechBubble {
         transition: none !important;
       }
 
-      .avatar-speech-bubble__char {
-        transition: none !important;
-      }
-
       .avatar-speech-bubble.visible {
         opacity: 1;
         transform: translateY(-50%);
-      }
-
-      .avatar-speech-bubble__char.revealed {
-        opacity: 1;
       }
     }
   `;

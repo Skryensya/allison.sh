@@ -113,6 +113,8 @@ function setupProjectFolderStacks() {
           if (!(img instanceof HTMLImageElement)) return;
           const src = img.dataset.src;
           if (!src) return;
+          if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+          if (img.dataset.sizes) img.sizes = img.dataset.sizes;
           img.src = src;
         });
 
@@ -124,7 +126,7 @@ function setupProjectFolderStacks() {
       const previewStateTimers = new Map<HTMLElement, number>();
       let activeItem: HTMLElement | null = null;
 
-      const DESKTOP_OPEN_DELAY = reducedMotionMql.matches ? 0 : 80;
+      const DESKTOP_OPEN_DELAY = reducedMotionMql.matches ? 0 : 120;
       const DESKTOP_CLOSE_SLIDE = reducedMotionMql.matches ? 0 : 150;
       const DESKTOP_ACTIVE_RELEASE = reducedMotionMql.matches ? 0 : 0;
 
@@ -194,7 +196,7 @@ function setupProjectFolderStacks() {
           item.dataset.active = 'true';
           item.dataset.previewState = 'opening';
         }
-        const delay = mobileMql.matches ? 700 : DESKTOP_OPEN_DELAY;
+        const delay = mobileMql.matches ? 420 : DESKTOP_OPEN_DELAY;
 
         if (delay <= 0) {
           item.dataset.previewOpen = 'true';
