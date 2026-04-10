@@ -120,35 +120,94 @@ function setupProjectFolderStacks() {
       }
 
       const openTimers = new Map<HTMLElement, number>();
+      const closeTimers = new Map<HTMLElement, number>();
+      const previewStateTimers = new Map<HTMLElement, number>();
       let activeItem: HTMLElement | null = null;
 
-      function clearTimer(item: HTMLElement) {
+      const DESKTOP_OPEN_DELAY = reducedMotionMql.matches ? 0 : 80;
+      const DESKTOP_CLOSE_SLIDE = reducedMotionMql.matches ? 0 : 150;
+      const DESKTOP_ACTIVE_RELEASE = reducedMotionMql.matches ? 0 : 0;
+
+      function clearOpenTimer(item: HTMLElement) {
         const timer = openTimers.get(item);
         if (!timer) return;
         window.clearTimeout(timer);
         openTimers.delete(item);
       }
 
+      function clearCloseTimer(item: HTMLElement) {
+        const timer = closeTimers.get(item);
+        if (!timer) return;
+        window.clearTimeout(timer);
+        closeTimers.delete(item);
+      }
+
+      function clearPreviewStateTimer(item: HTMLElement) {
+        const timer = previewStateTimers.get(item);
+        if (!timer) return;
+        window.clearTimeout(timer);
+        previewStateTimers.delete(item);
+      }
+
       function closePreview(item: HTMLElement) {
-        clearTimer(item);
+        clearOpenTimer(item);
+        clearCloseTimer(item);
+        clearPreviewStateTimer(item);
+
         item.dataset.previewOpen = 'false';
+
+        if (!mobileMql.matches) {
+          item.dataset.previewState = 'closing';
+
+          const stateTimer = window.setTimeout(() => {
+            previewStateTimers.delete(item);
+            item.dataset.previewState = 'closed';
+          }, DESKTOP_CLOSE_SLIDE);
+
+          previewStateTimers.set(item, stateTimer);
+
+          const timer = window.setTimeout(() => {
+            closeTimers.delete(item);
+            item.dataset.active = 'false';
+          }, DESKTOP_ACTIVE_RELEASE);
+
+          closeTimers.set(item, timer);
+          return;
+        }
       }
 
       function openPreview(item: HTMLElement) {
         if (!item.querySelector('[data-folder-preview-img]')) return;
-        if (item.dataset.previewOpen === 'true' || openTimers.has(item)) return;
+        clearCloseTimer(item);
+        clearPreviewStateTimer(item);
+
+        if (item.dataset.previewOpen === 'true' || openTimers.has(item)) {
+          if (!mobileMql.matches) {
+            item.dataset.active = 'true';
+            item.dataset.previewState = 'open';
+          }
+          return;
+        }
 
         ensurePreviewLoaded(item);
-        const delay = reducedMotionMql.matches ? 0 : mobileMql.matches ? 700 : 120;
+        if (!mobileMql.matches) {
+          item.dataset.active = 'true';
+          item.dataset.previewState = 'opening';
+        }
+        const delay = mobileMql.matches ? 700 : DESKTOP_OPEN_DELAY;
 
         if (delay <= 0) {
           item.dataset.previewOpen = 'true';
+          if (!mobileMql.matches) item.dataset.previewState = 'open';
           return;
         }
+
+        clearOpenTimer(item);
 
         const timer = window.setTimeout(() => {
           openTimers.delete(item);
           item.dataset.previewOpen = 'true';
+          if (!mobileMql.matches) item.dataset.previewState = 'open';
         }, delay);
 
         openTimers.set(item, timer);
@@ -181,6 +240,7 @@ function setupProjectFolderStacks() {
       items.forEach((item, index) => {
         item.style.setProperty('--i', String(index));
         item.dataset.previewOpen = 'false';
+        item.dataset.previewState = 'closed';
         item.dataset.active = 'false';
 
         const link = item.querySelector('.project-folder-card__link');
@@ -216,6 +276,10 @@ function setupProjectFolderStacks() {
         ac.signal.addEventListener('abort', () => {
           openTimers.forEach((timer) => window.clearTimeout(timer));
           openTimers.clear();
+          closeTimers.forEach((timer) => window.clearTimeout(timer));
+          closeTimers.clear();
+          previewStateTimers.forEach((timer) => window.clearTimeout(timer));
+          previewStateTimers.clear();
         });
         return;
       }
