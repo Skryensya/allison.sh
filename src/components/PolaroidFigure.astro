@@ -1,18 +1,36 @@
 ---
+import { getImage, type ImageMetadata } from 'astro:assets';
+
 interface Props {
-  src: string;
+  src: ImageMetadata;
   alt: string;
   caption?: string;
+  priority?: boolean;
 }
 
-const { src, alt, caption } = Astro.props;
+const { src, alt, caption, priority = false } = Astro.props;
 const captionText = caption || alt;
+const asset = src;
+
+const image = await getImage({
+  src: asset,
+  widths: [480, 900, 1400],
+  format: 'webp',
+});
+
+const placeholder = await getImage({
+  src: asset,
+  widths: [12],
+  format: 'webp',
+});
+
+const mediaStyle = `--blur-placeholder: url(${placeholder.src})`;
 ---
 
 <figure class="polaroid-figure">
   <div class="polaroid-figure__frame">
-    <div class="polaroid-figure__media">
-      <img class="polaroid-figure__img" src={src} alt={alt} loading="lazy" decoding="async" />
+    <div class="polaroid-figure__media" data-blur-up style={mediaStyle}>
+      <img class="polaroid-figure__img" src={image.src} srcset={image.srcSet.attribute} sizes="(max-width: 768px) 92vw, (max-width: 1200px) 760px, 900px" alt={alt} loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : 'auto'} decoding="async" width={image.attributes.width} height={image.attributes.height} onload="this.parentElement?.setAttribute('data-loaded', 'true')" />
     </div>
 
     <figcaption class="polaroid-figure__caption" aria-hidden="true">{captionText}</figcaption>

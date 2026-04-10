@@ -1,4 +1,5 @@
 ---
+import { getImage, type ImageMetadata } from 'astro:assets';
 import FolderSurface from '@/components/FolderSurface.astro';
 
 interface Props {
@@ -6,7 +7,7 @@ interface Props {
   title: string;
   description?: string;
   className?: string;
-  previewSrcs?: string[];
+  previewSrcs?: ImageMetadata[];
   previewAlt?: string;
 }
 
@@ -19,8 +20,22 @@ const {
   previewAlt = '',
 } = Astro.props;
 
-const previews = previewSrcs.slice(0, 3);
-const previewCount = previews.length;
+const previewEntries = await Promise.all(
+  previewSrcs.slice(0, 3).map(async (src) => {
+    const image = await getImage({ src, widths: [240, 360, 480], format: 'webp' });
+    const placeholder = await getImage({ src, widths: [8], format: 'webp' });
+
+    return {
+      src: image.src,
+      srcSet: image.srcSet.attribute,
+      width: image.attributes.width,
+      height: image.attributes.height,
+      placeholder: placeholder.src,
+    };
+  })
+);
+
+const previewCount = previewEntries.length;
 ---
 
 <li class={`project-folder-card ${className}`} data-project-folder-card data-preview-count={previewCount}>
@@ -28,24 +43,31 @@ const previewCount = previews.length;
 
   {previewCount > 0 && (
     <div class="project-folder-card__previews" aria-hidden="true">
-      {previews.map((src, index) => (
-        <span class="project-folder-card__preview" data-preview-index={index}>
-          <span class="project-folder-card__preview-frame">
-            <span class="project-folder-card__preview-media">
-              <img
-                class="project-folder-card__preview-img"
-                data-folder-preview-img
-                data-src={src}
-                alt={previewAlt}
-                loading="lazy"
-                decoding="async"
-                width="940"
-                height="705"
-              />
+      {previewEntries.map((preview, index) => {
+        const mediaStyle = `--blur-placeholder: url(${preview.placeholder})`;
+
+        return (
+          <span class="project-folder-card__preview" data-preview-index={index}>
+            <span class="project-folder-card__preview-frame">
+              <span class="project-folder-card__preview-media" data-blur-up style={mediaStyle}>
+                <img
+                  class="project-folder-card__preview-img"
+                  data-folder-preview-img
+                  data-src={preview.src}
+                  alt={previewAlt}
+                  loading="lazy"
+                  decoding="async"
+                  srcset={preview.srcSet}
+                  sizes="(max-width: 768px) 46vw, 240px"
+                  width={preview.width}
+                  height={preview.height}
+                  onload="this.parentElement?.setAttribute('data-loaded', 'true')"
+                />
+              </span>
             </span>
           </span>
-        </span>
-      ))}
+        );
+      })}
     </div>
   )}
 

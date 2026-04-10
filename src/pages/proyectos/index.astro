@@ -5,7 +5,6 @@ import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import ProjectFolderCard from '@/components/ProjectFolderCard.astro';
 import ProjectFolderStack from '@/components/ProjectFolderStack.astro';
-import { projectPreviewImages } from '@/data/project-previews';
 import {
   DEFAULT_OG_IMAGE,
   DEFAULT_TWITTER_IMAGE,
@@ -66,7 +65,7 @@ const structuredData = {
             href={`/proyectos/${project.id}`}
             title={project.data.title}
             description={project.data.description}
-            previewSrcs={projectPreviewImages[project.id]}
+            previewSrcs={project.data.previewImages}
             previewAlt={`Preview de ${project.data.title}`}
           />
         ))}

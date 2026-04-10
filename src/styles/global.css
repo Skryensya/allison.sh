@@ -417,11 +417,36 @@ body {
   isolation: isolate;
 }
 
+.polaroid-figure__media[data-blur-up]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--blur-placeholder);
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.08);
+  filter: blur(16px);
+  opacity: 0.92;
+  transition: opacity 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.polaroid-figure__media[data-loaded='true']::before {
+  opacity: 0;
+}
+
 .polaroid-figure__img {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.polaroid-figure__img[src] {
+  opacity: 1;
 }
 
 .polaroid-figure__caption {
