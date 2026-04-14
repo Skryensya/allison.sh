@@ -518,6 +518,134 @@ html.dark #theme-toggle .moon-icon {
     0 4px 14px color-mix(in srgb, var(--color-text) 5%, transparent);
 }
 
+.polaroid-figure__frame {
+  cursor: pointer;
+}
+
+.polaroid-figure__frame:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 3px;
+}
+
+/* Desktop: pop images out to the sides, no space reserved in content */
+@media (min-width: 1200px) {
+  .polaroid-figure {
+    height: 0;
+    overflow: visible;
+    margin: 0;
+    position: relative;
+  }
+
+  .polaroid-figure__frame {
+    position: absolute;
+    top: 0;
+    width: clamp(180px, 17vw, 260px);
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    padding: 0;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 600ms ease, transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .polaroid-figure[data-side] .polaroid-figure__frame {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .polaroid-figure__frame .polaroid-figure__caption {
+    position: static;
+    height: auto;
+    padding: 7px 0 0;
+    color: var(--color-text);
+  }
+
+  .polaroid-figure[data-side='right'] .polaroid-figure__frame {
+    left: calc(100% + 2rem);
+  }
+
+  .polaroid-figure[data-side='left'] .polaroid-figure__frame {
+    right: calc(100% + 2rem);
+  }
+}
+
+/* Flying (expanded) state — strip polaroid frame, show image cleanly */
+.polaroid-figure__frame.is-flying {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.polaroid-figure__frame.is-flying .polaroid-figure__media {
+  border-radius: 3px;
+  box-shadow:
+    0 20px 80px rgba(0, 0, 0, 0.5),
+    0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.polaroid-figure__frame.is-flying .polaroid-figure__caption {
+  position: static;
+  height: auto;
+  padding: 10px 2px 0;
+  color: rgba(255, 255, 255, 1);
+  font-weight: 500;
+}
+
+/* Close button */
+.polaroid-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-bg);
+  border: 1px solid color-mix(in srgb, var(--color-text) 15%, transparent);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.polaroid-close:hover {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.polaroid-close:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+/* Polaroid expand overlay */
+.polaroid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  background: rgba(0, 0, 0, 0.82);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+.polaroid-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .polaroid-overlay {
+    transition: none;
+  }
+}
+
 .polaroid-figure__media {
   position: relative;
   overflow: hidden;

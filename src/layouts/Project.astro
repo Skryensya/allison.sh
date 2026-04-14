@@ -73,6 +73,189 @@ const publishedTime = year ? `${year}-01-01` : undefined;
       <Footer />
     </div>
 
+    <script is:inline>
+      (function () {
+        function init() {
+          var figures = document.querySelectorAll('.polaroid-figure');
+          if (!figures.length) return;
+
+          // Assign staggered sides, fade in with delay
+          figures.forEach(function (fig, i) {
+            var frame = fig.querySelector('.polaroid-figure__frame');
+            if (frame) frame.style.transitionDelay = (i * 150) + 'ms';
+            fig.dataset.side = i % 2 === 0 ? 'right' : 'left';
+          });
+
+          var isOpen = false;
+          var overlay = null;
+          var flyingClone = null;
+          var activeFrame = null;
+          var onKeyDown = null;
+
+          function getOverlay() {
+            if (overlay) return overlay;
+            overlay = document.createElement('div');
+            overlay.className = 'polaroid-overlay';
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', closeExpanded);
+            return overlay;
+          }
+
+          function openExpanded(frame) {
+            if (isOpen) return;
+            isOpen = true;
+            activeFrame = frame;
+
+            var rect = frame.getBoundingClientRect();
+
+            // Dark overlay
+            var ov = getOverlay();
+            requestAnimationFrame(function () {
+              ov.classList.add('is-open');
+            });
+
+            // Clone the frame and pin it at its current screen position
+            var clone = frame.cloneNode(true);
+            clone.classList.add('is-flying');
+            clone.style.cssText = [
+              'position:fixed',
+              'top:' + rect.top + 'px',
+              'left:' + rect.left + 'px',
+              'width:' + rect.width + 'px',
+              'margin:0',
+              'z-index:260',
+              'opacity:1',
+              'transform:none',
+              'transition:none',
+              'transition-delay:0ms',
+            ].join(';');
+            // Add close button
+            var closeBtn = document.createElement('button');
+            closeBtn.className = 'polaroid-close';
+            closeBtn.setAttribute('aria-label', 'Cerrar imagen');
+            closeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+            closeBtn.addEventListener('click', function (e) {
+              e.stopPropagation();
+              closeExpanded();
+            });
+            clone.appendChild(closeBtn);
+
+            document.body.appendChild(clone);
+            flyingClone = clone;
+
+            // Hide original instantly (bypass transition)
+            frame.style.transition = 'none';
+            frame.style.opacity = '0';
+
+            // Target width, capped so height fits in viewport
+            var framePad = 8;
+            var captionH = 40;
+            var imageAspect = (rect.height - captionH - framePad * 2) / (rect.width - framePad * 2);
+            var maxWidthFromHeight = (window.innerHeight * 0.75 - captionH - framePad * 2) / imageAspect + framePad * 2;
+            var targetWidth = Math.min(window.innerWidth * 0.72, 900, maxWidthFromHeight);
+            var targetHeight = (targetWidth - framePad * 2) * imageAspect + captionH + framePad * 2;
+            var targetLeft = (window.innerWidth - targetWidth) / 2;
+            var targetTop = Math.max(16, (window.innerHeight - targetHeight) / 2);
+
+            var ease = 'cubic-bezier(0.16, 1, 0.3, 1)';
+            var dur = '420ms';
+
+            requestAnimationFrame(function () {
+              requestAnimationFrame(function () {
+                clone.style.transition = [
+                  'top ' + dur + ' ' + ease,
+                  'left ' + dur + ' ' + ease,
+                  'width ' + dur + ' ' + ease,
+                ].join(',');
+                clone.style.top = targetTop + 'px';
+                clone.style.left = targetLeft + 'px';
+                clone.style.width = targetWidth + 'px';
+                closeBtn.focus();
+              });
+            });
+
+            onKeyDown = function (e) { if (e.key === 'Escape') closeExpanded(); };
+            document.addEventListener('keydown', onKeyDown);
+            var scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+            document.body.style.paddingRight = scrollbarWidth + 'px';
+            document.documentElement.style.overflow = 'hidden';
+          }
+
+          function closeExpanded() {
+            if (!isOpen || !flyingClone || !activeFrame) return;
+
+            var clone = flyingClone;
+            var frame = activeFrame;
+            var ov = overlay;
+
+            // Crossfade: fade original frame back in as clone fades out
+            frame.style.transition = 'opacity 200ms ease';
+            frame.style.transitionDelay = '240ms';
+            frame.style.opacity = '';
+
+            ov.classList.remove('is-open');
+            var origRect = frame.getBoundingClientRect();
+            var easeOut = 'cubic-bezier(0.16, 1, 0.3, 1)';
+            clone.style.transition = [
+              'top 460ms ' + easeOut,
+              'left 460ms ' + easeOut,
+              'width 460ms ' + easeOut,
+              'opacity 180ms ease 260ms',
+            ].join(',');
+            clone.style.top = origRect.top + 'px';
+            clone.style.left = origRect.left + 'px';
+            clone.style.width = origRect.width + 'px';
+            clone.style.opacity = '0';
+
+            // Listen only to width transitionend (longest, 460ms) to avoid early cleanup
+            function onTransitionEnd(e) {
+              if (e.propertyName !== 'width') return;
+              clone.removeEventListener('transitionend', onTransitionEnd);
+              clone.remove();
+              frame.style.transition = 'none';
+              frame.style.transitionDelay = '';
+              requestAnimationFrame(function () {
+                frame.style.transition = '';
+              });
+              frame.focus();
+              document.documentElement.style.overflow = '';
+              document.body.style.paddingRight = '';
+              isOpen = false;
+              flyingClone = null;
+              activeFrame = null;
+            }
+            clone.addEventListener('transitionend', onTransitionEnd);
+
+            if (onKeyDown) {
+              document.removeEventListener('keydown', onKeyDown);
+              onKeyDown = null;
+            }
+          }
+
+          figures.forEach(function (fig) {
+            var frame = fig.querySelector('.polaroid-figure__frame');
+            if (!frame) return;
+            frame.setAttribute('tabindex', '0');
+            frame.setAttribute('role', 'button');
+            frame.setAttribute('aria-label', 'Ampliar imagen');
+            frame.addEventListener('click', function () { openExpanded(frame); });
+            frame.addEventListener('keydown', function (e) {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openExpanded(frame);
+              }
+            });
+          });
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+
     <style>
       .project-article :global(h2) {
         font-family: var(--font-sans);
