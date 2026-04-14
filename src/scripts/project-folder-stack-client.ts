@@ -71,11 +71,22 @@ function setupProjectFolderStacks() {
         mobileMql.matches && stack.hasAttribute('data-always-open-previews-mobile');
 
       if (!reducedMotionMql.matches && !mobileMql.matches) {
-        stack.classList.add('is-pre');
+        const rect = stack.getBoundingClientRect();
+        const alreadyVisible = rect.top < window.innerHeight && rect.bottom > 0;
+
+        if (!alreadyVisible) {
+          stack.classList.add('is-pre');
+        }
 
         const reveal = () => {
           if (stack.dataset.inviewDone === 'true') return;
           stack.dataset.inviewDone = 'true';
+
+          if (alreadyVisible) {
+            stack.classList.add('is-relaxed');
+            return;
+          }
+
           stack.classList.add('is-relaxing');
 
           const total = 720 + Math.max(0, items.length - 1) * 75 + 80;
@@ -86,8 +97,7 @@ function setupProjectFolderStacks() {
           }, total);
         };
 
-        const rect = stack.getBoundingClientRect();
-        if (rect.top < window.innerHeight && rect.bottom > 0) {
+        if (alreadyVisible) {
           requestAnimationFrame(reveal);
         } else {
           const io = new IntersectionObserver(

@@ -501,7 +501,7 @@ html.dark #theme-toggle .moon-icon {
 
 /* Polaroid figure */
 .polaroid-figure {
-  --polaroid-bottom: 28px;
+  --polaroid-bottom: 40px;
 
   margin: 1.5rem 0;
 }
@@ -521,7 +521,6 @@ html.dark #theme-toggle .moon-icon {
 .polaroid-figure__media {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 16 / 10;
   border-radius: 1px;
   isolation: isolate;
 }
@@ -548,8 +547,7 @@ html.dark #theme-toggle .moon-icon {
   z-index: 1;
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   opacity: 0;
   outline: 1px solid color-mix(in srgb, var(--color-text) 6%, transparent);
   outline-offset: -1px;
@@ -564,10 +562,13 @@ html.dark #theme-toggle .moon-icon {
   position: absolute;
   left: 8px;
   right: 8px;
-  bottom: 8px;
+  bottom: 0;
+  height: var(--polaroid-bottom);
+  display: flex;
+  align-items: center;
   font-family: var(--font-mono);
   font-size: 0.875rem;
-  line-height: 1.35;
+  line-height: 1.3;
   color: var(--color-subtle);
 }
 

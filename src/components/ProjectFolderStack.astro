@@ -68,6 +68,16 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     }
   }
 
+  /* Set --i via nth-child so stacking works before JS loads */
+  .project-folder-card:nth-child(1) { --i: 0; }
+  .project-folder-card:nth-child(2) { --i: 1; }
+  .project-folder-card:nth-child(3) { --i: 2; }
+  .project-folder-card:nth-child(4) { --i: 3; }
+  .project-folder-card:nth-child(5) { --i: 4; }
+  .project-folder-card:nth-child(6) { --i: 5; }
+  .project-folder-card:nth-child(7) { --i: 6; }
+  .project-folder-card:nth-child(8) { --i: 7; }
+
   .project-folder-card {
     position: relative;
     width: calc(100% + var(--folder-pad-x) + var(--folder-pad-x));

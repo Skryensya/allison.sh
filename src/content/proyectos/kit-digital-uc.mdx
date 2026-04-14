@@ -1,22 +1,27 @@
 ---
 title: "Kit Digital UC"
 description: "En la UC, decenas de equipos construyen sitios sobre una misma base común. Formé parte de la evolución del Kit Digital UC, enfocándome en mejorar accesibilidad, rendimiento y consistencia a escala."
-cover: ../../assets/projects/kit-digital-uc-1.png
+cover: ../../assets/projects/kit-digital-uc/00.png
 previewImages:
-  - ../../assets/previews/kit-digital-uc-1.png
-  - ../../assets/previews/kit-digital-uc-2.png
+  - ../../assets/projects/kit-digital-uc/00.png
+  - ../../assets/projects/kit-digital-uc/01.png
+  - ../../assets/projects/kit-digital-uc/03.png
 year: "2022 – presente"
 order: 1
 ---
 
-import kitDigitalUc1 from "@/assets/projects/kit-digital-uc-1.png";
-import kitDigitalUc2 from "@/assets/projects/kit-digital-uc-2.png";
+import kitDigitalUc1 from "@/assets/projects/kit-digital-uc/00.png";
+import kitDigitalUc2 from "@/assets/projects/kit-digital-uc/01.png";
+import kitDigitalUc3 from "@/assets/projects/kit-digital-uc/03.png";
+import ImageFigure from "@/components/ImageFigure.astro";
 
 ## Contexto
 
 El Kit Digital UC fue mi primera exposición real a un sistema de diseño en producción. Cuando entré en 2022, no era un proyecto en construcción, sino una base consolidada: una librería de componentes integrada en más de 100 sitios institucionales de la universidad que había permitido estandarizar interfaces y acelerar el desarrollo.
 
 Ese alcance no era menor. Dentro del contexto chileno, el Kit Digital UC se ha convertido en una referencia para sistemas de diseño institucionales. No solo por su adopción, sino porque resuelve un problema concreto: cómo mantener coherencia visual y técnica a escala en organizaciones con múltiples equipos y ciclos de desarrollo desalineados. En ese sentido, sistemas posteriores toman aprendizajes directos o indirectos de este modelo.
+
+<ImageFigure src={kitDigitalUc1} alt="Homepage del sitio de documentación del Kit Digital UC en kitdigital.uc.cl" caption="Sitio de documentación del Kit Digital UC — kitdigital.uc.cl" priority />
 
 ## El problema
 
@@ -34,11 +39,15 @@ En accesibilidad, corregimos decisiones que afectaban la semántica en component
 
 En rendimiento, pasamos de un bundle único a una carga modular basada en el DOM. Un loader inspecciona la página en runtime y carga solo los componentes necesarios. Esto introduce más requests, pero reduce el peso inicial. En promedio, los tiempos de carga bajaron ~500 ms.
 
+<ImageFigure src={kitDigitalUc2} alt="Home de uc.cl, uno de los sitios construidos sobre el Kit Digital UC" caption="Home de uc.cl" />
+
 ## Cómo lo hicimos sin romper
 
 Dado el nivel de riesgo, cada cambio se validaba sobre implementaciones reales del Kit. Se revisaban escenarios representativos antes de integrarlos.
 
 Las decisiones se guiaban por reglas simples: compatibilidad hacia atrás por defecto, cambios pequeños y acumulativos, y evitar soluciones que dependieran de contexto.
+
+<ImageFigure src={kitDigitalUc3} alt="Footer de uc.cl, componente parte del Kit Digital UC" caption="Footer de uc.cl" />
 
 ## Mi rol
 
