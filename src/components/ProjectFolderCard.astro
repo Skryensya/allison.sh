@@ -36,7 +36,7 @@ const previewEntries = await Promise.all(
 const previewCount = previewEntries.length;
 ---
 
-<li class={`project-folder-card ${className}`} data-project-folder-card data-preview-count={previewCount}>
+<li class={`project-folder-card ${className}`} data-project-folder-card data-preview-count={previewCount} style="list-style: none;">
   <div class="project-folder-card__gradient" aria-hidden="true"></div>
 
   {previewCount > 0 && (

@@ -5,35 +5,80 @@ cover: ../../assets/projects/agenda-uc-1.png
 previewImages:
   - ../../assets/previews/agenda-uc-1.png
   - ../../assets/previews/agenda-uc-2.png
+year: "2024"
 ---
 
 import agendaUc1 from '@/assets/projects/agenda-uc-1.png';
 import agendaUc2 from '@/assets/projects/agenda-uc-2.png';
 
-## Contexto
+## El problema
 
-La plataforma centralizada para publicar y explorar actividades académicas, culturales y administrativas de la universidad. Miles de estudiantes, docentes y funcionarios dependen de ella para encontrar y organizar eventos. Suena simple hasta que intentas que funcione para todos con necesidades distintas.
+La Agenda UC existía como parte de uc.cl, sin autonomía ni un modelo preparado para escalar. Publicar eventos dependía del flujo editorial del sitio principal, lo que limitaba su visibilidad y distribución.
 
-Backend en Strapi, frontend en React con Next.js. Construida sobre los componentes del Kit Digital UC para mantener coherencia institucional.
+No era falta de actividad. Era falta de una forma clara de centralizarla y amplificarla.
 
-<ImageFigure src={agendaUc1} alt="Vista de agenda y navegación." priority />
+## La solución
 
-## Mi aporte
+Replanteamos la Agenda como un sistema independiente con tres pilares:
 
-Participé en definir la estructura del API en Strapi, contemplando eventos con múltiples fechas, recurrencias y relaciones entre actividades. Esto permitió construir algo flexible capaz de soportar desde un seminario sencillo hasta un congreso con múltiples sesiones y horarios complejos.
+- **Autonomía:** backoffice propio para gestionar eventos
+- **Flexibilidad:** modelo capaz de representar eventos complejos
+- **Distribución:** API para replicar contenido en múltiples sitios
 
-Ajusté consultas y relaciones para que la información se cargara rápido, incluso con volúmenes grandes o filtros aplicados por los usuarios.
+Hoy soporta más de 4.300 actividades y se integra con 50+ unidades a través del Kit Digital UC.
 
-Implementé la interfaz completa usando el Kit Digital UC como base. Cuando los componentes existentes no alcanzaban, creé personalizados siguiendo las guías de diseño institucional.
+## Modelar la complejidad real
 
-Apliqué WCAG 2.1 AA desde el inicio. Filtros, listas de eventos, navegaciones — todo usable con teclado y lectores de pantalla. No era un extra, era el default.
+Los eventos UC no son simples: múltiples fechas, horarios, ubicaciones y relaciones.
 
-<ImageFigure src={agendaUc2} alt="Estados de filtros y lectura de eventos." />
+Estructuramos el dominio en dos niveles:
 
-## Aprendizaje
+**Actividades:** la unidad base. Cada actividad ocurre dentro de un mismo día y puede tener uno o más horarios (instancias en el tiempo), pensados para casos como aperturas de museos con pausas.
 
-Lo difícil no fue construir. Fue decidir qué sacrificar cuando la fecha límite no alcanzaba.
+**Eventos:** un contenedor lógico que agrupa actividades bajo una misma temática. Las actividades relacionadas se distribuyen en el tiempo a través del evento.
 
-Una API flexible suena bien hasta que tienes que implementarla de verdad. Tienes que elegir entre cubrir todos los casos posibles o publicar algo que funciona bien para los casos que realmente van a usar. Elegí lo segundo y fue lo correcto.
+Esta separación permitió:
 
-La accesibilidad no es una funcionalidad — es una forma de pensar cuando diseñas.
+- modelar recurrencias y variaciones sin duplicar información
+- mantener coherencia entre sesiones relacionadas
+- ofrecer filtros más precisos a nivel de actividad o evento
+
+## Backend
+
+Diseñamos una API en Strapi (TypeScript) que permite:
+
+- modelar esa complejidad sin rigidez
+- filtrar por múltiples dimensiones
+- escalar sin degradar performance
+
+## Frontend
+
+Desarrollé el frontend en React + Next.js, con foco en:
+
+- exploración eficiente de eventos
+- sincronización en tiempo real con React Query
+- tiempos de carga rápidos
+
+La interfaz no solo muestra contenido: lo hace navegable, actualizado y ágil.
+
+## Impacto
+
+El cambio clave fue pasar de un sistema cerrado a uno distribuido:
+
+- 50+ unidades integran eventos en sus propios sitios
+- la información se mantiene consistente
+- la visibilidad aumenta sin depender de un único punto de entrada
+
+La Agenda dejó de ser un destino y pasó a ser una fuente de información.
+
+## Mi rol
+
+Colaboré con el equipo técnico en la definición de la arquitectura y con diseño en la estructura de la información, además de desarrollar el frontend end-to-end, traduciendo un modelo complejo en una experiencia clara.
+
+## Lo difícil
+
+El mayor desafío fue comprender y modelar el dominio en toda su complejidad: no solo fechas y recurrencias, sino también combinaciones de horarios, eventos que cambian en el tiempo, cancelaciones parciales, múltiples ubicaciones y dependencias entre instancias.
+
+Esto implicó lidiar con numerosos casos límite: cambios de hora en último momento, recurrencias inconsistentes, actividades que duran meses.
+
+**Aprendizaje clave:** modelar bien el problema es más importante que elegir la tecnología.

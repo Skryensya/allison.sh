@@ -16,14 +16,14 @@ export interface SpeechBubbleOptions {
   phrases?: string[];
   onTypingStart?: () => void;
   onTypingEnd?: () => void;
+  /** Fired for every mouth keyframe (including `default` when speech ends). */
+  onMouthShape?: (shape: string) => void;
 }
 
-const DEFAULT_OPTIONS: Required<SpeechBubbleOptions> = {
+const DEFAULT_OPTIONS = {
   charSpeed: 35,
   displayDuration: 3200,
-  phrases: [],
-  onTypingStart: () => {},
-  onTypingEnd: () => {},
+  phrases: [] as string[],
 };
 
 const preparedTextCache = new Map<string, PreparedTextWithSegments>();
@@ -126,7 +126,7 @@ export class SpeechBubble {
   private container: HTMLDivElement;
   private inner: HTMLDivElement;
   private tail: HTMLDivElement;
-  private options: Required<SpeechBubbleOptions>;
+  private options: SpeechBubbleOptions & typeof DEFAULT_OPTIONS;
   private state: BubbleState = 'hidden';
   private phraseIndex = 0;
   private typingApply: ((count: number) => void) | null = null;
@@ -168,7 +168,6 @@ export class SpeechBubble {
     if (this.state === 'visible') {
       this.cancelTimers();
       this.dispatchMouth('default');
-      this.notifyTypingEnd();
       this.scheduleAutoHide();
       return;
     }
@@ -179,7 +178,7 @@ export class SpeechBubble {
   };
 
   constructor(options: SpeechBubbleOptions = {}) {
-    this.options = { ...DEFAULT_OPTIONS, ...options };
+    this.options = { ...DEFAULT_OPTIONS, ...options } as SpeechBubbleOptions & typeof DEFAULT_OPTIONS;
     this.reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     this.prefersReducedMotion = this.reducedMotionQuery.matches;
 
@@ -222,7 +221,10 @@ export class SpeechBubble {
     const phrase = this.options.phrases[this.phraseIndex % this.options.phrases.length];
     this.phraseIndex++;
 
-    if (!this.container.parentElement) {
+    // Mount on `body`: the avatar uses `contain: paint`, which clips anything drawn outside
+    // its box (the bubble sits beside the circle, not inside it).
+    // `position: fixed` + viewport coords + scroll/resize listeners keeps it aligned with the avatar.
+    if (this.container.parentElement !== document.body) {
       document.body.appendChild(this.container);
     }
 
@@ -240,7 +242,6 @@ export class SpeechBubble {
     this.typingTotalChars = totalChars;
 
     this.state = 'typing';
-    this.notifyTypingStart();
 
     requestAnimationFrame(() => {
       if (!this.currentAnchor) return;
@@ -248,18 +249,21 @@ export class SpeechBubble {
       this.container.classList.add('visible');
     });
 
+    const cs = this.options.charSpeed;
+    const totalTypingTime = totalChars * cs;
+
     if (this.prefersReducedMotion) {
       applyVisibleCharacters(totalChars);
       this.state = 'visible';
-      this.notifyTypingEnd();
+      this.options.onTypingStart?.();
+      window.setTimeout(() => this.options.onTypingEnd?.(), totalTypingTime + 80);
       this.scheduleAutoHide();
       return;
     }
 
-    // ── Letter-by-letter reveal ──
-    const cs = this.options.charSpeed;
-    const totalTypingTime = totalChars * cs;
+    this.options.onTypingStart?.();
 
+    // ── Letter-by-letter reveal ──
     for (let i = 0; i < totalChars; i++) {
       const t = window.setTimeout(() => {
         applyVisibleCharacters(i + 1);
@@ -282,7 +286,7 @@ export class SpeechBubble {
     const doneTimer = window.setTimeout(() => {
       this.state = 'visible';
       this.dispatchMouth('default');
-      this.notifyTypingEnd();
+      this.options.onTypingEnd?.();
       this.scheduleAutoHide();
     }, totalTypingTime + 80);
     this.charTimers.push(doneTimer);
@@ -306,7 +310,6 @@ export class SpeechBubble {
   hide(): void {
     if (this.state === 'hidden' || this.state === 'hiding') return;
     this.cancelTimers();
-    this.notifyTypingEnd();
     this.removeViewportListeners();
     this.disconnectBubbleSizeObserver();
     this.state = 'hiding';
@@ -326,7 +329,6 @@ export class SpeechBubble {
 
   destroy(): void {
     this.cancelTimers();
-    this.notifyTypingEnd();
     this.removeViewportListeners();
     this.disconnectBubbleSizeObserver();
     this.dispatchMouth('default');
@@ -551,28 +553,24 @@ export class SpeechBubble {
     anchor: HTMLElement,
     bubbleSize?: { width: number; height: number },
   ): 'left' | 'right' | 'top' | 'bottom' {
-    const rect = anchor.getBoundingClientRect();
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
-
     const size = bubbleSize ?? this.getBubbleSize() ?? { width: 260, height: 64 };
 
     const margin = 12;
     const gutterX = 10;
     const gutterY = 10;
 
-    const vpLeft = scrollX + gutterX;
-    const vpRight = scrollX + window.innerWidth - gutterX;
-    const vpTop = scrollY + gutterY;
-    const vpBottom = scrollY + window.innerHeight - gutterY;
+    const rect = anchor.getBoundingClientRect();
+    const vx0 = gutterX;
+    const vx1 = window.innerWidth - gutterX;
+    const vy0 = gutterY;
+    const vy1 = window.innerHeight - gutterY;
 
     const anchorRect = {
-      left: rect.left + scrollX,
-      right: rect.right + scrollX,
-      top: rect.top + scrollY,
-      bottom: rect.bottom + scrollY,
+      left: rect.left,
+      right: rect.right,
+      top: rect.top,
+      bottom: rect.bottom,
     };
-
     const anchorCenterX = (anchorRect.left + anchorRect.right) / 2;
     const anchorCenterY = (anchorRect.top + anchorRect.bottom) / 2;
 
@@ -591,10 +589,10 @@ export class SpeechBubble {
     };
 
     const overflowAmount = (b: { left: number; right: number; top: number; bottom: number }) => {
-      const left = Math.max(0, vpLeft - b.left);
-      const right = Math.max(0, b.right - vpRight);
-      const top = Math.max(0, vpTop - b.top);
-      const bottom = Math.max(0, b.bottom - vpBottom);
+      const left = Math.max(0, vx0 - b.left);
+      const right = Math.max(0, b.right - vx1);
+      const top = Math.max(0, vy0 - b.top);
+      const bottom = Math.max(0, b.bottom - vy1);
       return left + right + top + bottom;
     };
 
@@ -628,8 +626,8 @@ export class SpeechBubble {
     };
 
     for (const c of candidates) {
-      const left = clamp(c.left, vpLeft, vpRight - size.width);
-      const centerY = clamp(c.centerY, vpTop + size.height / 2, vpBottom - size.height / 2);
+      const left = clamp(c.left, vx0, vx1 - size.width);
+      const centerY = clamp(c.centerY, vy0 + size.height / 2, vy1 - size.height / 2);
 
       const bubbleRect = {
         left,
@@ -670,13 +668,12 @@ export class SpeechBubble {
     this.container.classList.add('visible');
     this.state = 'visible';
     this.dispatchMouth('default');
-    this.notifyTypingEnd();
+    this.options.onTypingEnd?.();
     this.scheduleAutoHide();
   }
 
   private hideInstant(): void {
     this.cancelTimers();
-    this.notifyTypingEnd();
     this.removeViewportListeners();
     this.disconnectBubbleSizeObserver();
     this.dispatchMouth('default');
@@ -701,18 +698,11 @@ export class SpeechBubble {
   }
 
   private dispatchMouth(state: string): void {
+    this.options.onMouthShape?.(state);
     if (!this.avatarRoot) return;
     this.avatarRoot.dispatchEvent(
       new CustomEvent('avatar:set-mouth', { detail: { state }, bubbles: true }),
     );
-  }
-
-  private notifyTypingStart(): void {
-    this.options.onTypingStart?.();
-  }
-
-  private notifyTypingEnd(): void {
-    this.options.onTypingEnd?.();
   }
 
 
@@ -720,8 +710,8 @@ export class SpeechBubble {
 
   private static CSS = `
     .avatar-speech-bubble {
-      position: absolute;
-      /* Keep the bubble below the navbar and other high-priority UI */
+      position: fixed;
+      /* Above the avatar tiles; below global chrome (e.g. nav ~ z-50) */
       z-index: 25;
       pointer-events: none;
       display: none;

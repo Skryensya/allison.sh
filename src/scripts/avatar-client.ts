@@ -1,4 +1,5 @@
 import { avatarHats, avatarOutfits, avatarSpecialConfigs } from '@/data/avatarSprite';
+import { playMouthSfx, playSpeechPresenceBlip, resumeAvatarSfxContext } from './avatar-speech-sfx';
 import voice00Short from '../assets/voices/00_short.mp3';
 import voice01Short from '../assets/voices/01_short.mp3';
 import voice02Short from '../assets/voices/02_short.mp3';
@@ -84,7 +85,8 @@ type AvatarRoot = HTMLElement & {
   __avatarObserved?: boolean;
   __avatarSpeechBubble?: InstanceType<SpeechBubbleModule['SpeechBubble']> | null;
   __avatarVoiceAudio?: HTMLAudioElement | null;
-  __avatarVoiceStopTimer?: number;
+  __avatarVoiceFadeRaf?: number;
+  __avatarVoiceEndDelayTimer?: number;
   __avatarVoiceUrl?: string | null;
   __avatarPartCache?: {
     outfitUses: SVGUseElement[];
@@ -108,6 +110,9 @@ const AVATAR_DIRECTIONS = [
 ] as const;
 const SPEECH_MOUTH_STATES = ['neutral', 'closed', 'a', 'e', 'i', 'o', 'u'] as const;
 const SPRITE_PREFIX = 'avatar-sprite';
+
+/** Voice clips never play above 50% — fixed ceiling, not user-adjustable in code. */
+const AVATAR_VOICE_VOLUME = 0.5;
 
 let avatarObserver: IntersectionObserver | null = null;
 let lifecycleBound = false;
@@ -359,9 +364,25 @@ function initAvatar(root: AvatarRoot) {
 
   const pickRandom = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
 
+  const VOICE_TAIL_AFTER_TYPING_MS = 250;
+
+  const cancelVoiceFade = () => {
+    if (root.__avatarVoiceFadeRaf) {
+      cancelAnimationFrame(root.__avatarVoiceFadeRaf);
+      root.__avatarVoiceFadeRaf = 0;
+    }
+  };
+
+  const cancelVoiceEndDelay = () => {
+    if (root.__avatarVoiceEndDelayTimer) {
+      window.clearTimeout(root.__avatarVoiceEndDelayTimer);
+      root.__avatarVoiceEndDelayTimer = 0;
+    }
+  };
+
   const stopVoice = () => {
-    window.clearTimeout(root.__avatarVoiceStopTimer);
-    root.__avatarVoiceStopTimer = 0;
+    cancelVoiceFade();
+    cancelVoiceEndDelay();
 
     if (!root.__avatarVoiceAudio) {
       root.__avatarVoiceUrl = null;
@@ -370,6 +391,7 @@ function initAvatar(root: AvatarRoot) {
 
     root.__avatarVoiceAudio.pause();
     root.__avatarVoiceAudio.currentTime = 0;
+    root.__avatarVoiceAudio.volume = AVATAR_VOICE_VOLUME;
     root.__avatarVoiceAudio = null;
     root.__avatarVoiceUrl = null;
   };
@@ -382,22 +404,53 @@ function initAvatar(root: AvatarRoot) {
     stopVoice();
     const audio = new Audio(voiceUrl);
     audio.preload = 'auto';
+    audio.volume = AVATAR_VOICE_VOLUME;
     root.__avatarVoiceAudio = audio;
     root.__avatarVoiceUrl = voiceUrl;
     return audio;
   };
 
-  const stopVoiceWithLead = (leadMs = 220) => {
-    window.clearTimeout(root.__avatarVoiceStopTimer);
-    root.__avatarVoiceStopTimer = window.setTimeout(() => {
-      stopVoice();
-    }, leadMs);
+  /** Quick linear fade to silence, then teardown (feels less abrupt than a hard stop). */
+  const fadeOutVoice = (durationMs = 130) => {
+    cancelVoiceFade();
+    const audio = root.__avatarVoiceAudio;
+    if (!audio) return;
+
+    const startVol = Math.min(AVATAR_VOICE_VOLUME, audio.volume);
+    const t0 = performance.now();
+
+    const step = () => {
+      const a = root.__avatarVoiceAudio;
+      if (!a) {
+        root.__avatarVoiceFadeRaf = 0;
+        return;
+      }
+
+      const elapsed = performance.now() - t0;
+      const u = Math.min(1, elapsed / durationMs);
+      a.volume = Math.max(0, startVol * (1 - u));
+
+      if (u < 1) {
+        root.__avatarVoiceFadeRaf = requestAnimationFrame(step);
+      } else {
+        root.__avatarVoiceFadeRaf = 0;
+        a.pause();
+        a.currentTime = 0;
+        a.volume = AVATAR_VOICE_VOLUME;
+        root.__avatarVoiceAudio = null;
+        root.__avatarVoiceUrl = null;
+      }
+    };
+
+    root.__avatarVoiceFadeRaf = requestAnimationFrame(step);
   };
 
   const playVoice = (voiceUrl: string) => {
     const audio = getVoiceAudio(voiceUrl);
+    cancelVoiceFade();
     audio.currentTime = 0;
     audio.muted = false;
+    audio.volume = AVATAR_VOICE_VOLUME;
 
     void audio.play().catch(() => {
       // ignore play edge cases
@@ -418,16 +471,33 @@ function initAvatar(root: AvatarRoot) {
     stopVoice();
     root.__avatarSpeechBubble?.destroy();
 
+    resumeAvatarSfxContext();
+
+    // Start voice on the same user gesture, before bubble layout — avoids a late start after renderPhraseLayout.
+    if (voiceUrl) {
+      playVoice(voiceUrl);
+    }
+
     const bubble = new SpeechBubble({
       charSpeed: 35,
       displayDuration: 3500,
       phrases: [phrase.text],
       onTypingStart: () => {
-        if (!voiceUrl) return;
-        playVoice(voiceUrl);
+        if (!voiceUrl) {
+          playSpeechPresenceBlip();
+        }
       },
       onTypingEnd: () => {
-        stopVoiceWithLead(220);
+        if (!voiceUrl) return;
+        cancelVoiceEndDelay();
+        root.__avatarVoiceEndDelayTimer = window.setTimeout(() => {
+          root.__avatarVoiceEndDelayTimer = 0;
+          fadeOutVoice(130);
+        }, VOICE_TAIL_AFTER_TYPING_MS);
+      },
+      onMouthShape: (shape) => {
+        if (voiceUrl) return;
+        playMouthSfx(shape);
       },
     });
 
@@ -756,6 +826,11 @@ function initAvatar(root: AvatarRoot) {
   const handleVisibilityChange = () => {
     if (!document.hidden) return;
     handlePointerReset();
+    stopVoice();
+  };
+
+  const handlePageHide = () => {
+    stopVoice();
   };
 
   const handleFocus = () => {
@@ -815,6 +890,7 @@ function initAvatar(root: AvatarRoot) {
   window.addEventListener('pointercancel', handlePointerUp, { passive: true });
   window.addEventListener('blur', handlePointerReset);
   document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('pagehide', handlePageHide);
   root.addEventListener('avatar:set-mouth', handleSetMouth as EventListener);
   root.addEventListener('avatar:set-gaze', handleSetGaze as EventListener);
 
@@ -833,6 +909,7 @@ function initAvatar(root: AvatarRoot) {
     window.removeEventListener('pointercancel', handlePointerUp);
     window.removeEventListener('blur', handlePointerReset);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('pagehide', handlePageHide);
     root.removeEventListener('avatar:set-mouth', handleSetMouth as EventListener);
     root.removeEventListener('avatar:set-gaze', handleSetGaze as EventListener);
     window.clearTimeout(startTimer);
