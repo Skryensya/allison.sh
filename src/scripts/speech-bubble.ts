@@ -407,8 +407,8 @@ export class SpeechBubble {
 
     return {
       isMobile,
-      font: isMobile ? '400 13px Inter' : '400 14px Inter',
-      lineHeight: isMobile ? 18.2 : 20.3,
+      font: '400 14px Inter',
+      lineHeight: 20.3,
       paddingX: isMobile ? 14 : 16,
       paddingY: isMobile ? 9 : 10,
       maxWidthCap: isMobile ? 228 : 280,
@@ -875,8 +875,6 @@ export class SpeechBubble {
       .avatar-speech-bubble__inner {
         max-width: min(228px, calc(100vw - 24px));
         padding: 9px 14px;
-        font-size: 0.8125rem;
-        line-height: 1.4;
       }
     }
 

@@ -67,6 +67,9 @@ function setupProjectFolderStacks() {
       const ac = new AbortController();
       runtime.controllers.push(ac);
 
+      const alwaysOpenPreviewsMobile =
+        mobileMql.matches && stack.hasAttribute('data-always-open-previews-mobile');
+
       if (!reducedMotionMql.matches && !mobileMql.matches) {
         stack.classList.add('is-pre');
 
@@ -241,9 +244,15 @@ function setupProjectFolderStacks() {
 
       items.forEach((item, index) => {
         item.style.setProperty('--i', String(index));
-        item.dataset.previewOpen = 'false';
-        item.dataset.previewState = 'closed';
-        item.dataset.active = 'false';
+        if (alwaysOpenPreviewsMobile) {
+          item.dataset.previewOpen = 'true';
+          item.dataset.previewState = 'closed';
+          item.dataset.active = 'true';
+        } else {
+          item.dataset.previewOpen = 'false';
+          item.dataset.previewState = 'closed';
+          item.dataset.active = 'false';
+        }
 
         const link = item.querySelector('.project-folder-card__link');
         if (!(link instanceof HTMLElement)) return;
@@ -282,6 +291,15 @@ function setupProjectFolderStacks() {
           closeTimers.clear();
           previewStateTimers.forEach((timer) => window.clearTimeout(timer));
           previewStateTimers.clear();
+        });
+        return;
+      }
+
+      if (alwaysOpenPreviewsMobile) {
+        items.forEach((item) => {
+          ensurePreviewLoaded(item);
+          item.dataset.previewOpen = 'true';
+          item.dataset.active = 'true';
         });
         return;
       }

@@ -39,6 +39,8 @@ const TitleTag = titleTag;
 const styleParts: string[] = [];
 if (minHeight) styleParts.push(`--folder-min-h:${minHeight}`);
 const style = styleParts.length ? styleParts.join('; ') : undefined;
+
+const yearTopClass = description ? 'top-[116px]' : 'top-[72px] md:top-[82px]';
 ---
 
 <div class={`folder-surface ${rootClassName} ${className}`.trim()} data-folder data-active={active ? 'true' : undefined} style={style}>
@@ -81,7 +83,9 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       }
 
       {year && (
-        <p class={`folder-surface__meta absolute left-[var(--folder-pad-x)] top-[116px] font-mono text-xs text-subtle ${metaSlotClassName}`.trim()}>
+        <p
+          class={`folder-surface__meta absolute left-[var(--folder-pad-x)] ${yearTopClass} font-mono text-xs text-subtle ${metaSlotClassName}`.trim()}
+        >
           {year}
         </p>
       )}

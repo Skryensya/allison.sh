@@ -10,6 +10,10 @@ const siteUrl = (process.env.PUBLIC_SITE_URL || process.env.SITE_URL || 'https:/
 export default defineConfig({
   site: siteUrl,
   compressHTML: true,
+  redirects: {
+    '/proyectos': '/#proyectos',
+    '/proyectos/': '/#proyectos',
+  },
   vite: {
     plugins: [tailwindcss()],
     resolve: {

@@ -8,7 +8,7 @@ const proyectos = defineCollection({
     description: z.string(),
     cover: image(),
     previewImages: z.array(image()).min(1).max(3),
-    year: z.string().optional(),
+    year: z.string().min(1),
     tech: z.array(z.string()).optional(),
   }),
 });

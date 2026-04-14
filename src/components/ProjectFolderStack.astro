@@ -5,9 +5,11 @@ interface Props {
   overlap?: string;
   gap?: string;
   lift?: string;
+  /** Móvil: previews siempre en posición “abierta”, sin depender del scroll. */
+  alwaysOpenPreviewsMobile?: boolean;
 }
 
-const { overlap, gap, lift } = Astro.props;
+const { overlap, gap, lift, alwaysOpenPreviewsMobile = false } = Astro.props;
 
 const styleParts: string[] = [];
 if (overlap) styleParts.push(`--folder-overlap:${overlap}`);
@@ -18,7 +20,12 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
 ---
 
 <div class="project-folder-stack-wrap">
-  <ul class="project-folder-stack" data-project-folder-stack style={style}>
+  <ul
+    class="project-folder-stack"
+    data-project-folder-stack
+    style={style}
+    {...(alwaysOpenPreviewsMobile ? { 'data-always-open-previews-mobile': '' } : {})}
+  >
     <slot />
   </ul>
 </div>
