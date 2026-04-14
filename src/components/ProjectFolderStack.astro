@@ -196,6 +196,18 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     );
   }
 
+  .project-folder-card[data-active='true'] [data-folder-description],
+  .project-folder-card[data-preview-open='true'] [data-folder-description] {
+    color: var(--color-text);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .project-folder-card__link:hover [data-folder-description],
+    .project-folder-card:focus-within [data-folder-description] {
+      color: var(--color-text);
+    }
+  }
+
   .project-folder-card__previews {
     position: absolute;
     left: 50%;
