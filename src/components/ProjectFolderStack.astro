@@ -340,8 +340,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     .project-folder-card:focus-within [data-folder],
     .project-folder-card[data-preview-open='true'] [data-folder],
     .project-folder-card[data-active='true'] [data-folder] {
-      --folder-fill-top: var(--folder-hover-fill-top, color-mix(in srgb, var(--color-bg) 98%, var(--color-text) 2%));
-      --folder-fill-bottom: var(--folder-hover-fill-bottom, color-mix(in srgb, var(--color-bg) 88%, var(--color-text) 12%));
+      --folder-fill-top: var(--folder-hover-fill-top, var(--color-bg));
+      --folder-fill-bottom: var(--folder-hover-fill-bottom, color-mix(in srgb, var(--color-bg) 98.5%, var(--color-text) 1.5%));
       --folder-shadow-filter:
         drop-shadow(0 -8px 16px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 2.1%, transparent))
         drop-shadow(0 -2px 5px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.9%, transparent));
@@ -381,8 +381,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     }
 
     .project-folder-card[data-active='true'] [data-folder] {
-      --folder-fill-top: var(--folder-hover-fill-top, color-mix(in srgb, var(--color-bg) 98%, var(--color-text) 2%)) !important;
-      --folder-fill-bottom: var(--folder-hover-fill-bottom, color-mix(in srgb, var(--color-bg) 88%, var(--color-text) 12%)) !important;
+      --folder-fill-top: var(--folder-hover-fill-top, color-mix(in srgb, var(--color-bg) 99%, var(--color-text) 1%)) !important;
+      --folder-fill-bottom: var(--folder-hover-fill-bottom, color-mix(in srgb, var(--color-bg) 94%, var(--color-text) 6%)) !important;
     }
 
     .project-folder-card__previews {
