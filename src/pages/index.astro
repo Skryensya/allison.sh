@@ -19,7 +19,7 @@ import {
 } from '@/lib/seo';
 
 const proyectos = await getCollection('proyectos');
-const projects = proyectos.sort((a, b) => (b.data.year || '').localeCompare(a.data.year || ''));
+const projects = proyectos.sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
 
 const homeStructuredData = [
   {

@@ -6,33 +6,52 @@ previewImages:
   - ../../assets/previews/kit-digital-uc-1.png
   - ../../assets/previews/kit-digital-uc-2.png
 year: "2022 – presente"
+order: 1
 ---
 
-import kitDigitalUc1 from '@/assets/projects/kit-digital-uc-1.png';
-import kitDigitalUc2 from '@/assets/projects/kit-digital-uc-2.png';
+import kitDigitalUc1 from "@/assets/projects/kit-digital-uc-1.png";
+import kitDigitalUc2 from "@/assets/projects/kit-digital-uc-2.png";
 
 ## Contexto
 
-La UC tiene dozens de sitios web construidos por equipos distintos. Cada uno con su personalidad, su stack, sus convenciones. El resultado: un ecosistema fragmentado donde la experiencia del usuario sufre.
+El Kit Digital UC fue mi primera exposición real a un sistema de diseño en producción. Cuando entré en 2022, no era un proyecto en construcción, sino una base consolidada: una librería de componentes integrada en más de 100 sitios institucionales de la universidad que había permitido estandarizar interfaces y acelerar el desarrollo.
 
-Kit Digital UC propuso cambiar eso. Una biblioteca de componentes compartida, documentada y fácil de usar.
+Ese alcance no era menor. Dentro del contexto chileno, el Kit Digital UC se ha convertido en una referencia para sistemas de diseño institucionales. No solo por su adopción, sino porque resuelve un problema concreto: cómo mantener coherencia visual y técnica a escala en organizaciones con múltiples equipos y ciclos de desarrollo desalineados. En ese sentido, sistemas posteriores toman aprendizajes directos o indirectos de este modelo.
 
-<ImageFigure src={kitDigitalUc1} alt="Catálogo de componentes base." priority />
+## El problema
 
-## Mi aporte
+Ese mismo nivel de adopción hacía que cualquier problema dejara de ser local. El sistema no estaba mal diseñado, pero había crecido más rápido que sus propios criterios de calidad. Problemas de accesibilidad aparecían en componentes base usados transversalmente, lo que hacía que cualquier falla se replicara a nivel sistema. Había un único bundle que obligaba a cargar código innecesario incluso en sitios simples, y patrones de implementación que hacían difícil evolucionar sin efectos colaterales.
 
-Desarrollo del sistema de diseño: tokens de diseño, componentes base y guías de implementación.
+Todo esto bajo una restricción crítica: el Kit se distribuía vía CDN, priorizando adopción y actualización centralizada, pero sin control de versión por parte de quienes lo consumían. Cada cambio se propagaba directamente a producción, sin saber en qué contexto se estaba usando. Un ajuste en un componente base podía romper navegación, estilos o interacción en sitios que no podíamos auditar previamente.
 
-Construí componentes accesibles desde cero siguiendo WCAG 2.1 AA.
+No había espacio para reescrituras ni migraciones coordinadas. Mejorar el sistema implicaba intervenir sobre algo vivo, donde romper compatibilidad no era una opción.
 
-Documenté patrones de uso con ejemplos interactivos.
+## Qué cambiamos
 
-Cree un sistema de versionado que permite actualizaciones sin breaking changes.
+La estrategia fue incremental. Cada cambio tenía que integrarse sin fricción, convivir con implementaciones existentes y resolver problemas reales sin introducir otros nuevos.
 
-<ImageFigure src={kitDigitalUc2} alt="Documentación y patrones compartidos." />
+En accesibilidad, corregimos decisiones que afectaban la semántica en componentes ampliamente usados. Por ejemplo, reemplazamos `background-image` por `<img>` con `alt`, devolviendo visibilidad a lectores de pantalla y motores de búsqueda. También normalizamos patrones de interacción, evitando usos incorrectos de botones y enlaces, lo que mejoró la navegación por teclado.
 
-## Aprendizaje
+En rendimiento, pasamos de un bundle único a una carga modular basada en el DOM. Un loader inspecciona la página en runtime y carga solo los componentes necesarios. Esto introduce más requests, pero reduce el peso inicial. En promedio, los tiempos de carga bajaron ~500 ms.
 
-Un sistema de diseño es una inversión. Al principio es más lento que hacerlo todo a mano. Pero después de seis meses, los equipos que lo usan van más rápido y con mejor calidad.
+## Cómo lo hicimos sin romper
 
-La documentación no es opcional. El mejor componente sin docs es un componente que nadie usa.
+Dado el nivel de riesgo, cada cambio se validaba sobre implementaciones reales del Kit. Se revisaban escenarios representativos antes de integrarlos.
+
+Las decisiones se guiaban por reglas simples: compatibilidad hacia atrás por defecto, cambios pequeños y acumulativos, y evitar soluciones que dependieran de contexto.
+
+## Mi rol
+
+Mi rol evolucionó desde la implementación hacia decisiones de sistema. Participé en definir criterios de accesibilidad, en la estrategia de modularización y en la evaluación de impacto de los cambios.
+
+El foco pasó de resolver problemas aislados a introducir mejoras sin comprometer la estabilidad, en un entorno donde no controlamos cómo se usa lo que construimos.
+
+## Resultado y aprendizaje
+
+El sistema es hoy más consistente, más accesible y más liviano. Pasó de cargar todo por defecto a cargar solo lo necesario, y de patrones inconsistentes a comportamientos más predecibles. Soporta más de 100 sitios y supera las 2.1 millones de visitas mensuales.
+
+El aprendizaje más importante fue volver a las bases. Trabajar en el Kit me obligó a entender HTML, CSS y JavaScript como un sistema: semántica real para accesibilidad, y carga de código para rendimiento.
+
+También fue mi primera experiencia construyendo una librería consumida en múltiples contextos. Ahí entendí en la práctica CJS vs ESM, el rol de los bundlers y cómo estas decisiones afectan directamente la ejecución en producción.
+
+Desarrollar el Kit me enseñó que una librería no es solo componentes, sino contratos estables y decisiones que deben funcionar en contextos que no controlas. En sistemas compartidos, la calidad está en qué tan bien el sistema puede evolucionar sin romperse.

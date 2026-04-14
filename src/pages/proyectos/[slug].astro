@@ -20,7 +20,7 @@ const { Content } = await render(entry);
 
 // Get all projects sorted chronologically for navigation
 const allProyectos = await getCollection('proyectos');
-const sorted = allProyectos.sort((a, b) => (a.data.year || '').localeCompare(b.data.year || ''));
+const sorted = allProyectos.sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
 const currentIndex = sorted.findIndex(p => p.id === entry.id);
 const nextProject = sorted[(currentIndex + 1) % sorted.length];
 
