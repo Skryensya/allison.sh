@@ -78,8 +78,8 @@ Colaboré con el equipo técnico en la definición de la arquitectura y con dise
 
 ## Lo difícil
 
-El mayor desafío fue comprender y modelar el dominio en toda su complejidad: no solo fechas y recurrencias, sino también combinaciones de horarios, eventos que cambian en el tiempo, cancelaciones parciales, múltiples ubicaciones y dependencias entre instancias.
+El trabajo duro no fue anotar fechas: fue modelar el dominio *en el tiempo*, cuando las reglas chocan con la vida real.
 
-Esto implicó lidiar con numerosos casos límite: cambios de hora en último momento, recurrencias inconsistentes, actividades que duran meses.
+En la práctica los supuestos se caen rápido: el salto de horario de verano a invierno desalinea lo que en papel parecía estable; hay recurrencias que no entran en plantillas; hay actividades que se estiran meses y no se comportan como “un evento” clásico.
 
-**Aprendizaje clave:** modelar bien el problema es más importante que elegir la tecnología.
+Ahí dejé de buscar el esquema perfecto y pasé a priorizar uno que aguantara esas excepciones sin mentir ni partirse. La tensión no estaba en escribir código, sino en representar ese comportamiento sin que el sistema se rompiera justo donde más lo necesitaban.

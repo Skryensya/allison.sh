@@ -12,7 +12,6 @@ export default defineConfig({
   compressHTML: true,
   redirects: {
     '/proyectos': '/#proyectos',
-    '/proyectos/': '/#proyectos',
   },
   vite: {
     plugins: [tailwindcss()],

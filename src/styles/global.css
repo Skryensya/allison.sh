@@ -144,12 +144,12 @@ body {
   background: linear-gradient(
     to bottom,
     color-mix(in srgb, var(--color-bg) 97%, transparent) 0%,
-    color-mix(in srgb, var(--color-bg) 95%, transparent) 6%,
-    color-mix(in srgb, var(--color-bg) 72%, transparent) 14%,
-    color-mix(in srgb, var(--color-bg) 28%, transparent) 26%,
-    color-mix(in srgb, var(--color-bg) 8%, transparent) 42%,
-    color-mix(in srgb, var(--color-bg) 2%, transparent) 60%,
-    transparent 84%,
+    color-mix(in srgb, var(--color-bg) 95%, transparent) 3%,
+    color-mix(in srgb, var(--color-bg) 72%, transparent) 7%,
+    color-mix(in srgb, var(--color-bg) 28%, transparent) 13%,
+    color-mix(in srgb, var(--color-bg) 8%, transparent) 21%,
+    color-mix(in srgb, var(--color-bg) 2%, transparent) 30%,
+    transparent 42%,
     transparent 100%
   );
 }
@@ -159,13 +159,13 @@ body {
     background: linear-gradient(
       to bottom,
       color-mix(in srgb, var(--color-bg) 88%, transparent) 0%,
-      color-mix(in srgb, var(--color-bg) 80%, transparent) 7%,
-      color-mix(in srgb, var(--color-bg) 54%, transparent) 14%,
-      color-mix(in srgb, var(--color-bg) 24%, transparent) 24%,
-      color-mix(in srgb, var(--color-bg) 9%, transparent) 36%,
-      color-mix(in srgb, var(--color-bg) 3%, transparent) 50%,
-      color-mix(in srgb, var(--color-bg) 1%, transparent) 64%,
-      transparent 82%,
+      color-mix(in srgb, var(--color-bg) 80%, transparent) 3%,
+      color-mix(in srgb, var(--color-bg) 54%, transparent) 7%,
+      color-mix(in srgb, var(--color-bg) 24%, transparent) 12%,
+      color-mix(in srgb, var(--color-bg) 9%, transparent) 18%,
+      color-mix(in srgb, var(--color-bg) 3%, transparent) 25%,
+      color-mix(in srgb, var(--color-bg) 1%, transparent) 32%,
+      transparent 41%,
       transparent 100%
     );
   }
@@ -508,14 +508,10 @@ html.dark #theme-toggle .moon-icon {
 
 .polaroid-figure__frame {
   position: relative;
-  padding: 8px;
-  padding-bottom: var(--polaroid-bottom);
-  background: color-mix(in srgb, var(--color-bg) 90%, var(--color-text) 10%);
-  border: 1px solid color-mix(in srgb, var(--color-text) 3%, transparent);
-  border-radius: 4px;
-  box-shadow:
-    0 1px 3px color-mix(in srgb, var(--color-text) 6%, transparent),
-    0 4px 14px color-mix(in srgb, var(--color-text) 5%, transparent);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  padding: 0;
 }
 
 .polaroid-figure__frame {
@@ -540,10 +536,6 @@ html.dark #theme-toggle .moon-icon {
     position: absolute;
     top: 0;
     width: clamp(180px, 17vw, 260px);
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    padding: 0;
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 600ms ease, transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -555,9 +547,6 @@ html.dark #theme-toggle .moon-icon {
   }
 
   .polaroid-figure__frame .polaroid-figure__caption {
-    position: static;
-    height: auto;
-    padding: 7px 0 0;
     color: var(--color-text);
   }
 
@@ -596,10 +585,10 @@ html.dark #theme-toggle .moon-icon {
 /* Close button */
 .polaroid-close {
   position: absolute;
-  top: -14px;
-  right: -14px;
-  width: 30px;
-  height: 30px;
+  top: -52px;
+  right: 0px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--color-bg);
   border: 1px solid color-mix(in srgb, var(--color-text) 15%, transparent);
@@ -608,15 +597,36 @@ html.dark #theme-toggle .moon-icon {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 1;
+  z-index: 10;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: background 150ms ease, color 150ms ease;
 }
 
-.polaroid-close:hover {
-  background: var(--color-text);
-  color: var(--color-bg);
+.polaroid-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (min-width: 768px) {
+  .polaroid-close {
+    top: -16px;
+    right: -16px;
+    width: 30px;
+    height: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+  .polaroid-close svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@media (hover: hover) {
+  .polaroid-close:hover {
+    background: var(--color-text);
+    color: var(--color-bg);
+  }
 }
 
 .polaroid-close:focus-visible {
@@ -687,13 +697,9 @@ html.dark #theme-toggle .moon-icon {
 }
 
 .polaroid-figure__caption {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 0;
-  height: var(--polaroid-bottom);
-  display: flex;
-  align-items: center;
+  position: static;
+  height: auto;
+  padding: 7px 0 0;
   font-family: var(--font-mono);
   font-size: 0.875rem;
   line-height: 1.3;

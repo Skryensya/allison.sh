@@ -148,14 +148,23 @@ const publishedTime = year ? `${year}-01-01` : undefined;
             frame.style.opacity = '0';
 
             // Target width, capped so height fits in viewport
-            var framePad = 8;
-            var captionH = 40;
-            var imageAspect = (rect.height - captionH - framePad * 2) / (rect.width - framePad * 2);
-            var maxWidthFromHeight = (window.innerHeight * 0.75 - captionH - framePad * 2) / imageAspect + framePad * 2;
-            var targetWidth = Math.min(window.innerWidth * 0.72, 900, maxWidthFromHeight);
-            var targetHeight = (targetWidth - framePad * 2) * imageAspect + captionH + framePad * 2;
+            var media = clone.querySelector('.polaroid-figure__media');
+            var caption = clone.querySelector('.polaroid-figure__caption');
+            var imageAspect = media.offsetHeight / media.offsetWidth;
+            var captionH = caption ? caption.offsetHeight : 0;
+            
+            var isMobile = window.innerWidth < 768;
+            var maxW = isMobile ? window.innerWidth * 0.92 : Math.min(window.innerWidth * 0.72, 900);
+            
+            var maxWidthFromHeight = (window.innerHeight * 0.85 - captionH) / imageAspect;
+            var targetWidth = Math.min(maxW, maxWidthFromHeight);
+            
+            // Don't shrink the image if it's already larger in the DOM
+            targetWidth = Math.max(targetWidth, rect.width);
+            var targetHeight = targetWidth * imageAspect + captionH;
+            
             var targetLeft = (window.innerWidth - targetWidth) / 2;
-            var targetTop = Math.max(16, (window.innerHeight - targetHeight) / 2);
+            var targetTop = Math.max(isMobile ? 64 : 32, (window.innerHeight - targetHeight) / 2);
 
             var ease = 'cubic-bezier(0.16, 1, 0.3, 1)';
             var dur = '420ms';
@@ -187,6 +196,10 @@ const publishedTime = year ? `${year}-01-01` : undefined;
             var clone = flyingClone;
             var frame = activeFrame;
             var ov = overlay;
+
+            // Hide close button instantly
+            var closeBtn = clone.querySelector('.polaroid-close');
+            if (closeBtn) closeBtn.style.display = 'none';
 
             // Crossfade: fade original frame back in as clone fades out
             frame.style.transition = 'opacity 200ms ease';
