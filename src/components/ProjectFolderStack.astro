@@ -44,6 +44,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     --folder-gap: 48px;
     --folder-lift: 14px;
     --stack-compress-step: 12px;
+    /* Debe coincidir con FOLDER_GEOMETRY.bottomPadding en folder-shapes-client.ts */
+    --folder-shape-bottom-padding: 26px;
     position: relative;
     list-style: none;
     padding: 0;
@@ -53,7 +55,7 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   @media (max-width: 640px) {
     .project-folder-stack {
       --folder-overlap: 208px;
-      --folder-gap: 38px;
+      --folder-gap: 56px;
       --folder-lift: 10px;
       --stack-compress-step: 10px;
     }
@@ -61,10 +63,17 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
 
   @media (max-width: 420px) {
     .project-folder-stack {
-      --folder-overlap: 188px;
-      --folder-gap: 34px;
+      --folder-overlap: 176px;
+      --folder-gap: 62px;
       --folder-lift: 8px;
       --stack-compress-step: 8px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .project-folder-stack {
+      --folder-overlap: 158px;
+      --folder-gap: 66px;
     }
   }
 

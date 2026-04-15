@@ -1,3 +1,5 @@
+import { clearCache as pretexClearCache, layout, prepare, type PreparedText } from '@chenglou/pretext';
+
 type FolderParts = {
   label: HTMLElement;
   description: HTMLElement | null;
@@ -16,6 +18,7 @@ type FolderShapesRuntime = {
   dirty: Set<HTMLElement>;
   snapshots: WeakMap<HTMLElement, FolderResizeSnapshot>;
   rafId: number;
+  pretexPrepareByKey: Map<string, PreparedText>;
 };
 
 declare global {
@@ -46,6 +49,67 @@ const FOLDER_GEOMETRY = {
   },
 } as const;
 
+function resolveLineHeightPx(cs: CSSStyleDeclaration): number {
+  const lh = cs.lineHeight;
+  const fs = Number.parseFloat(cs.fontSize) || 16;
+  if (lh === 'normal') return fs * 1.55;
+  if (lh.endsWith('px')) return Number.parseFloat(lh) || fs * 1.55;
+  const n = Number.parseFloat(lh);
+  if (Number.isFinite(n)) return n * fs;
+  return fs * 1.55;
+}
+
+function measureDescriptionWithPretext(
+  desc: HTMLElement,
+  maxWidth: number,
+  pretexPrepareByKey: Map<string, PreparedText>
+): { height: number; lineCount: number; lineHeightPx: number } {
+  const text = (desc.textContent ?? '').trim();
+  const cs = getComputedStyle(desc);
+  const lineHeightPx = resolveLineHeightPx(cs);
+
+  if (!text || maxWidth <= 0) {
+    return { height: 0, lineCount: 0, lineHeightPx };
+  }
+
+  const font = cs.font;
+  const key = `${text}\0${font}`;
+  let prepared = pretexPrepareByKey.get(key);
+  if (!prepared) {
+    prepared = prepare(text, font);
+    pretexPrepareByKey.set(key, prepared);
+  }
+
+  const { height, lineCount } = layout(prepared, maxWidth, lineHeightPx);
+  if (lineCount === 0 && text.length > 0) {
+    return { height: lineHeightPx, lineCount: 1, lineHeightPx };
+  }
+
+  return { height, lineCount, lineHeightPx };
+}
+
+/** Móvil, carpeta con otra debajo: solo el papel necesario por el solape del margen + 20px. */
+const FOLDER_STACK_TAIL_GAP_PX = 20;
+
+function getStackBottomExtra(root: HTMLElement, rootWidth: number): number {
+  if (rootWidth > 640) return 0;
+
+  const stack = root.closest('[data-project-folder-stack]');
+  const card = root.closest('[data-project-folder-card]');
+  if (!stack || !card) return 0;
+
+  const siblings = stack.querySelectorAll(':scope > [data-project-folder-card]');
+  if (!siblings.length || siblings[siblings.length - 1] === card) return 0;
+
+  const s = getComputedStyle(stack);
+  const overlap = Number.parseFloat(s.getPropertyValue('--folder-overlap')) || 0;
+  const gap = Number.parseFloat(s.getPropertyValue('--folder-gap')) || 0;
+  const shapePad = Number.parseFloat(s.getPropertyValue('--folder-shape-bottom-padding')) || 26;
+
+  const encroachment = Math.max(0, overlap - gap);
+  return Math.max(0, encroachment - shapePad) + FOLDER_STACK_TAIL_GAP_PX;
+}
+
 function setupFolderShapes() {
   if (typeof window === 'undefined') return;
   if (window.__folderShapesInit) return;
@@ -58,6 +122,7 @@ function setupFolderShapes() {
     dirty: new Set<HTMLElement>(),
     snapshots: new WeakMap<HTMLElement, FolderResizeSnapshot>(),
     rafId: 0,
+    pretexPrepareByKey: new Map<string, PreparedText>(),
   });
 
   function getFolderParts(root: HTMLElement): FolderParts | null {
@@ -114,11 +179,37 @@ function setupFolderShapes() {
     const rootRect = root.getBoundingClientRect();
     const labelBottom = labelRect.bottom - rootRect.top;
 
-    const descriptionRect = parts.description?.getBoundingClientRect();
-    const descriptionBottom = descriptionRect ? descriptionRect.bottom - rootRect.top : 0;
+    let descriptionBottom = 0;
+
+    if (parts.description) {
+      const padX = Number.parseFloat(styles.getPropertyValue('--folder-pad-x')) || 24;
+      let descWidth = parts.description.clientWidth;
+      if (descWidth <= 0) {
+        descWidth = Math.max(0, rootWidth - 2 * padX);
+      }
+
+      const { height: descHeight } = measureDescriptionWithPretext(
+        parts.description,
+        descWidth,
+        runtime.pretexPrepareByKey
+      );
+
+      const descTopRaw = Number.parseFloat(getComputedStyle(parts.description).top);
+      const descTop = Number.isFinite(descTopRaw) ? descTopRaw : 72;
+      descriptionBottom = descTop + descHeight;
+    }
 
     const contentBottom = Math.max(labelBottom, descriptionBottom);
-    const svgHeight = Math.max(minHeight, Math.ceil(contentBottom + FOLDER_GEOMETRY.bottomPadding));
+    const bottomExtra = getStackBottomExtra(root, rootWidth);
+    const shapePadRaw = styles.getPropertyValue('--folder-shape-bottom-padding');
+    const shapePadParsed = Number.parseFloat(shapePadRaw);
+    const bottomPadding = Number.isFinite(shapePadParsed)
+      ? shapePadParsed
+      : FOLDER_GEOMETRY.bottomPadding;
+    const svgHeight = Math.max(
+      minHeight,
+      Math.ceil(contentBottom + bottomPadding + bottomExtra)
+    );
 
     return {
       minHeight,
@@ -285,6 +376,8 @@ function setupFolderShapes() {
     runtime.partsByRoot = new WeakMap<HTMLElement, FolderParts>();
     runtime.snapshots = new WeakMap<HTMLElement, FolderResizeSnapshot>();
     runtime.dirty.clear();
+    runtime.pretexPrepareByKey.clear();
+    pretexClearCache();
 
     if (runtime.rafId) {
       window.cancelAnimationFrame(runtime.rafId);

@@ -325,6 +325,25 @@ const publishedTime = year ? `${year}-01-01` : undefined;
         font-weight: 600;
         color: var(--color-text);
       }
+
+      .project-article :global(p a),
+      .project-article :global(li a) {
+        color: var(--color-text);
+        text-underline-offset: 0.22em;
+        text-decoration: underline;
+        text-decoration-color: color-mix(in srgb, var(--color-text) 32%, transparent);
+        transition:
+          color 150ms ease,
+          text-decoration-color 150ms ease;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .project-article :global(p a:hover),
+        .project-article :global(li a:hover) {
+          color: var(--color-muted);
+          text-decoration-color: color-mix(in srgb, var(--color-text) 52%, transparent);
+        }
+      }
     </style>
 
   </main>

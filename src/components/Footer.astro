@@ -1,5 +1,5 @@
 ---
-const emailLinkMarkup = `<!--email_off--><a href="mailto:contacto@allison.sh" class="font-sans text-xl md:text-2xl leading-tight">contacto@allison.sh</a><!--/email_off-->`;
+const emailLinkMarkup = `<!--email_off--><a href="mailto:contacto@allison.sh" class="footer-contact-link font-sans text-xl md:text-2xl leading-tight">contacto@allison.sh</a><!--/email_off-->`;
 ---
 
 <div class="relative z-[60]">
@@ -8,12 +8,22 @@ const emailLinkMarkup = `<!--email_off--><a href="mailto:contacto@allison.sh" cl
     <ul class="space-y-3">
       <li set:html={emailLinkMarkup}></li>
       <li>
-        <a href="https://linkedin.com/in/skryensya" class="font-sans text-xl md:text-2xl leading-tight">
+        <a
+          href="https://linkedin.com/in/skryensya"
+          class="footer-contact-link font-sans text-xl md:text-2xl leading-tight"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           linkedin.com/in/skryensya
         </a>
       </li>
       <li>
-        <a href="https://github.com/Skryensya" class="font-sans text-xl md:text-2xl leading-tight">
+        <a
+          href="https://github.com/Skryensya"
+          class="footer-contact-link font-sans text-xl md:text-2xl leading-tight"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           github.com/skryensya
         </a>
       </li>
@@ -21,13 +31,13 @@ const emailLinkMarkup = `<!--email_off--><a href="mailto:contacto@allison.sh" cl
   </section>
 
   <footer class="font-mono text-xs tracking-wide text-text flex items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 tabular-nums">
       <p>© 2026 Allison Peña</p>
       <span aria-label="Versión del sitio">v2.0</span>
     </div>
     <button
       id="theme-toggle"
-      class="pointer-events-auto opacity-80 hover:opacity-100 transition-opacity duration-200 cursor-pointer p-3 -mr-3"
+      class="pointer-events-auto opacity-80 hover:opacity-100 transition-opacity duration-200 cursor-pointer -mr-1"
       aria-label="Cambiar tema"
       title="Cambiar tema"
     >

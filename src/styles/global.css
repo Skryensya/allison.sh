@@ -135,6 +135,16 @@ p {
   text-wrap: pretty;
 }
 
+::selection {
+  background-color: color-mix(in srgb, var(--color-text) 16%, var(--color-bg));
+  color: var(--color-text);
+}
+
+.dark ::selection {
+  background-color: color-mix(in srgb, var(--color-text) 22%, transparent);
+  color: var(--color-text);
+}
+
 body {
   background-color: var(--color-bg);
   position: relative;
@@ -320,11 +330,12 @@ body {
      --nav-origin-in / --nav-origin-out
    - Sin "completion" forzada: si salís, se envuelve rápido (exit corto).
 */
-:where(#nav-links a, #theme-toggle, #contacto a) {
+:where(#nav-links a, #contacto a) {
   position: relative;
   display: inline-flex;
   align-items: center;
-  padding: 2px 6px;
+  min-height: 40px;
+  padding: 10px 12px;
   border-radius: 999px;
   text-decoration: none;
 
@@ -344,10 +355,34 @@ body {
   will-change: transform;
 }
 
-:where(#nav-links a, #theme-toggle, #contacto a)::before {
+:where(#theme-toggle) {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 999px;
+  text-decoration: none;
+
+  --nav-origin-in: left;
+  --nav-origin-out: right;
+  --nav-skew: -12deg;
+
+  transition:
+    color 130ms ease,
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+
+  isolation: isolate;
+  z-index: 0;
+
+  will-change: transform;
+}
+
+:where(#nav-links a, #contacto a)::before {
   content: '';
   position: absolute;
-  inset: -2px -6px;
+  inset: -10px -12px;
   border-radius: 999px;
   background: var(--color-text);
 
@@ -357,6 +392,25 @@ body {
   transform-origin: var(--nav-origin-out);
 
   /* Wrap-up rápido al salir */
+  transition:
+    transform 150ms cubic-bezier(0.4, 0, 1, 1),
+    opacity 110ms ease;
+
+  will-change: transform, opacity;
+  z-index: -1;
+}
+
+#theme-toggle::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  background: var(--color-text);
+
+  opacity: 0;
+  transform: scaleX(0) skewX(var(--nav-skew));
+  transform-origin: var(--nav-origin-out);
+
   transition:
     transform 150ms cubic-bezier(0.4, 0, 1, 1),
     opacity 110ms ease;
@@ -565,6 +619,7 @@ html.dark #theme-toggle .moon-icon {
   border-color: transparent;
   box-shadow: none;
   padding: 0;
+  overflow: visible;
 }
 
 .polaroid-figure__frame.is-flying .polaroid-figure__media {
@@ -582,13 +637,21 @@ html.dark #theme-toggle .moon-icon {
   font-weight: 500;
 }
 
-/* Close button */
-.polaroid-close {
+/*
+ * Cerrar modal: fuera de la imagen, diagonal desde la esquina superior derecha.
+ * Botón 44px: top/right deben cumplir (top + 44) <= 0 y (100% + |right| - 44) >= 100% + aire
+ * → top <= -44 - aire, |right| >= 44 + aire (desktop). Móvil: más arriba, right0 por viewport.
+ */
+.polaroid-figure__frame.is-flying .polaroid-close {
   position: absolute;
-  top: -52px;
-  right: 0px;
-  width: 36px;
-  height: 36px;
+  left: auto;
+  /* Móvil: solo arriba del borde */
+  top: -62px;
+  right: 0;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--color-bg);
   border: 1px solid color-mix(in srgb, var(--color-text) 15%, transparent);
@@ -599,39 +662,81 @@ html.dark #theme-toggle .moon-icon {
   cursor: pointer;
   z-index: 10;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: background 150ms ease, color 150ms ease;
+  transform: translate3d(0, 0, 0);
+  transform-origin: center;
+  box-shadow:
+    0 4px 14px color-mix(in srgb, var(--color-text) 12%, transparent),
+    0 1px 3px color-mix(in srgb, var(--color-text) 8%, transparent);
+  /* Hover = ease (color/sombra); transform responde rápido con ease-out al soltar :active */
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 165ms ease,
+    color 140ms ease,
+    transform 95ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.polaroid-close svg {
-  width: 14px;
-  height: 14px;
+.polaroid-figure__frame.is-flying .polaroid-close svg {
+  width: 13px;
+  height: 13px;
 }
 
 @media (min-width: 768px) {
-  .polaroid-close {
-    top: -16px;
-    right: -16px;
-    width: 30px;
-    height: 30px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  .polaroid-figure__frame.is-flying .polaroid-close {
+    /* Diagonal fuera de la esquina (aire mínimo sin solapar la imagen de 44px) */
+    top: -48px;
+    right: -48px;
+    left: auto;
+    box-shadow:
+      0 3px 12px color-mix(in srgb, var(--color-text) 10%, transparent),
+      0 1px 2px color-mix(in srgb, var(--color-text) 6%, transparent);
   }
-  .polaroid-close svg {
+
+  .polaroid-figure__frame.is-flying .polaroid-close svg {
     width: 12px;
     height: 12px;
   }
 }
 
-@media (hover: hover) {
-  .polaroid-close:hover {
-    background: var(--color-text);
-    color: var(--color-bg);
+@media (hover: hover) and (pointer: fine) {
+  .polaroid-figure__frame.is-flying .polaroid-close:hover {
+    background: linear-gradient(
+      180deg,
+      var(--folder-hover-fill-top, var(--color-bg)) 0%,
+      var(--folder-hover-fill-bottom, var(--color-bg)) 100%
+    );
+    color: var(--color-text);
+    border-color: color-mix(in srgb, var(--color-text) 22%, transparent);
+    box-shadow:
+      0 -6px 16px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 10%, transparent),
+      0 -2px 5px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 5%, transparent),
+      0 10px 22px color-mix(in srgb, var(--color-text) 12%, transparent);
   }
 }
 
-.polaroid-close:focus-visible {
+/* :active fuera de hover para feedback al tocar (misma curva ease-out, micro-interacción <100ms) */
+.polaroid-figure__frame.is-flying .polaroid-close:active {
+  transform: scale(0.9);
+  transition:
+    transform 90ms cubic-bezier(0.23, 1, 0.32, 1),
+    background 90ms ease,
+    border-color 90ms ease,
+    box-shadow 90ms ease,
+    color 90ms ease;
+}
+
+.polaroid-figure__frame.is-flying .polaroid-close:focus-visible {
   outline: 2px solid var(--color-text);
-  outline-offset: 2px;
+  outline-offset: 3px;
+  background: linear-gradient(
+    180deg,
+    var(--folder-hover-fill-top, var(--color-bg)) 0%,
+    var(--folder-hover-fill-bottom, var(--color-bg)) 100%
+  );
+  border-color: color-mix(in srgb, var(--color-text) 22%, transparent);
+  box-shadow:
+    0 -4px 12px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 8%, transparent),
+    0 8px 18px color-mix(in srgb, var(--color-text) 10%, transparent);
 }
 
 /* Polaroid expand overlay */
@@ -653,6 +758,13 @@ html.dark #theme-toggle .moon-icon {
 @media (prefers-reduced-motion: reduce) {
   .polaroid-overlay {
     transition: none;
+  }
+
+  .polaroid-figure__frame.is-flying .polaroid-close,
+  .polaroid-figure__frame.is-flying .polaroid-close:hover,
+  .polaroid-figure__frame.is-flying .polaroid-close:active {
+    transition: none;
+    transform: none;
   }
 }
 

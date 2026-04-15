@@ -19,7 +19,7 @@ const isHome = currentPath === '/' || currentPath === '';
       <button
         type="button"
         id="mobile-home-btn"
-        class="md:hidden text-text pointer-events-auto bg-transparent border-none p-0 cursor-pointer"
+        class="md:hidden text-text pointer-events-auto bg-transparent border-none cursor-pointer inline-flex items-center justify-start min-h-11 min-w-11 -ml-2 pl-2 pr-2 rounded-md motion-safe:active:scale-[0.96] motion-safe:transition-transform"
         data-is-home={isHome ? 'true' : 'false'}
       >
         <span class="name-wrapper">
