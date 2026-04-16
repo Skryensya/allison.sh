@@ -7,6 +7,32 @@ import {
 } from '@chenglou/pretext';
 
 /**
+ * Narrowest max line width that keeps the same line count as laying out at `contentBudget`.
+ * Same idea as `findTightWrapMetrics` in Pretext's bubbles demo (binary search on width).
+ */
+function findTightContentWidthForBudget(
+  prepared: PreparedTextWithSegments,
+  contentBudget: number,
+): number {
+  const initialLineCount = measureLineStats(prepared, contentBudget).lineCount;
+  if (initialLineCount <= 1) {
+    return Math.min(contentBudget, measureNaturalWidth(prepared));
+  }
+
+  let lo = 1;
+  let hi = Math.max(1, Math.ceil(contentBudget));
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (measureLineStats(prepared, mid).lineCount <= initialLineCount) {
+      hi = mid;
+    } else {
+      lo = mid + 1;
+    }
+  }
+  return lo;
+}
+
+/**
  * Speech Bubble — simplified letter-by-letter bubble with avatar mouth sync.
  */
 
@@ -18,6 +44,8 @@ export interface SpeechBubbleOptions {
   onTypingEnd?: () => void;
   /** Fired for every mouth keyframe (including `default` when speech ends). */
   onMouthShape?: (shape: string) => void;
+  /** After the hide transition finishes (`displayDuration` + CSS hide). Not called if `destroy()` or `hideInstant()` runs first. */
+  onAfterHide?: () => void;
 }
 
 const DEFAULT_OPTIONS = {
@@ -324,6 +352,7 @@ export class SpeechBubble {
       this.state = 'hidden';
       this.typingApply = null;
       this.typingTotalChars = 0;
+      this.options.onAfterHide?.();
     }, 200);
   }
 
@@ -332,6 +361,7 @@ export class SpeechBubble {
     this.removeViewportListeners();
     this.disconnectBubbleSizeObserver();
     this.dispatchMouth('default');
+    this.state = 'hidden';
 
     if (this.reducedMotionQuery.removeEventListener) {
       this.reducedMotionQuery.removeEventListener('change', this.onReducedMotionChange);
@@ -340,6 +370,21 @@ export class SpeechBubble {
     }
 
     this.container.remove();
+  }
+
+  /** True while typing, visible, or hiding — caller should not start another phrase yet. */
+  isActive(): boolean {
+    return this.state !== 'hidden';
+  }
+
+  /**
+   * Typing finished and the bubble is waiting for `displayDuration` before auto-hide.
+   * Closes immediately (no CSS hide, no `onAfterHide`). Returns false if still typing or hiding.
+   */
+  skipReadingPause(): boolean {
+    if (this.state !== 'visible') return false;
+    this.hideInstant();
+    return true;
   }
 
   /* ── Private ───────────────────────────────────────── */
@@ -407,6 +452,7 @@ export class SpeechBubble {
 
     return {
       isMobile,
+      /* Must match `.avatar-speech-bubble__inner` — Pretext uses canvas measureText (README). */
       font: '400 14px Inter',
       lineHeight: 20.3,
       paddingX: isMobile ? 14 : 16,
@@ -414,7 +460,6 @@ export class SpeechBubble {
       maxWidthCap: isMobile ? 228 : 280,
       viewportPadding: isMobile ? 24 : 28,
       preferredMaxLines: isMobile ? 3 : 2,
-      minContentWidth: isMobile ? 92 : 124,
     };
   }
 
@@ -429,35 +474,15 @@ export class SpeechBubble {
 
     const maxOuterWidth = Math.max(100, Math.min(config.maxWidthCap, window.innerWidth - config.viewportPadding));
     const maxContentWidth = Math.max(56, maxOuterWidth - config.paddingX * 2);
-    const naturalContentWidth = Math.ceil(measureNaturalWidth(prepared));
-
-    let targetContentWidth = Math.min(naturalContentWidth, maxContentWidth);
-
-    if (naturalContentWidth > maxContentWidth) {
-      let low = Math.min(maxContentWidth, config.minContentWidth);
-      let high = maxContentWidth;
-      let best = maxContentWidth;
-
-      while (low <= high) {
-        const mid = Math.floor((low + high) / 2);
-        const { lineCount } = measureLineStats(prepared, mid);
-
-        if (lineCount <= config.preferredMaxLines) {
-          best = mid;
-          high = mid - 1;
-        } else {
-          low = mid + 1;
-        }
-      }
-
-      targetContentWidth = best;
-    }
+    const natural = measureNaturalWidth(prepared);
+    /* Skewed ::before extends past the text box slightly; keep in sync with bubble CSS insets. */
+    const outerSkewFudgePx = 8;
 
     this.inner.innerHTML = '';
-    this.inner.style.maxWidth = `${Math.ceil(maxOuterWidth)}px`;
-    this.inner.style.width = 'max-content';
     this.inner.style.height = '';
     this.inner.style.minHeight = '';
+    this.inner.style.maxWidth = `${Math.ceil(maxOuterWidth)}px`;
+    this.inner.style.width = 'max-content';
 
     const renderLines = (texts: string[]) => {
       this.inner.innerHTML = '';
@@ -471,56 +496,32 @@ export class SpeechBubble {
       });
     };
 
-    const measureRequiredOuterWidth = (lineElements: HTMLDivElement[]) => {
-      const maxMeasuredLineWidth = lineElements.reduce((max, lineEl) => {
-        const previousWhiteSpace = lineEl.style.whiteSpace;
-        lineEl.style.whiteSpace = 'nowrap';
-        const measured = lineEl.scrollWidth;
-        lineEl.style.whiteSpace = previousWhiteSpace;
-        return Math.max(max, measured);
-      }, 0);
-
-      return Math.ceil(maxMeasuredLineWidth + config.paddingX * 2 + 8);
-    };
-
-    let probeWidth = targetContentWidth;
-    let layout = layoutWithLines(prepared, probeWidth, config.lineHeight);
-    let lineTexts = (layout.lines.length ? layout.lines : [{ text: '' }]).map((line) => line.text);
-    let lineElements = renderLines(lineTexts);
-    let requiredOuterWidth = measureRequiredOuterWidth(lineElements);
-
-    // Guard against under-measurement: if real DOM width overflows, request more line breaks.
-    const minProbeWidth = Math.max(56, config.minContentWidth);
-    while (requiredOuterWidth > maxOuterWidth && probeWidth > minProbeWidth) {
-      probeWidth = Math.max(minProbeWidth, probeWidth - 8);
-      layout = layoutWithLines(prepared, probeWidth, config.lineHeight);
-      lineTexts = (layout.lines.length ? layout.lines : [{ text: '' }]).map((line) => line.text);
-      lineElements = renderLines(lineTexts);
-      requiredOuterWidth = measureRequiredOuterWidth(lineElements);
-
-      if (probeWidth === minProbeWidth) break;
+    let wrapContentWidth: number;
+    if (natural <= maxContentWidth) {
+      wrapContentWidth = natural;
+    } else {
+      const statsAtMax = measureLineStats(prepared, maxContentWidth);
+      if (statsAtMax.lineCount <= config.preferredMaxLines) {
+        wrapContentWidth = findTightContentWidthForBudget(prepared, maxContentWidth);
+      } else {
+        wrapContentWidth = maxContentWidth;
+      }
     }
 
-    // Keep a small visual safety margin so text doesn't look "stuck" to the edge on some engines.
-    const safeOuterWidth = maxOuterWidth - 14;
-    while (
-      requiredOuterWidth > safeOuterWidth
-      && lineTexts.length < config.preferredMaxLines
-      && probeWidth > minProbeWidth
-    ) {
-      probeWidth = Math.max(minProbeWidth, probeWidth - 8);
-      layout = layoutWithLines(prepared, probeWidth, config.lineHeight);
-      lineTexts = (layout.lines.length ? layout.lines : [{ text: '' }]).map((line) => line.text);
-      lineElements = renderLines(lineTexts);
-      requiredOuterWidth = measureRequiredOuterWidth(lineElements);
+    const layout = layoutWithLines(prepared, wrapContentWidth, config.lineHeight);
+    const lineTexts = (layout.lines.length ? layout.lines : [{ text: '' }]).map((line) => line.text);
+    const lineElements = renderLines(lineTexts);
 
-      if (probeWidth === minProbeWidth) break;
-    }
-
-    const width = Math.ceil(Math.min(maxOuterWidth, requiredOuterWidth));
+    const maxLineW = layout.lines.reduce((m, line) => Math.max(m, line.width), 0);
+    const width = Math.ceil(
+      Math.min(maxOuterWidth, maxLineW + config.paddingX * 2 + outerSkewFudgePx),
+    );
     this.inner.style.width = `${width}px`;
 
-    const height = Math.ceil(this.inner.scrollHeight + 2);
+    /* Stable pill: at least the height of two text lines (centered via flex when shorter). */
+    const measuredInner = Math.ceil(this.inner.scrollHeight + 2);
+    const twoLineInnerMin = Math.ceil(config.paddingY * 2 + config.lineHeight * 2) + 2;
+    const height = Math.max(measuredInner, twoLineInnerMin);
     this.inner.style.height = '';
     this.inner.style.minHeight = `${height}px`;
 
@@ -797,7 +798,6 @@ export class SpeechBubble {
       font-family: Inter, var(--font-sans, system-ui, sans-serif);
       font-size: 0.875rem;
       line-height: 1.45;
-      letter-spacing: -0.01em;
       white-space: normal;
       text-wrap: wrap;
       overflow-wrap: break-word;

@@ -1,71 +1,94 @@
 import { avatarHats, avatarOutfits, avatarSpecialConfigs } from '@/data/avatarSprite';
+import { loadVoicesModule } from './avatar/voice-loader';
 import { playMouthSfx, playSpeechPresenceBlip, resumeAvatarSfxContext } from './avatar-speech-sfx';
-import voice00Short from '../assets/voices/00_short.mp3';
-import voice01Short from '../assets/voices/01_short.mp3';
-import voice02Short from '../assets/voices/02_short.mp3';
-import voice03Short from '../assets/voices/03_short.mp3';
-import voice04Short from '../assets/voices/04_short.mp3';
-import voice05Mid from '../assets/voices/05_mid.mp3';
-import voice06Mid from '../assets/voices/06_mid.mp3';
-import voice07Mid from '../assets/voices/07_mid.mp3';
-import voice08Mid from '../assets/voices/08_mid.mp3';
-import voice09Mid from '../assets/voices/09_mid.mp3';
-import voice10Long from '../assets/voices/10_long.mp3';
-import voice11Long from '../assets/voices/11_long.mp3';
-import voice12Long from '../assets/voices/12_long.mp3';
-import voice13Long from '../assets/voices/13_long.mp3';
-import voice14Long from '../assets/voices/14_long.mp3';
-import voice15Long from '../assets/voices/15_long.mp3';
 
 type PhraseCategory = 'short' | 'mid' | 'long';
 
-const toClientAssetUrl = (url: string) => new URL(url, import.meta.url).href;
+type AvatarPhrase = { text: string; category: PhraseCategory };
 
-const AVATAR_PHRASES: Array<{ text: string; category: PhraseCategory }> = [
+/** Siempre primero, en este orden (clics 1 y 2 de la visita). */
+const GREETING_PHRASES: AvatarPhrase[] = [
   { text: 'Hola, soy Allison', category: 'short' },
-  { text: 'Bienvenido a mi sitio', category: 'short' },
-  { text: 'Si no se nota, está bien hecho', category: 'short' },
-  { text: 'Menos capas, menos problemas', category: 'short' },
-  { text: 'Lo difícil es que se vea fácil', category: 'mid' },
-  { text: 'Llevo rato ajustando este espaciado', category: 'mid' },
-  { text: 'Lo mejor que escribí hoy lo borré', category: 'mid' },
-  { text: 'Esto se ve mejor de lo que costó', category: 'mid' },
-  { text: 'Todavía no sé si este color está bien', category: 'mid' },
-  { text: 'Cambié tres veces la tipografía', category: 'mid' },
-  { text: 'Diseñar es decidir qué sobra', category: 'mid' },
-  { text: 'Me falta un café para seguir', category: 'mid' },
-  { text: 'Hoy es buen día para borrar código', category: 'long' },
-  { text: 'Debería estar durmiendo', category: 'long' },
-  { text: 'La mejor feature es la que no hace falta', category: 'long' },
-  { text: 'Un buen sitio no se siente como un sitio', category: 'long' },
-  { text: 'Este avatar tiene más estados que mi app', category: 'long' },
-  { text: 'Estuve una hora en un detalle que nadie va a notar', category: 'long' },
+  { text: 'Bienvenido/a a mi web', category: 'short' },
 ];
 
-const VOICES_BY_CATEGORY: Record<PhraseCategory, string[]> = {
-  short: [
-    toClientAssetUrl(voice00Short),
-    toClientAssetUrl(voice01Short),
-    toClientAssetUrl(voice02Short),
-    toClientAssetUrl(voice03Short),
-    toClientAssetUrl(voice04Short),
+const SPECIAL_PHRASES = {
+  birthday: [
+    { text: '¡Hoy es mi cumpleaños!', category: 'short' as const },
+    { text: 'Se aceptan regalos ;)', category: 'short' as const },
   ],
-  mid: [
-    toClientAssetUrl(voice05Mid),
-    toClientAssetUrl(voice06Mid),
-    toClientAssetUrl(voice07Mid),
-    toClientAssetUrl(voice08Mid),
-    toClientAssetUrl(voice09Mid),
+  laborDay: [
+    { text: '¡Feliz dia del trabajador!', category: 'mid' as const },
+    { text: '¿Que haces trabajando hoy?', category: 'mid' as const },
   ],
-  long: [
-    toClientAssetUrl(voice10Long),
-    toClientAssetUrl(voice11Long),
-    toClientAssetUrl(voice12Long),
-    toClientAssetUrl(voice13Long),
-    toClientAssetUrl(voice14Long),
-    toClientAssetUrl(voice15Long),
+  programmerDay: [
+    { text: '¡Feliz día del programador!', category: 'mid' as const },
+    { text: 'Hoy es el dia 256 del año, nada más y nada menos', category: 'long' as const },
   ],
-};
+  christmas: [
+    { text: '¡Feliz Navidad!', category: 'short' as const },
+    { text: 'Que el Viejito Pascuero te de algo bueno', category: 'long' as const },
+  ],
+  newYearsEve: [
+    { text: '¡Feliz nochevieja!', category: 'short' as const },
+    { text: 'Lo vemos el año que vien', category: 'mid' as const },
+  ],
+  newYear: [
+    { text: '¡Feliz año nuevo!', category: 'short' as const },
+    { text: 'El año empieza de verdad en marzo', category: 'mid' as const },
+  ],
+} satisfies Record<string, AvatarPhrase[]>;
+
+/** Bolsa general: orden aleatorio tras los saludos y las del día; excluir textos que choquen con especiales del día. */
+const GENERAL_PHRASES: AvatarPhrase[] = [
+  { text: 'Esa reunión pudo ser un email', category: 'mid' },
+  { text: 'Si funcionaba en mi máquina™', category: 'mid' },
+  { text: 'Llevo rato ajustando este espaciado', category: 'mid' },
+  { text: 'Diseñar es decidir qué sobra', category: 'mid' },
+  { text: 'Agile es cuando el caos tiene post-its', category: 'long' },
+  { text: 'No es deuda técnica, es deuda emocional', category: 'mid' },
+];
+
+function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+/** Día 256 del año: 12-sep en bisiesto, 13-sep si no (fecha local). */
+function getProgrammerDayOfMonth(year: number): number {
+  return isLeapYear(year) ? 12 : 13;
+}
+
+function getSpecialPhrasesForLocalDate(date: Date): AvatarPhrase[] {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  if (month === 8 && day === 20) return [...SPECIAL_PHRASES.birthday];
+  if (month === 5 && day === 1) return [...SPECIAL_PHRASES.laborDay];
+  if (month === 9 && day === getProgrammerDayOfMonth(year)) return [...SPECIAL_PHRASES.programmerDay];
+  if (month === 12 && day === 25) return [...SPECIAL_PHRASES.christmas];
+  if (month === 12 && day === 31) return [...SPECIAL_PHRASES.newYearsEve];
+  if (month === 1 && day === 1) return [...SPECIAL_PHRASES.newYear];
+
+  return [];
+}
+
+function shuffleInPlace<T>(items: T[]): T[] {
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j]!, items[i]!];
+  }
+  return items;
+}
+
+/** Una visita = una cola: 2 saludos + 0–2 especiales del día + hasta 6 generales (sin duplicar texto con especiales). */
+function buildVisitPhraseQueue(now: Date = new Date()): AvatarPhrase[] {
+  const specials = getSpecialPhrasesForLocalDate(now);
+  const specialTexts = new Set(specials.map((p) => p.text));
+  const generals = GENERAL_PHRASES.filter((p) => !specialTexts.has(p.text));
+  shuffleInPlace(generals);
+  return [...GREETING_PHRASES, ...specials, ...generals];
+}
 
 type AvatarDirection =
   | 'base'
@@ -364,6 +387,37 @@ function initAvatar(root: AvatarRoot) {
 
   const pickRandom = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
 
+  let visitPhraseQueue: AvatarPhrase[] | null = null;
+  let visitPhraseIndex = 0;
+
+  const resetVisitPhrases = () => {
+    visitPhraseQueue = buildVisitPhraseQueue();
+    visitPhraseIndex = 0;
+  };
+
+  const peekNextVisitPhrase = (): AvatarPhrase | null => {
+    if (!visitPhraseQueue) resetVisitPhrases();
+    const queue = visitPhraseQueue!;
+    if (visitPhraseIndex >= queue.length) return null;
+    return queue[visitPhraseIndex]!;
+  };
+
+  const advanceVisitPhraseQueue = () => {
+    visitPhraseIndex += 1;
+  };
+
+  /** Tras ocultar el bubble, breve margen antes del siguiente clic (ms). */
+  const MIN_MS_BETWEEN_PHRASES = 100;
+  /** Cola vacía: sonrisa/guiño no spameables. */
+  const MIN_MS_BETWEEN_EMPTY_CELEBRATIONS = 150;
+  /** Guiño un poco después de la sonrisa. */
+  const SMILE_TO_WINK_MS = 300;
+
+  let nextAvatarSpeakAllowedAt = 0;
+  let smileThenWinkTimer = 0;
+
+  resetVisitPhrases();
+
   const VOICE_TAIL_AFTER_TYPING_MS = 250;
 
   const cancelVoiceFade = () => {
@@ -457,54 +511,6 @@ function initAvatar(root: AvatarRoot) {
     });
   };
 
-  const handleAvatarSpeak = () => {
-    const phrase = pickRandom(AVATAR_PHRASES);
-    const voiceOptions = VOICES_BY_CATEGORY[phrase.category];
-    const voiceUrl = voiceOptions.length ? pickRandom(voiceOptions) : null;
-
-    const SpeechBubble = speechBubbleCtor;
-    if (!SpeechBubble) {
-      void loadSpeechBubbleModule();
-      return;
-    }
-
-    stopVoice();
-    root.__avatarSpeechBubble?.destroy();
-
-    resumeAvatarSfxContext();
-
-    // Start voice on the same user gesture, before bubble layout — avoids a late start after renderPhraseLayout.
-    if (voiceUrl) {
-      playVoice(voiceUrl);
-    }
-
-    const bubble = new SpeechBubble({
-      charSpeed: 35,
-      displayDuration: 3500,
-      phrases: [phrase.text],
-      onTypingStart: () => {
-        if (!voiceUrl) {
-          playSpeechPresenceBlip();
-        }
-      },
-      onTypingEnd: () => {
-        if (!voiceUrl) return;
-        cancelVoiceEndDelay();
-        root.__avatarVoiceEndDelayTimer = window.setTimeout(() => {
-          root.__avatarVoiceEndDelayTimer = 0;
-          fadeOutVoice(130);
-        }, VOICE_TAIL_AFTER_TYPING_MS);
-      },
-      onMouthShape: (shape) => {
-        if (voiceUrl) return;
-        playMouthSfx(shape);
-      },
-    });
-
-    root.__avatarSpeechBubble = bubble;
-    bubble.next(root, root);
-  };
-
   applyStoredAvatarConfig(root);
   void loadSpeechBubbleModule();
 
@@ -555,7 +561,8 @@ function initAvatar(root: AvatarRoot) {
     }
 
     if (isWinking) {
-      setUseTarget(leftEye, symbolHref(LEFT_EYE_TILES[eyeDirection]));
+      /* Wink reads as a forward look; keep both eyes neutral / center. */
+      setUseTarget(leftEye, symbolHref(LEFT_EYE_TILES.base));
       setUseTarget(rightEye, symbolHref(RIGHT_EYE_TILES.wink));
       return;
     }
@@ -704,6 +711,90 @@ function initAvatar(root: AvatarRoot) {
     }, 900);
   };
 
+  const celebrateAvatarClick = () => {
+    direction = 'base';
+    speakingDirection = 'base';
+    smileOnce();
+    window.clearTimeout(smileThenWinkTimer);
+    smileThenWinkTimer = window.setTimeout(() => {
+      smileThenWinkTimer = 0;
+      winkOnce();
+    }, SMILE_TO_WINK_MS);
+  };
+
+  const runAvatarSpeak = async () => {
+    const SpeechBubble = speechBubbleCtor;
+    if (!SpeechBubble) {
+      void loadSpeechBubbleModule();
+      return;
+    }
+
+    const now = performance.now();
+    if (now < nextAvatarSpeakAllowedAt) return;
+
+    const currentBubble = root.__avatarSpeechBubble;
+    if (currentBubble?.isActive()) {
+      if (!currentBubble.skipReadingPause()) return;
+    }
+
+    const phrase = peekNextVisitPhrase();
+    if (!phrase) {
+      celebrateAvatarClick();
+      nextAvatarSpeakAllowedAt = now + MIN_MS_BETWEEN_EMPTY_CELEBRATIONS;
+      return;
+    }
+
+    advanceVisitPhraseQueue();
+    const { VOICES_BY_CATEGORY } = await loadVoicesModule();
+    const voiceOptions = VOICES_BY_CATEGORY[phrase.category];
+    const voiceUrl = voiceOptions.length ? pickRandom(voiceOptions) : null;
+
+    stopVoice();
+    root.__avatarSpeechBubble?.destroy();
+
+    resumeAvatarSfxContext();
+
+    // Start voice on the same user gesture, before bubble layout — avoids a late start after renderPhraseLayout.
+    if (voiceUrl) {
+      playVoice(voiceUrl);
+    }
+
+    const bubble = new SpeechBubble({
+      charSpeed: 35,
+      /* Tras terminar de escribir: breve pausa antes del auto-hide; un clic también salta esta espera. */
+      displayDuration: 450,
+      phrases: [phrase.text],
+      onTypingStart: () => {
+        if (!voiceUrl) {
+          playSpeechPresenceBlip();
+        }
+      },
+      onTypingEnd: () => {
+        if (!voiceUrl) return;
+        cancelVoiceEndDelay();
+        root.__avatarVoiceEndDelayTimer = window.setTimeout(() => {
+          root.__avatarVoiceEndDelayTimer = 0;
+          fadeOutVoice(130);
+        }, VOICE_TAIL_AFTER_TYPING_MS);
+      },
+      onMouthShape: (shape) => {
+        if (voiceUrl) return;
+        playMouthSfx(shape);
+      },
+      onAfterHide: () => {
+        celebrateAvatarClick();
+        nextAvatarSpeakAllowedAt = performance.now() + MIN_MS_BETWEEN_PHRASES;
+      },
+    });
+
+    root.__avatarSpeechBubble = bubble;
+    bubble.next(root, root);
+  };
+
+  const handleAvatarSpeak = () => {
+    void runAvatarSpeak();
+  };
+
   const handleAvatarPointerEnter = (event: PointerEvent) => {
     if (!supportsFinePointer || event.pointerType === 'touch') return;
 
@@ -712,6 +803,7 @@ function initAvatar(root: AvatarRoot) {
     pointerY = event.clientY;
     hasPointer = true;
     void loadSpeechBubbleModule();
+    void loadVoicesModule();
     scheduleDirectionUpdate();
   };
 
@@ -917,6 +1009,7 @@ function initAvatar(root: AvatarRoot) {
     window.clearTimeout(blinkFollowupTimer);
     window.clearTimeout(winkTimer);
     window.clearTimeout(smileTimer);
+    window.clearTimeout(smileThenWinkTimer);
     window.clearTimeout(nextBlinkTimer);
     window.clearTimeout(pointerIdleTimer);
     window.clearTimeout(clickLookHoldTimer);

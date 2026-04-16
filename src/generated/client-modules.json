@@ -2,6 +2,7 @@
   "base-client": "/client/base-client-E2QFMQAN.js",
   "folder-shapes-client": "/client/folder-shapes-client-6HDMS6BR.js",
   "project-folder-stack-client": "/client/project-folder-stack-client-NX5X6U6J.js",
-  "avatar-client": "/client/avatar-client-AMHDHWDQ.js",
-  "speech-bubble": "/client/chunks/speech-bubble-O2SPIZ6S.js"
+  "avatar-client": "/client/avatar-client-MDUZY4RG.js",
+  "voices": "/client/chunks/voices-NBLWGTRX.js",
+  "speech-bubble": "/client/chunks/speech-bubble-VXYG2PQR.js"
 }
