@@ -44,7 +44,7 @@ export interface SpeechBubbleOptions {
   onTypingEnd?: () => void;
   /** Fired for every mouth keyframe (including `default` when speech ends). */
   onMouthShape?: (shape: string) => void;
-  /** After the hide transition finishes (`displayDuration` + CSS hide). Not called if `destroy()` or `hideInstant()` runs first. */
+  /** After the bubble is fully dismissed: normal hide (post-`displayDuration` + CSS) or `skipReadingPause()` (instant). Not called if `destroy()` runs first. */
   onAfterHide?: () => void;
 }
 
@@ -395,11 +395,13 @@ export class SpeechBubble {
 
   /**
    * Typing finished and the bubble is waiting for `displayDuration` before auto-hide.
-   * Closes immediately (no CSS hide, no `onAfterHide`). Returns false if still typing or hiding.
+   * Closes immediately (no CSS hide). Still runs `onAfterHide` so callers match the normal hide cooldown path.
+   * Returns false if still typing or hiding.
    */
   skipReadingPause(): boolean {
     if (this.state !== 'visible') return false;
     this.hideInstant();
+    this.options.onAfterHide?.();
     return true;
   }
 
@@ -443,8 +445,8 @@ export class SpeechBubble {
     return {
       isMobile,
       /* Must match `.avatar-speech-bubble__inner` — Pretext uses canvas measureText (README). */
-      font: '400 14px Inter',
-      lineHeight: 20.3,
+      font: isMobile ? '400 14px Inter' : '400 16px Inter',
+      lineHeight: isMobile ? 20.3 : 23.2,
       paddingX: isMobile ? 14 : 16,
       paddingY: isMobile ? 9 : 10,
       maxWidthCap: isMobile ? 228 : 280,
@@ -732,7 +734,7 @@ export class SpeechBubble {
       border-radius: var(--bubble-radius);
       padding: 10px 16px;
       font-family: Inter, var(--font-sans, system-ui, sans-serif);
-      font-size: 0.875rem;
+      font-size: 16px;
       line-height: 1.45;
       white-space: normal;
       text-wrap: wrap;
@@ -811,6 +813,7 @@ export class SpeechBubble {
       .avatar-speech-bubble__inner {
         max-width: min(228px, calc(100vw - 24px));
         padding: 9px 14px;
+        font-size: 0.875rem;
       }
     }
 

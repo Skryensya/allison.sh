@@ -406,10 +406,8 @@ function initAvatar(root: AvatarRoot) {
     visitPhraseIndex += 1;
   };
 
-  /** Tras ocultar el bubble, breve margen antes del siguiente clic (ms). */
+  /** Tras ocultar el bubble (o cerrar con skip), margen antes del siguiente clic — alineado al ciclo del bubble. */
   const MIN_MS_BETWEEN_PHRASES = 100;
-  /** Cola vacía y sin bubble: throttle de clics (sin sonrisa; el egg solo al terminar el último mensaje). */
-  const MIN_MS_BETWEEN_EMPTY_CELEBRATIONS = 150;
   /** Guiño un poco después de la sonrisa. */
   const SMILE_TO_WINK_MS = 300;
   /** Sonrisa: boca + ojos al frente, sin seguir el mouse. */
@@ -547,7 +545,8 @@ function initAvatar(root: AvatarRoot) {
   let lastDirectionChangeAt = 0;
 
   const render = () => {
-    const mouthTarget: MouthState = isSmiling ? 'smile' : mouthState;
+    /* Durante el speech, la boca sigue los fonemas; la sonrisa solo en la celebración (cola agotada). */
+    const mouthTarget: MouthState = isSpeaking ? mouthState : isSmiling ? 'smile' : mouthState;
     setUseTarget(mouthLeft, symbolHref(MOUTH_LEFT_TILES[mouthTarget]));
     setUseTarget(mouthRight, symbolHref(MOUTH_RIGHT_TILES[mouthTarget]));
 
@@ -748,7 +747,7 @@ function initAvatar(root: AvatarRoot) {
     const phrase = peekNextVisitPhrase();
     if (!phrase) {
       if (root.__avatarSpeechBubble?.isActive()) return;
-      nextAvatarSpeakAllowedAt = now + MIN_MS_BETWEEN_EMPTY_CELEBRATIONS;
+      nextAvatarSpeakAllowedAt = now + MIN_MS_BETWEEN_PHRASES;
       return;
     }
 

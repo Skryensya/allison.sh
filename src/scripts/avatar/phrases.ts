@@ -42,7 +42,7 @@ export const SPECIAL_PHRASES = {
 /** Bolsa general: orden aleatorio tras saludos y especiales; excluir duplicados con especiales del día. */
 export const GENERAL_PHRASES: AvatarPhrase[] = [
   { text: 'Esa reunión pudo ser un email', category: 'mid' },
-  { text: 'Si funcionaba en mi máquina™', category: 'mid' },
+  { text: '"Si funcionaba en mi máquina™"', category: 'mid' },
   { text: 'Llevo rato ajustando este espaciado', category: 'mid' },
   { text: 'Diseñar es decidir qué sobra', category: 'mid' },
   { text: 'Agile es cuando el caos tiene post-its', category: 'long' },
