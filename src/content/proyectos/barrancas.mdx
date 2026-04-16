@@ -36,24 +36,14 @@ Una parte importante del trabajo estuvo en traducir procesos existentes, con sus
 
 ## Decisiones técnicas
 
-En backend trabajé con AdonisJS, principalmente por su enfoque MVC, que daba una base clara para organizar la aplicación a medida que el producto iba creciendo. Esa estructura ayudó a separar mejor la lógica de negocio, el manejo de datos y la capa de presentación del sistema, algo importante en una plataforma que combinaba encuestas, análisis, visualización y seguimiento de casos.
+Backend con AdonisJS para mantener organización clara a medida que el producto crecía. Frontend con Edge + Vue: renderizado en servidor para estabilidad, interactividad donde se necesitaba sin sobredimensionar.
 
-En el frontend se usó Edge como motor de templates en el servidor, complementado con Vue para la interactividad del sitio. Esa combinación permitió mantener una base de renderizado clara y estable, mientras se incorporaban comportamientos más dinámicos en las partes que realmente lo necesitaban. Era una forma de no sobredimensionar la solución, pero sí dar una experiencia fluida en flujos clave del producto.
-
-Sobre esa base se construyeron encuestas en múltiples formatos, visualizaciones para equipos educativos, reportes automatizados y herramientas de seguimiento individual. La decisión técnica más importante no fue solo qué stack usar, sino cómo estructurar la plataforma para soportar un producto que tenía que crecer en complejidad sin perder claridad ni mantenibilidad.
+Sobre esa base: encuestas configurables, visualizaciones para equipos, reportes automatizados y seguimiento de casos. La decisión clave no fue el stack, sino cómo estructurar para crecer sin perder claridad.
 
 <ImageFigure src={barrancas2} alt="Pantallas de visualización y flujos de la plataforma Barrancas." />
 
-## Restricciones y criterio de diseño
-
-La principal restricción era trabajar con información sensible dentro de una herramienta pensada para usuarios no técnicos. El sistema tenía que ser robusto, pero también simple de recorrer y de interpretar. No bastaba con digitalizar el proceso: había que hacerlo sin reemplazar una fricción manual por una fricción digital.
-
-Eso hizo que muchas decisiones se tomaran con un criterio bien práctico. La plataforma debía ayudar a ejecutar mejor procesos existentes, no obligar a las instituciones a adaptarse a una herramienta opaca o difícil de usar. El valor estaba en consolidar información que antes estaba dispersa y transformarla en una base más clara para detectar riesgos, seguir casos y tomar decisiones.
-
 ## Evolución del producto
 
-Con el tiempo, el producto evolucionó incorporando un nuevo módulo de seguimiento y plan de acompañamiento para estudiantes. Ese trabajo amplió el alcance de la plataforma: ya no solo permitía levantar información e identificar señales de alerta, sino también estructurar mejor el trabajo posterior sobre cada caso.
-
-Ese módulo apuntó a fortalecer el acompañamiento de estudiantes en contextos de riesgo, con foco en reducir la deserción escolar y abordar de mejor forma problemas de salud mental. Más que sumar funcionalidades aisladas, esa evolución profundizó la lógica central del producto: no quedarse solo en la detección, sino apoyar también la continuidad de la intervención.
+Actualmente estamos trabajando en un nuevo módulo de seguimiento y acompañamiento. La idea: no quedarse solo en la detección, sino apoyar también la continuidad de la intervención.
 
 <ImageFigure src={barrancas3} alt="Módulo de seguimiento y acompañamiento en Barrancas." />

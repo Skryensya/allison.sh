@@ -55,11 +55,15 @@ const publishedTime = year ? `${year}-01-01` : undefined;
     </div>
 
     <div class="max-w-[42rem] mx-auto px-6 md:px-8 relative z-30">
-      <article class="project-article font-sans text-[16px] leading-[1.6] text-text tracking-[-0.01em]">
+      <article class="project-article font-sans text-[16px] leading-[1.6] text-text tracking-[-0.01em] select-none">
+        <div class="select-text">
         <slot />
+        </div>
       </article>
 
-      <slot name="after-article" />
+      <div data-after-article class="select-none">
+        <slot name="after-article" />
+      </div>
 
       <footer class="mt-12 md:mt-14 mb-8">
         <a href="/" class="group inline-flex items-center gap-2 font-mono text-sm tracking-wide text-muted hover:text-text transition-colors duration-200">
@@ -319,6 +323,14 @@ const publishedTime = year ? `${year}-01-01` : undefined;
     </script>
 
     <style>
+      /* Prevent image selection in after-article slot */
+      [data-after-article] img,
+      [data-after-article] figcaption,
+      [data-after-article] figure {
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
       .project-article :global(h2) {
         font-family: var(--font-sans);
         font-size: 1.125rem;

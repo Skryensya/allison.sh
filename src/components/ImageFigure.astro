@@ -30,6 +30,7 @@ const figureClass = [
   'group/lightbox-fig',
   'my-6',
   'xl:relative xl:m-0 xl:h-0 xl:overflow-visible',
+  'select-none',
 ].join(' ');
 
 const frameClass = [
@@ -67,12 +68,14 @@ const imgClass = [
   'outline outline-1 -outline-offset-1 outline-text/[0.06]',
   'transition-opacity duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
   'group-data-[loaded=true]/media:opacity-100',
+  'select-none',
 ].join(' ');
 
 const captionClass = [
-  'static h-auto pt-[7px] font-mono text-sm leading-snug text-subtle',
+  'static h-auto pt-[7px] font-mono text-sm leading-snug text-muted select-none',
   'xl:group-data-[side=right]/lightbox-fig:text-text',
   'xl:group-data-[side=left]/lightbox-fig:text-text',
+  'is-flying:opacity-100',
 ].join(' ');
 ---
 
