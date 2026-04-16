@@ -408,10 +408,12 @@ function initAvatar(root: AvatarRoot) {
 
   /** Tras ocultar el bubble, breve margen antes del siguiente clic (ms). */
   const MIN_MS_BETWEEN_PHRASES = 100;
-  /** Cola vacía: sonrisa/guiño no spameables. */
+  /** Cola vacía y sin bubble: throttle de clics (sin sonrisa; el egg solo al terminar el último mensaje). */
   const MIN_MS_BETWEEN_EMPTY_CELEBRATIONS = 150;
   /** Guiño un poco después de la sonrisa. */
   const SMILE_TO_WINK_MS = 300;
+  /** Sonrisa: boca + ojos al frente, sin seguir el mouse. */
+  const SMILE_DURATION_MS = 2000;
 
   let nextAvatarSpeakAllowedAt = 0;
   let smileThenWinkTimer = 0;
@@ -549,9 +551,12 @@ function initAvatar(root: AvatarRoot) {
     setUseTarget(mouthLeft, symbolHref(MOUTH_LEFT_TILES[mouthTarget]));
     setUseTarget(mouthRight, symbolHref(MOUTH_RIGHT_TILES[mouthTarget]));
 
-    // During speech, do NOT track the pointer (feels creepy). Use speakingDirection.
+    // During speech or smile, do NOT track the pointer (forward gaze).
     const shouldUseInteractiveDirection =
-      !isSpeaking && hasPointer && (isAvatarHovered || performance.now() < forceTrackUntil);
+      !isSpeaking &&
+      !isSmiling &&
+      hasPointer &&
+      (isAvatarHovered || performance.now() < forceTrackUntil);
     const eyeDirection = shouldUseInteractiveDirection ? direction : speakingDirection;
 
     if (isBlinking) {
@@ -631,6 +636,7 @@ function initAvatar(root: AvatarRoot) {
     if (
       !started ||
       isSpeaking ||
+      isSmiling ||
       !hasPointer ||
       (!isAvatarHovered && performance.now() >= forceTrackUntil) ||
       isBlinking ||
@@ -702,13 +708,15 @@ function initAvatar(root: AvatarRoot) {
 
   const smileOnce = () => {
     window.clearTimeout(smileTimer);
+    direction = 'base';
+    speakingDirection = 'base';
     isSmiling = true;
     render();
 
     smileTimer = window.setTimeout(() => {
       isSmiling = false;
       render();
-    }, 900);
+    }, SMILE_DURATION_MS);
   };
 
   const celebrateAvatarClick = () => {
@@ -739,7 +747,7 @@ function initAvatar(root: AvatarRoot) {
 
     const phrase = peekNextVisitPhrase();
     if (!phrase) {
-      celebrateAvatarClick();
+      if (root.__avatarSpeechBubble?.isActive()) return;
       nextAvatarSpeakAllowedAt = now + MIN_MS_BETWEEN_EMPTY_CELEBRATIONS;
       return;
     }
@@ -782,7 +790,10 @@ function initAvatar(root: AvatarRoot) {
         playMouthSfx(shape);
       },
       onAfterHide: () => {
-        celebrateAvatarClick();
+        const queueLen = visitPhraseQueue?.length ?? 0;
+        if (visitPhraseIndex >= queueLen) {
+          celebrateAvatarClick();
+        }
         nextAvatarSpeakAllowedAt = performance.now() + MIN_MS_BETWEEN_PHRASES;
       },
     });
