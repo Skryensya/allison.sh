@@ -33,7 +33,7 @@ const figureClass = [
 ].join(' ');
 
 const frameClass = [
-  'relative cursor-pointer bg-transparent p-0 shadow-none outline-none',
+  'relative cursor-pointer is-flying:cursor-default bg-transparent p-0 shadow-none outline-none',
   'transition-[opacity,transform] duration-[600ms] ease-out',
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-text focus-visible:outline-offset-[3px]',
   'xl:absolute xl:top-0 xl:w-[clamp(180px,17vw,260px)]',
@@ -50,7 +50,7 @@ const frameClass = [
   'is-flying:[&_[data-figure-media]]:shadow-[0_20px_80px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)]',
   'is-flying:[&_[data-figure-caption]]:static is-flying:[&_[data-figure-caption]]:h-auto',
   'is-flying:[&_[data-figure-caption]]:px-0.5 is-flying:[&_[data-figure-caption]]:pt-2.5',
-  'is-flying:[&_[data-figure-caption]]:font-medium is-flying:[&_[data-figure-caption]]:text-white',
+  'is-flying:[&_[data-figure-caption]]:font-medium is-flying:[&_[data-figure-caption]]:text-text',
 ].join(' ');
 
 const mediaClass = [

@@ -88,18 +88,83 @@ const publishedTime = year ? `${year}-01-01` : undefined;
 
           var isOpen = false;
           var overlay = null;
+          var closeButton = null;
           var flyingClone = null;
           var activeFrame = null;
           var onKeyDown = null;
+          var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
           function getOverlay() {
             if (overlay) return overlay;
             overlay = document.createElement('div');
             overlay.className =
-              'fixed inset-0 z-[250] bg-black/[0.82] opacity-0 pointer-events-none transition-opacity duration-300 ease-linear data-[open]:opacity-100 data-[open]:pointer-events-auto motion-reduce:transition-none';
+              'lightbox-overlay fixed inset-0 z-[250] opacity-0 pointer-events-none transition-opacity duration-[240ms] ease-out data-[open]:opacity-100 data-[open]:pointer-events-auto motion-reduce:transition-none';
+            overlay.setAttribute('aria-hidden', 'true');
+            overlay.innerHTML = [
+              '<span class="lightbox-overlay__shade"></span>',
+              '<span class="lightbox-overlay__shader lightbox-overlay__shader--a"></span>',
+              '<span class="lightbox-overlay__shader lightbox-overlay__shader--b"></span>',
+              '<span class="lightbox-overlay__grain"></span>'
+            ].join('');
             document.body.appendChild(overlay);
             overlay.addEventListener('click', closeExpanded);
             return overlay;
+          }
+
+          function getCloseButton() {
+            if (closeButton) return closeButton;
+            closeButton = document.createElement('button');
+            closeButton.setAttribute('type', 'button');
+            closeButton.setAttribute('data-lightbox-close', '');
+            closeButton.setAttribute('aria-label', 'Cerrar imagen');
+            closeButton.className =
+              'group fixed top-5 right-5 z-[270] inline-flex h-11 w-11 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--color-text)_18%,transparent)] bg-[color:color-mix(in_srgb,var(--color-bg)_72%,transparent)] text-[color:color-mix(in_srgb,var(--color-text)_76%,transparent)] opacity-0 pointer-events-none select-none shadow-[0_10px_30px_color-mix(in_srgb,var(--color-text)_8%,transparent),0_1px_0_color-mix(in_srgb,var(--color-bg)_65%,transparent)_inset] backdrop-blur-md supports-[backdrop-filter]:bg-[color:color-mix(in_srgb,var(--color-bg)_58%,transparent)] transition-[opacity,color,border-color,background-color,transform,box-shadow] duration-150 ease-out data-[open]:opacity-100 data-[open]:pointer-events-auto hover:border-[color:color-mix(in_srgb,var(--color-text)_30%,transparent)] hover:bg-[color:color-mix(in_srgb,var(--color-bg)_52%,transparent)] hover:text-[var(--color-text)] hover:shadow-[0_14px_36px_color-mix(in_srgb,var(--color-text)_10%,transparent),0_1px_0_color-mix(in_srgb,var(--color-bg)_72%,transparent)_inset] active:scale-[0.96] focus-visible:border-[color:color-mix(in_srgb,var(--color-text)_38%,transparent)] focus-visible:text-[var(--color-text)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-[color:color-mix(in_srgb,var(--color-text)_24%,transparent)] focus-visible:outline-offset-[4px] motion-reduce:transition-none';
+            closeButton.innerHTML = '<span aria-hidden="true" class="pointer-events-none inline-flex items-center justify-center transition-transform duration-150 ease-out motion-reduce:transition-none group-active:scale-[0.96]"><svg width="14" height="14" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg></span>';
+            closeButton.addEventListener('click', function (e) {
+              e.stopPropagation();
+              closeExpanded();
+            });
+            document.body.appendChild(closeButton);
+            return closeButton;
+          }
+
+          function getExpandedMetrics(frame) {
+            var sourceRect = frame.getBoundingClientRect();
+            var measure = frame.cloneNode(true);
+            measure.classList.add('is-flying');
+            measure.style.cssText = [
+              'position:fixed',
+              'top:0',
+              'left:0',
+              'width:min(92vw, 900px)',
+              'margin:0',
+              'z-index:-1',
+              'opacity:0',
+              'pointer-events:none',
+              'transform:none',
+              'transition:none',
+            ].join(';');
+            document.body.appendChild(measure);
+
+            var media = measure.querySelector('[data-figure-media]');
+            var caption = measure.querySelector('[data-figure-caption]');
+            var imageAspect = media.offsetHeight / media.offsetWidth;
+            var captionH = caption ? caption.offsetHeight : 0;
+            var isMobile = window.innerWidth < 768;
+            var maxW = isMobile ? window.innerWidth * 0.92 : Math.min(window.innerWidth * 0.72, 900);
+            var maxWidthFromHeight = (window.innerHeight * 0.85 - captionH) / imageAspect;
+            var width = Math.max(sourceRect.width, Math.min(maxW, maxWidthFromHeight));
+            measure.style.width = width + 'px';
+            var height = measure.offsetHeight;
+            measure.remove();
+
+            return {
+              sourceRect: sourceRect,
+              targetWidth: width,
+              targetHeight: height,
+              targetLeft: (window.innerWidth - width) / 2,
+              targetTop: Math.max(isMobile ? 64 : 32, (window.innerHeight - height) / 2),
+            };
           }
 
           function openExpanded(frame) {
@@ -107,84 +172,54 @@ const publishedTime = year ? `${year}-01-01` : undefined;
             isOpen = true;
             activeFrame = frame;
 
-            var rect = frame.getBoundingClientRect();
+            var metrics = getExpandedMetrics(frame);
+            var rect = metrics.sourceRect;
 
-            // Dark overlay
             var ov = getOverlay();
             requestAnimationFrame(function () {
               ov.setAttribute('data-open', '');
             });
 
-            // Clone the frame and pin it at its current screen position
             var clone = frame.cloneNode(true);
             clone.classList.add('is-flying');
             clone.style.cssText = [
               'position:fixed',
-              'top:' + rect.top + 'px',
-              'left:' + rect.left + 'px',
-              'width:' + rect.width + 'px',
+              'top:' + metrics.targetTop + 'px',
+              'left:' + metrics.targetLeft + 'px',
+              'width:' + metrics.targetWidth + 'px',
               'margin:0',
               'z-index:260',
               'opacity:1',
-              'transform:none',
+              'transform-origin:top left',
+              'will-change:transform,opacity',
               'transition:none',
               'transition-delay:0ms',
             ].join(';');
-            // Add close button
-            var closeBtn = document.createElement('button');
-            closeBtn.setAttribute('data-lightbox-close', '');
-            closeBtn.className =
-              'absolute -top-[62px] right-0 z-10 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-text/15 bg-bg text-text shadow-[0_4px_14px_color-mix(in_srgb,var(--color-text)_12%,transparent),0_1px_3px_color-mix(in_srgb,var(--color-text)_8%,transparent)] transition-[transform,background-color,border-color,box-shadow,color] duration-100 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform md:-top-12 md:-right-12 md:shadow-[0_3px_12px_color-mix(in_srgb,var(--color-text)_10%,transparent),0_1px_2px_color-mix(in_srgb,var(--color-text)_6%,transparent)] hover:border-text/20 hover:shadow-[0_-6px_16px_color-mix(in_srgb,var(--color-text)_10%,transparent),0_10px_22px_color-mix(in_srgb,var(--color-text)_12%,transparent)] active:scale-90 focus-visible:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-text motion-reduce:transition-none motion-reduce:active:scale-100';
-            closeBtn.setAttribute('aria-label', 'Cerrar imagen');
-            closeBtn.innerHTML =
-              '<svg class="size-[13px] md:size-3" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
-            closeBtn.addEventListener('click', function (e) {
-              e.stopPropagation();
-              closeExpanded();
-            });
-            clone.appendChild(closeBtn);
 
+            var startX = rect.left - metrics.targetLeft;
+            var startY = rect.top - metrics.targetTop;
+            var startScale = rect.width / metrics.targetWidth;
+            clone.style.transform = 'translate3d(' + startX + 'px, ' + startY + 'px, 0) scale(' + startScale + ')';
             document.body.appendChild(clone);
             flyingClone = clone;
 
-            // Hide original instantly (bypass transition)
+            var closeBtn = getCloseButton();
+            closeBtn.setAttribute('data-open', '');
+
             frame.style.transition = 'none';
             frame.style.opacity = '0';
 
-            // Target width, capped so height fits in viewport
-            var media = clone.querySelector('[data-figure-media]');
-            var caption = clone.querySelector('[data-figure-caption]');
-            var imageAspect = media.offsetHeight / media.offsetWidth;
-            var captionH = caption ? caption.offsetHeight : 0;
-            
-            var isMobile = window.innerWidth < 768;
-            var maxW = isMobile ? window.innerWidth * 0.92 : Math.min(window.innerWidth * 0.72, 900);
-            
-            var maxWidthFromHeight = (window.innerHeight * 0.85 - captionH) / imageAspect;
-            var targetWidth = Math.min(maxW, maxWidthFromHeight);
-            
-            // Don't shrink the image if it's already larger in the DOM
-            targetWidth = Math.max(targetWidth, rect.width);
-            var targetHeight = targetWidth * imageAspect + captionH;
-            
-            var targetLeft = (window.innerWidth - targetWidth) / 2;
-            var targetTop = Math.max(isMobile ? 64 : 32, (window.innerHeight - targetHeight) / 2);
-
-            var ease = 'cubic-bezier(0.16, 1, 0.3, 1)';
-            var dur = '420ms';
+            var shouldReduce = reduceMotion.matches;
+            var ease = 'cubic-bezier(0.19, 1, 0.22, 1)';
+            var dur = shouldReduce ? '1ms' : '360ms';
 
             requestAnimationFrame(function () {
-              requestAnimationFrame(function () {
-                clone.style.transition = [
-                  'top ' + dur + ' ' + ease,
-                  'left ' + dur + ' ' + ease,
-                  'width ' + dur + ' ' + ease,
-                ].join(',');
-                clone.style.top = targetTop + 'px';
-                clone.style.left = targetLeft + 'px';
-                clone.style.width = targetWidth + 'px';
-                closeBtn.focus();
-              });
+              clone.style.transition = [
+                'transform ' + dur + ' ' + ease,
+                'opacity ' + dur + ' ease-out'
+              ].join(',');
+              clone.style.transform = 'translate3d(0, 0, 0) scale(1)';
+              closeBtn.focus();
             });
 
             onKeyDown = function (e) { if (e.key === 'Escape') closeExpanded(); };
@@ -200,34 +235,33 @@ const publishedTime = year ? `${year}-01-01` : undefined;
             var clone = flyingClone;
             var frame = activeFrame;
             var ov = overlay;
+            var closeBtn = closeButton;
+            var shouldReduce = reduceMotion.matches;
 
-            // Hide close button instantly
-            var closeBtn = clone.querySelector('[data-lightbox-close]');
-            if (closeBtn) closeBtn.style.display = 'none';
+            if (closeBtn) closeBtn.removeAttribute('data-open');
 
-            // Crossfade: fade original frame back in as clone fades out
-            frame.style.transition = 'opacity 200ms ease';
-            frame.style.transitionDelay = '240ms';
+            frame.style.transition = shouldReduce ? 'opacity 1ms linear' : 'opacity 140ms ease-out';
+            frame.style.transitionDelay = shouldReduce ? '0ms' : '140ms';
             frame.style.opacity = '';
 
-            ov.removeAttribute('data-open');
-            var origRect = frame.getBoundingClientRect();
-            var easeOut = 'cubic-bezier(0.16, 1, 0.3, 1)';
-            clone.style.transition = [
-              'top 460ms ' + easeOut,
-              'left 460ms ' + easeOut,
-              'width 460ms ' + easeOut,
-              'opacity 180ms ease 260ms',
-            ].join(',');
-            clone.style.top = origRect.top + 'px';
-            clone.style.left = origRect.left + 'px';
-            clone.style.width = origRect.width + 'px';
-            clone.style.opacity = '0';
+            if (ov) ov.removeAttribute('data-open');
 
-            // Listen only to width transitionend (longest, 460ms) to avoid early cleanup
-            function onTransitionEnd(e) {
-              if (e.propertyName !== 'width') return;
-              clone.removeEventListener('transitionend', onTransitionEnd);
+            var origRect = frame.getBoundingClientRect();
+            var cloneRect = clone.getBoundingClientRect();
+            var endX = origRect.left - cloneRect.left;
+            var endY = origRect.top - cloneRect.top;
+            var endScale = origRect.width / cloneRect.width;
+            var easeOut = 'cubic-bezier(0.19, 1, 0.22, 1)';
+            var dur = shouldReduce ? '1ms' : '380ms';
+
+            clone.style.transition = [
+              'transform ' + dur + ' ' + easeOut,
+              'opacity ' + (shouldReduce ? '1ms linear' : '160ms ease-out 180ms')
+            ].join(',');
+            clone.style.transform = 'translate3d(' + endX + 'px, ' + endY + 'px, 0) scale(' + endScale + ')';
+            clone.style.opacity = shouldReduce ? '0' : '0.08';
+
+            function cleanup() {
               clone.remove();
               frame.style.transition = 'none';
               frame.style.transitionDelay = '';
@@ -241,7 +275,18 @@ const publishedTime = year ? `${year}-01-01` : undefined;
               flyingClone = null;
               activeFrame = null;
             }
-            clone.addEventListener('transitionend', onTransitionEnd);
+
+            function onTransitionEnd(e) {
+              if (e.propertyName !== 'transform') return;
+              clone.removeEventListener('transitionend', onTransitionEnd);
+              cleanup();
+            }
+
+            if (shouldReduce) {
+              requestAnimationFrame(cleanup);
+            } else {
+              clone.addEventListener('transitionend', onTransitionEnd);
+            }
 
             if (onKeyDown) {
               document.removeEventListener('keydown', onKeyDown);
@@ -346,6 +391,170 @@ const publishedTime = year ? `${year}-01-01` : undefined;
         .project-article :global(li a:hover) {
           color: var(--color-muted);
           text-decoration-color: color-mix(in srgb, var(--color-text) 52%, transparent);
+        }
+      }
+
+      :global(.lightbox-overlay) {
+        --lightbox-ink-1: oklch(0.32 0.07 305);
+        --lightbox-ink-2: oklch(0.28 0.08 215);
+        --lightbox-ink-3: oklch(0.36 0.06 25);
+        --lightbox-core: color-mix(in srgb, #050505 36%, transparent);
+        --lightbox-vignette: color-mix(in srgb, #000 18%, transparent);
+        background:
+          radial-gradient(circle at 50% 50%, var(--lightbox-vignette) 0%, transparent 60%),
+          var(--lightbox-core);
+        overflow: hidden;
+        isolation: isolate;
+        backdrop-filter: blur(12px) saturate(0.9) contrast(0.96);
+        -webkit-backdrop-filter: blur(12px) saturate(0.9) contrast(0.96);
+      }
+
+      :global(html.dark .lightbox-overlay) {
+        --lightbox-ink-1: oklch(0.56 0.12 300);
+        --lightbox-ink-2: oklch(0.5 0.1 220);
+        --lightbox-ink-3: oklch(0.62 0.08 35);
+        --lightbox-core: color-mix(in srgb, #020202 42%, transparent);
+        --lightbox-vignette: color-mix(in srgb, #000 26%, transparent);
+        backdrop-filter: blur(14px) saturate(1) contrast(0.98);
+        -webkit-backdrop-filter: blur(14px) saturate(1) contrast(0.98);
+      }
+
+      :global(.lightbox-overlay > span) {
+        position: absolute;
+        inset: 0;
+        display: block;
+        pointer-events: none;
+      }
+
+      :global(.lightbox-overlay__shade) {
+        background:
+          radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--color-text) 10%, transparent) 0%, transparent 24%),
+          radial-gradient(circle at 50% 50%, color-mix(in srgb, #000 14%, transparent) 0%, transparent 66%);
+        opacity: 0.4;
+      }
+
+      :global(html.dark .lightbox-overlay__shade) {
+        background:
+          radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--color-text) 8%, transparent) 0%, transparent 24%),
+          radial-gradient(circle at 50% 50%, color-mix(in srgb, #000 24%, transparent) 0%, transparent 68%);
+        opacity: 0.52;
+      }
+
+      :global(.lightbox-overlay__shader) {
+        inset: -18%;
+        filter: blur(78px) saturate(1.18);
+        transform: translate3d(0, 0, 0) scale(1.04);
+        will-change: transform, opacity, filter;
+      }
+
+      :global(.lightbox-overlay__shader--a) {
+        background:
+          radial-gradient(42% 38% at 18% 28%, color-mix(in srgb, var(--lightbox-ink-1) 34%, transparent) 0%, transparent 68%),
+          radial-gradient(34% 30% at 74% 20%, color-mix(in srgb, var(--lightbox-ink-2) 28%, transparent) 0%, transparent 72%),
+          radial-gradient(38% 44% at 58% 78%, color-mix(in srgb, var(--lightbox-ink-3) 24%, transparent) 0%, transparent 70%),
+          radial-gradient(30% 34% at 84% 72%, color-mix(in srgb, var(--color-text) 10%, transparent) 0%, transparent 74%);
+        opacity: 0.24;
+        mix-blend-mode: screen;
+        animation: lightboxLiquidDriftA 20s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
+      }
+
+      :global(.lightbox-overlay__shader--b) {
+        background:
+          radial-gradient(36% 34% at 26% 72%, color-mix(in srgb, var(--lightbox-ink-2) 24%, transparent) 0%, transparent 70%),
+          radial-gradient(46% 40% at 68% 46%, color-mix(in srgb, var(--lightbox-ink-1) 18%, transparent) 0%, transparent 68%),
+          radial-gradient(28% 32% at 48% 14%, color-mix(in srgb, var(--lightbox-ink-3) 18%, transparent) 0%, transparent 72%),
+          conic-gradient(from 120deg at 50% 50%, transparent 0deg, color-mix(in srgb, var(--lightbox-ink-1) 14%, transparent) 90deg, transparent 175deg, color-mix(in srgb, var(--lightbox-ink-2) 12%, transparent) 250deg, transparent 360deg);
+        opacity: 0.18;
+        mix-blend-mode: color-dodge;
+        filter: blur(92px) saturate(1.25);
+        animation: lightboxLiquidDriftB 26s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
+      }
+
+      :global(html.dark .lightbox-overlay__shader--a) {
+        opacity: 0.3;
+      }
+
+      :global(html.dark .lightbox-overlay__shader--b) {
+        opacity: 0.22;
+        filter: blur(96px) saturate(1.32);
+      }
+
+      :global(.lightbox-overlay__grain) {
+        inset: -30%;
+        opacity: 0.03;
+        mix-blend-mode: soft-light;
+        background-image:
+          radial-gradient(circle at 20% 20%, rgba(255,255,255,0.9) 0 0.7px, transparent 1px),
+          radial-gradient(circle at 80% 30%, rgba(255,255,255,0.65) 0 0.7px, transparent 1px),
+          radial-gradient(circle at 30% 80%, rgba(255,255,255,0.65) 0 0.7px, transparent 1px),
+          radial-gradient(circle at 70% 70%, rgba(255,255,255,0.5) 0 0.7px, transparent 1px);
+        background-size: 24px 24px, 31px 31px, 27px 27px, 35px 35px;
+        animation: lightboxGrainDrift 16s linear infinite;
+      }
+
+      @keyframes lightboxLiquidDriftA {
+        0% {
+          transform: translate3d(-4%, -3%, 0) scale(1.02) rotate(0deg);
+          opacity: 0.14;
+          filter: blur(68px) saturate(1.08);
+        }
+        25% {
+          transform: translate3d(2%, 1%, 0) scale(1.08) rotate(4deg);
+          opacity: 0.2;
+          filter: blur(76px) saturate(1.14);
+        }
+        50% {
+          transform: translate3d(5%, -2%, 0) scale(1.12) rotate(10deg);
+          opacity: 0.18;
+          filter: blur(82px) saturate(1.18);
+        }
+        75% {
+          transform: translate3d(1%, 4%, 0) scale(1.06) rotate(5deg);
+          opacity: 0.22;
+          filter: blur(74px) saturate(1.12);
+        }
+        100% {
+          transform: translate3d(-3%, 2%, 0) scale(1.1) rotate(-3deg);
+          opacity: 0.16;
+          filter: blur(78px) saturate(1.1);
+        }
+      }
+
+      @keyframes lightboxLiquidDriftB {
+        0% {
+          transform: translate3d(5%, -2%, 0) scale(1.04) rotate(0deg);
+          opacity: 0.1;
+        }
+        30% {
+          transform: translate3d(-2%, 3%, 0) scale(1.1) rotate(-6deg);
+          opacity: 0.14;
+        }
+        60% {
+          transform: translate3d(-5%, -1%, 0) scale(1.06) rotate(-12deg);
+          opacity: 0.11;
+        }
+        100% {
+          transform: translate3d(3%, 4%, 0) scale(1.12) rotate(-4deg);
+          opacity: 0.15;
+        }
+      }
+
+      @keyframes lightboxGrainDrift {
+        0% {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+        50% {
+          transform: translate3d(4%, 3%, 0) scale(1.02);
+        }
+        100% {
+          transform: translate3d(8%, 6%, 0) scale(1);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        :global(.lightbox-overlay__shader),
+        :global(.lightbox-overlay__grain) {
+          animation: none;
         }
       }
     </style>
