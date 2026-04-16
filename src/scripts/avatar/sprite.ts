@@ -128,8 +128,24 @@ export function isSpeechMouthState(value: string | undefined): value is SpeechMo
   return Boolean(value && SPEECH_MOUTH_STATES.includes(value as SpeechMouthState));
 }
 
+function getUseHrefAttribute(use: SVGUseElement): string | null {
+  return use.getAttribute('href') ?? use.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+}
+
+/** Browsers may normalize `href` (absolute vs site-relative); avoid rewriting identical refs every frame. */
+function sameSpriteRef(a: string, b: string): boolean {
+  if (a === b) return true;
+  if (typeof document === 'undefined') return false;
+  try {
+    return new URL(a, document.baseURI).href === new URL(b, document.baseURI).href;
+  } catch {
+    return false;
+  }
+}
+
 export function setUseTarget(use: SVGUseElement, href: string) {
-  if (use.getAttribute('href') === href) return;
+  const current = getUseHrefAttribute(use);
+  if (current && sameSpriteRef(current, href)) return;
   use.setAttribute('href', href);
   use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', href);
 }

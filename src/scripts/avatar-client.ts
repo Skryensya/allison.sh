@@ -1,4 +1,5 @@
 import { avatarHats, avatarOutfits, avatarSpecialConfigs } from '@/data/avatarSprite';
+import { setUseTarget } from './avatar/sprite';
 import { loadVoicesModule } from './avatar/voice-loader';
 import { playMouthSfx, playSpeechPresenceBlip, resumeAvatarSfxContext } from './avatar-speech-sfx';
 
@@ -236,12 +237,6 @@ function isAvatarDirection(value: string | undefined): value is AvatarDirection 
 
 function isSpeechMouthState(value: string | undefined): value is SpeechMouthState {
   return Boolean(value && SPEECH_MOUTH_STATES.includes(value as SpeechMouthState));
-}
-
-function setUseTarget(use: SVGUseElement, href: string) {
-  if (use.getAttribute('href') === href) return;
-  use.setAttribute('href', href);
-  use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', href);
 }
 
 function getSpriteBaseUrl(root: HTMLElement) {

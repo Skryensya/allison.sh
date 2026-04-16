@@ -69,8 +69,9 @@ function getSpeechBubbleLayer(host: HTMLElement): HTMLElement {
     el = document.createElement('div');
     el.id = SPEECH_BUBBLE_LAYER_ID;
     el.setAttribute('aria-hidden', 'true');
+    /* Keep below `#viewport-gradient` (z-40 in Base.astro) and above main sections (e.g. z-30). */
     el.style.cssText =
-      'position:absolute;left:0;top:0;width:0;height:0;margin:0;padding:0;border:0;overflow:visible;pointer-events:none;z-index:45';
+      'position:absolute;left:0;top:0;width:0;height:0;margin:0;padding:0;border:0;overflow:visible;pointer-events:none;z-index:35';
   }
   if (el.parentElement !== host) {
     host.appendChild(el);
