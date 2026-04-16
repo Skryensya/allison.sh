@@ -76,12 +76,12 @@ const publishedTime = year ? `${year}-01-01` : undefined;
     <script is:inline>
       (function () {
         function init() {
-          var figures = document.querySelectorAll('.polaroid-figure');
+          var figures = document.querySelectorAll('[data-figure-root]');
           if (!figures.length) return;
 
           // Assign staggered sides, fade in with delay
           figures.forEach(function (fig, i) {
-            var frame = fig.querySelector('.polaroid-figure__frame');
+            var frame = fig.querySelector('[data-figure-frame]');
             if (frame) frame.style.transitionDelay = (i * 150) + 'ms';
             fig.dataset.side = i % 2 === 0 ? 'right' : 'left';
           });
@@ -95,7 +95,8 @@ const publishedTime = year ? `${year}-01-01` : undefined;
           function getOverlay() {
             if (overlay) return overlay;
             overlay = document.createElement('div');
-            overlay.className = 'polaroid-overlay';
+            overlay.className =
+              'fixed inset-0 z-[250] bg-black/[0.82] opacity-0 pointer-events-none transition-opacity duration-300 ease-linear data-[open]:opacity-100 data-[open]:pointer-events-auto motion-reduce:transition-none';
             document.body.appendChild(overlay);
             overlay.addEventListener('click', closeExpanded);
             return overlay;
@@ -111,7 +112,7 @@ const publishedTime = year ? `${year}-01-01` : undefined;
             // Dark overlay
             var ov = getOverlay();
             requestAnimationFrame(function () {
-              ov.classList.add('is-open');
+              ov.setAttribute('data-open', '');
             });
 
             // Clone the frame and pin it at its current screen position
@@ -131,9 +132,12 @@ const publishedTime = year ? `${year}-01-01` : undefined;
             ].join(';');
             // Add close button
             var closeBtn = document.createElement('button');
-            closeBtn.className = 'polaroid-close';
+            closeBtn.setAttribute('data-lightbox-close', '');
+            closeBtn.className =
+              'absolute -top-[62px] right-0 z-10 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-text/15 bg-bg text-text shadow-[0_4px_14px_color-mix(in_srgb,var(--color-text)_12%,transparent),0_1px_3px_color-mix(in_srgb,var(--color-text)_8%,transparent)] transition-[transform,background-color,border-color,box-shadow,color] duration-100 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform md:-top-12 md:-right-12 md:shadow-[0_3px_12px_color-mix(in_srgb,var(--color-text)_10%,transparent),0_1px_2px_color-mix(in_srgb,var(--color-text)_6%,transparent)] hover:border-text/20 hover:shadow-[0_-6px_16px_color-mix(in_srgb,var(--color-text)_10%,transparent),0_10px_22px_color-mix(in_srgb,var(--color-text)_12%,transparent)] active:scale-90 focus-visible:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-text motion-reduce:transition-none motion-reduce:active:scale-100';
             closeBtn.setAttribute('aria-label', 'Cerrar imagen');
-            closeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+            closeBtn.innerHTML =
+              '<svg class="size-[13px] md:size-3" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
             closeBtn.addEventListener('click', function (e) {
               e.stopPropagation();
               closeExpanded();
@@ -148,8 +152,8 @@ const publishedTime = year ? `${year}-01-01` : undefined;
             frame.style.opacity = '0';
 
             // Target width, capped so height fits in viewport
-            var media = clone.querySelector('.polaroid-figure__media');
-            var caption = clone.querySelector('.polaroid-figure__caption');
+            var media = clone.querySelector('[data-figure-media]');
+            var caption = clone.querySelector('[data-figure-caption]');
             var imageAspect = media.offsetHeight / media.offsetWidth;
             var captionH = caption ? caption.offsetHeight : 0;
             
@@ -198,7 +202,7 @@ const publishedTime = year ? `${year}-01-01` : undefined;
             var ov = overlay;
 
             // Hide close button instantly
-            var closeBtn = clone.querySelector('.polaroid-close');
+            var closeBtn = clone.querySelector('[data-lightbox-close]');
             if (closeBtn) closeBtn.style.display = 'none';
 
             // Crossfade: fade original frame back in as clone fades out
@@ -206,7 +210,7 @@ const publishedTime = year ? `${year}-01-01` : undefined;
             frame.style.transitionDelay = '240ms';
             frame.style.opacity = '';
 
-            ov.classList.remove('is-open');
+            ov.removeAttribute('data-open');
             var origRect = frame.getBoundingClientRect();
             var easeOut = 'cubic-bezier(0.16, 1, 0.3, 1)';
             clone.style.transition = [
@@ -246,7 +250,7 @@ const publishedTime = year ? `${year}-01-01` : undefined;
           }
 
           figures.forEach(function (fig) {
-            var frame = fig.querySelector('.polaroid-figure__frame');
+            var frame = fig.querySelector('[data-figure-frame]');
             if (!frame) return;
             frame.setAttribute('tabindex', '0');
             frame.setAttribute('role', 'button');

@@ -1,0 +1,32 @@
+@theme {
+  /* Floor: smallest scale step is 14px; `text-sm` stays one step up. */
+  --text-xs: 0.875rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.1875rem;
+  --text-4xl: 2.75rem;
+  --text-5xl: 3.4375rem;
+  --text-6xl: 4.25rem;
+  --text-7xl: 5.5rem;
+
+  --color-bg: #F4F1EB;
+  --color-text: #1F1C18;
+  --color-muted: #4A4742;
+  --color-subtle: #6B6760;
+  --color-border: #C8C3BA;
+  /* Avatar theme colors (used by Avatar component) */
+  --theme-colorful: #F4F1EB;
+  --theme-contrasty: #3D3832;
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-bg: #1a1917;
+  --color-text: #f4f1eb;
+  --color-muted: #9a958e;
+  --color-subtle: #6b6760;
+  --color-border: #4a453e;
+}

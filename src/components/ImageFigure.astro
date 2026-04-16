@@ -1,6 +1,5 @@
 ---
-import type { ImageMetadata } from 'astro:assets';
-import PolaroidFigure from './PolaroidFigure.astro';
+import { getImage, type ImageMetadata } from 'astro:assets';
 
 interface Props {
   src: ImageMetadata;
@@ -10,6 +9,91 @@ interface Props {
 }
 
 const { src, alt, caption, priority = false } = Astro.props;
+const captionText = caption || alt;
+const asset = src;
+
+const image = await getImage({
+  src: asset,
+  widths: [480, 900, 1400],
+  format: 'webp',
+});
+
+const placeholder = await getImage({
+  src: asset,
+  widths: [12],
+  format: 'webp',
+});
+
+const mediaStyle = `--blur-placeholder: url(${placeholder.src})`;
+
+const figureClass = [
+  'group/lightbox-fig',
+  'my-6',
+  'xl:relative xl:m-0 xl:h-0 xl:overflow-visible',
+].join(' ');
+
+const frameClass = [
+  'relative cursor-pointer bg-transparent p-0 shadow-none outline-none',
+  'transition-[opacity,transform] duration-[600ms] ease-out',
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-text focus-visible:outline-offset-[3px]',
+  'xl:absolute xl:top-0 xl:w-[clamp(180px,17vw,260px)]',
+  'xl:translate-y-2.5 xl:opacity-0',
+  'xl:transition-[opacity,transform] xl:duration-[600ms] xl:ease-[cubic-bezier(0.16,1,0.3,1)]',
+  'xl:group-data-[side=right]/lightbox-fig:left-[calc(100%+2rem)]',
+  'xl:group-data-[side=left]/lightbox-fig:right-[calc(100%+2rem)]',
+  'xl:group-data-[side=right]/lightbox-fig:opacity-100',
+  'xl:group-data-[side=left]/lightbox-fig:opacity-100',
+  'xl:group-data-[side=right]/lightbox-fig:translate-y-0',
+  'xl:group-data-[side=left]/lightbox-fig:translate-y-0',
+  'is-flying:overflow-visible is-flying:bg-transparent is-flying:p-0 is-flying:shadow-none',
+  'is-flying:[&_[data-figure-media]]:rounded-[3px]',
+  'is-flying:[&_[data-figure-media]]:shadow-[0_20px_80px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)]',
+  'is-flying:[&_[data-figure-caption]]:static is-flying:[&_[data-figure-caption]]:h-auto',
+  'is-flying:[&_[data-figure-caption]]:px-0.5 is-flying:[&_[data-figure-caption]]:pt-2.5',
+  'is-flying:[&_[data-figure-caption]]:font-medium is-flying:[&_[data-figure-caption]]:text-white',
+].join(' ');
+
+const mediaClass = [
+  'group/media relative isolate overflow-hidden rounded-[1px]',
+  "before:pointer-events-none before:absolute before:inset-0 before:[content:'']",
+  'before:bg-cover before:bg-center before:scale-[1.08] before:blur-[16px]',
+  'before:opacity-[0.92] before:transition-opacity before:duration-[220ms] before:ease-[cubic-bezier(0.16,1,0.3,1)]',
+  'before:[background-image:var(--blur-placeholder)]',
+  'data-[loaded=true]:before:opacity-0',
+].join(' ');
+
+const imgClass = [
+  'relative z-10 block h-auto w-full opacity-0',
+  'outline outline-1 -outline-offset-1 outline-text/[0.06]',
+  'transition-opacity duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
+  'group-data-[loaded=true]/media:opacity-100',
+].join(' ');
+
+const captionClass = [
+  'static h-auto pt-[7px] font-mono text-sm leading-snug text-subtle',
+  'xl:group-data-[side=right]/lightbox-fig:text-text',
+  'xl:group-data-[side=left]/lightbox-fig:text-text',
+].join(' ');
 ---
 
-<PolaroidFigure src={src} alt={alt} caption={caption} priority={priority} />
+<figure data-figure-root class={figureClass}>
+  <div data-figure-frame class={frameClass}>
+    <div data-figure-media data-blur-up class={mediaClass} style={mediaStyle}>
+      <img
+        class={imgClass}
+        src={image.src}
+        srcset={image.srcSet.attribute}
+        sizes="(max-width: 768px) 92vw, (max-width: 1200px) 760px, 900px"
+        alt={alt}
+        loading={priority ? 'eager' : 'lazy'}
+        fetchpriority={priority ? 'high' : 'auto'}
+        decoding="async"
+        width={image.attributes.width}
+        height={image.attributes.height}
+        onload="this.parentElement?.setAttribute('data-loaded', 'true')"
+      />
+    </div>
+
+    <figcaption data-figure-caption class={captionClass} aria-hidden="true">{captionText}</figcaption>
+  </div>
+</figure>

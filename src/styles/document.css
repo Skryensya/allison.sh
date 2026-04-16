@@ -1,0 +1,74 @@
+/* Accessibility: screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Prevent horizontal overflow */
+html,
+body {
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+/* Text wrapping quality */
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--color-text) 16%, var(--color-bg));
+  color: var(--color-text);
+}
+
+.dark ::selection {
+  background-color: color-mix(in srgb, var(--color-text) 22%, transparent);
+  color: var(--color-text);
+}
+
+body {
+  background-color: var(--color-bg);
+  position: relative;
+}
+
+#viewport-gradient {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-bg) 97%, transparent) 0%,
+    color-mix(in srgb, var(--color-bg) 95%, transparent) 3%,
+    color-mix(in srgb, var(--color-bg) 72%, transparent) 7%,
+    color-mix(in srgb, var(--color-bg) 28%, transparent) 13%,
+    color-mix(in srgb, var(--color-bg) 8%, transparent) 21%,
+    color-mix(in srgb, var(--color-bg) 2%, transparent) 30%,
+    transparent 42%,
+    transparent 100%
+  );
+}
+
+@media (min-width: 48rem) {
+  #viewport-gradient {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-bg) 88%, transparent) 0%,
+      color-mix(in srgb, var(--color-bg) 80%, transparent) 3%,
+      color-mix(in srgb, var(--color-bg) 54%, transparent) 7%,
+      color-mix(in srgb, var(--color-bg) 24%, transparent) 12%,
+      color-mix(in srgb, var(--color-bg) 9%, transparent) 18%,
+      color-mix(in srgb, var(--color-bg) 3%, transparent) 25%,
+      color-mix(in srgb, var(--color-bg) 1%, transparent) 32%,
+      transparent 41%,
+      transparent 100%
+    );
+  }
+}
