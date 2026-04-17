@@ -12,7 +12,7 @@ RUN BUILD_PUBLIC_SITE_URL="$PUBLIC_SITE_URL" \
   && set -a \
   && if [ -f .env ]; then . ./.env; fi \
   && set +a \
-  && export PUBLIC_SITE_URL="${BUILD_PUBLIC_SITE_URL:-${PUBLIC_SITE_URL:-https://dev.allison.sh}}" \
+  && export PUBLIC_SITE_URL="${BUILD_PUBLIC_SITE_URL:-${PUBLIC_SITE_URL:-https://allison.sh}}" \
   && echo "Building with PUBLIC_SITE_URL=${PUBLIC_SITE_URL}" \
   && npm run build
 

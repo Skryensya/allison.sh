@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-https://dev.allison.sh}
+        PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-https://allison.sh}
     ports:
       - "3000:3000"
     restart: unless-stopped
