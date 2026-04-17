@@ -24,6 +24,24 @@ function setupProjectFolderStacks() {
     observers: [],
   });
 
+  function resetDomState() {
+    const stacks = document.querySelectorAll('[data-project-folder-stack]');
+    stacks.forEach((stack) => {
+      if (!(stack instanceof HTMLElement)) return;
+      delete stack.dataset.stackInit;
+      delete stack.dataset.inviewDone;
+      stack.classList.remove('is-pre', 'is-relaxing', 'is-relaxed');
+
+      const items = stack.querySelectorAll('[data-project-folder-card]');
+      items.forEach((item) => {
+        if (!(item instanceof HTMLElement)) return;
+        item.dataset.active = 'false';
+        item.dataset.previewOpen = 'false';
+        item.dataset.previewState = 'closed';
+      });
+    });
+  }
+
   function cleanup() {
     runtime.controllers.forEach((c) => {
       try {
@@ -42,12 +60,18 @@ function setupProjectFolderStacks() {
       }
     });
     runtime.observers.length = 0;
+
+    resetDomState();
   }
 
   if (!window.__projectFolderStackCleanupBound) {
     window.__projectFolderStackCleanupBound = true;
     window.addEventListener('astro:before-preparation', cleanup);
     window.addEventListener('pagehide', cleanup);
+    window.addEventListener('pageshow', () => {
+      resetDomState();
+      init();
+    });
   }
 
   function init() {
