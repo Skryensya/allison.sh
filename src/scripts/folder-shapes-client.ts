@@ -328,7 +328,7 @@ function setupFolderShapes() {
   }
 
   function scheduleAll() {
-    runtime.roots.forEach(schedule);
+    runtime.roots.forEach((root) => schedule(root));
   }
 
   function ensureObserver() {

@@ -1,5 +1,6 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'zod';
 
 const proyectos = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/proyectos' }),
@@ -9,6 +10,7 @@ const proyectos = defineCollection({
     cover: image(),
     previewImages: z.array(image()).min(1).max(3),
     year: z.string().min(1),
+    order: z.number().optional(),
     tech: z.array(z.string()).optional(),
   }),
 });

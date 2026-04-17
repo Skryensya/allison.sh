@@ -6,7 +6,46 @@ import { COLORS, OG_HEIGHT, OG_WIDTH, TWITTER_HEIGHT, TWITTER_WIDTH, type Social
 import { createFolderGeometry, createFolderPath } from './folder';
 import { escapeHtml, truncateText } from './utils';
 
-const VARIANT_LAYOUT = {
+type VariantLayout = {
+  width: number;
+  height: number;
+  titleMax: number;
+  descriptionMax: number;
+  frameTranslateY: number;
+  folderWidthBoost: number;
+  folderHeightBoost: number;
+  urlTop: number;
+  urlRight: number;
+  urlSize: number;
+  contentLeft: number;
+  contentRight: number;
+  contentTop: number;
+  contentBottom: number;
+  avatarSize: number;
+  gap: number;
+  contentMaxWidth: number;
+  contentPadTop: number;
+  avatarOffsetX: number;
+  avatarOffsetY: number;
+  textOffsetY: number;
+  eyebrowSize: number;
+  eyebrowMarginBottom: number;
+  titleSize: number;
+  titleLineHeight: number;
+  titleMarginBottom: number;
+  descriptionSize: number;
+  descriptionLineHeight: number;
+  ctaMarginTop: number;
+  ctaFontSize: number;
+  ctaPaddingX: number;
+  ctaPaddingY: number;
+  frameLeft?: number;
+  frameBottom?: number;
+  folderWidth?: number;
+  folderHeight?: number;
+};
+
+const VARIANT_LAYOUT: Record<SocialVariant, VariantLayout> = {
   og: {
     width: OG_WIDTH,
     height: OG_HEIGHT,

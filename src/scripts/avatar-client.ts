@@ -82,13 +82,19 @@ function shuffleInPlace<T>(items: T[]): T[] {
   return items;
 }
 
-/** Una visita = una cola: 2 saludos + 0–2 especiales del día + hasta 6 generales (sin duplicar texto con especiales). */
-function buildVisitPhraseQueue(now: Date = new Date()): AvatarPhrase[] {
+/** Intro de una sola vez: saludos + especiales del día. */
+function buildIntroPhraseQueue(now: Date = new Date()): AvatarPhrase[] {
+  const specials = getSpecialPhrasesForLocalDate(now);
+  return [...GREETING_PHRASES, ...specials];
+}
+
+/** Loop: solo frases generales, excluyendo duplicados con especiales del día. */
+function buildLoopPhraseQueue(now: Date = new Date()): AvatarPhrase[] {
   const specials = getSpecialPhrasesForLocalDate(now);
   const specialTexts = new Set(specials.map((p) => p.text));
   const generals = GENERAL_PHRASES.filter((p) => !specialTexts.has(p.text));
   shuffleInPlace(generals);
-  return [...GREETING_PHRASES, ...specials, ...generals];
+  return generals;
 }
 
 type AvatarDirection =
@@ -382,23 +388,60 @@ function initAvatar(root: AvatarRoot) {
 
   const pickRandom = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
 
-  let visitPhraseQueue: AvatarPhrase[] | null = null;
-  let visitPhraseIndex = 0;
+  let introPhraseQueue: AvatarPhrase[] | null = null;
+  let introPhraseIndex = 0;
+  let loopPhraseQueue: AvatarPhrase[] | null = null;
+  let loopPhraseIndex = 0;
+  let lastPhraseCameFromLoop = false;
+  let justFinishedLoopCycle = false;
 
-  const resetVisitPhrases = () => {
-    visitPhraseQueue = buildVisitPhraseQueue();
-    visitPhraseIndex = 0;
+  const resetAvatarPhrases = () => {
+    introPhraseQueue = buildIntroPhraseQueue();
+    introPhraseIndex = 0;
+    loopPhraseQueue = buildLoopPhraseQueue();
+    loopPhraseIndex = 0;
+    lastPhraseCameFromLoop = false;
+    justFinishedLoopCycle = false;
   };
 
-  const peekNextVisitPhrase = (): AvatarPhrase | null => {
-    if (!visitPhraseQueue) resetVisitPhrases();
-    const queue = visitPhraseQueue!;
-    if (visitPhraseIndex >= queue.length) return null;
-    return queue[visitPhraseIndex]!;
+  const ensureLoopPhraseQueue = () => {
+    if (!loopPhraseQueue || loopPhraseQueue.length === 0) {
+      loopPhraseQueue = buildLoopPhraseQueue();
+      loopPhraseIndex = 0;
+    }
   };
 
-  const advanceVisitPhraseQueue = () => {
-    visitPhraseIndex += 1;
+  const peekNextAvatarPhrase = (): AvatarPhrase | null => {
+    if (!introPhraseQueue || !loopPhraseQueue) resetAvatarPhrases();
+
+    if (introPhraseQueue && introPhraseIndex < introPhraseQueue.length) {
+      lastPhraseCameFromLoop = false;
+      justFinishedLoopCycle = false;
+      return introPhraseQueue[introPhraseIndex] ?? null;
+    }
+
+    ensureLoopPhraseQueue();
+    if (!loopPhraseQueue || loopPhraseQueue.length === 0) return null;
+
+    lastPhraseCameFromLoop = true;
+    justFinishedLoopCycle = loopPhraseIndex === loopPhraseQueue.length - 1;
+    return loopPhraseQueue[loopPhraseIndex] ?? null;
+  };
+
+  const advanceAvatarPhraseQueue = () => {
+    if (!lastPhraseCameFromLoop) {
+      introPhraseIndex += 1;
+      return;
+    }
+
+    ensureLoopPhraseQueue();
+    if (!loopPhraseQueue || loopPhraseQueue.length === 0) return;
+
+    loopPhraseIndex += 1;
+    if (loopPhraseIndex >= loopPhraseQueue.length) {
+      loopPhraseQueue = buildLoopPhraseQueue();
+      loopPhraseIndex = 0;
+    }
   };
 
   /** Tras ocultar el bubble (o cerrar con skip), margen antes del siguiente clic — alineado al ciclo del bubble. */
@@ -411,7 +454,7 @@ function initAvatar(root: AvatarRoot) {
   let nextAvatarSpeakAllowedAt = 0;
   let smileThenWinkTimer = 0;
 
-  resetVisitPhrases();
+  resetAvatarPhrases();
 
   const VOICE_TAIL_AFTER_TYPING_MS = 250;
 
@@ -739,14 +782,14 @@ function initAvatar(root: AvatarRoot) {
       if (!currentBubble.skipReadingPause()) return;
     }
 
-    const phrase = peekNextVisitPhrase();
+    const phrase = peekNextAvatarPhrase();
     if (!phrase) {
       if (root.__avatarSpeechBubble?.isActive()) return;
       nextAvatarSpeakAllowedAt = now + MIN_MS_BETWEEN_PHRASES;
       return;
     }
 
-    advanceVisitPhraseQueue();
+    advanceAvatarPhraseQueue();
     const { VOICES_BY_CATEGORY } = await loadVoicesModule();
     const voiceOptions = VOICES_BY_CATEGORY[phrase.category];
     const voiceUrl = voiceOptions.length ? pickRandom(voiceOptions) : null;
@@ -784,8 +827,7 @@ function initAvatar(root: AvatarRoot) {
         playMouthSfx(shape);
       },
       onAfterHide: () => {
-        const queueLen = visitPhraseQueue?.length ?? 0;
-        if (visitPhraseIndex >= queueLen) {
+        if (lastPhraseCameFromLoop && justFinishedLoopCycle) {
           celebrateAvatarClick();
         }
         nextAvatarSpeakAllowedAt = performance.now() + MIN_MS_BETWEEN_PHRASES;

@@ -22,12 +22,12 @@ export default defineConfig({
     },
     build: {
       minify: 'terser',
-      terserOptions: {
+      terserOptions: /** @type {import('terser').MinifyOptions} */ ({
         compress: {
           drop_console: true,
           drop_debugger: true,
         },
-      },
+      }),
     },
   },
   markdown: {

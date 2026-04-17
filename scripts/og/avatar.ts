@@ -5,14 +5,13 @@ import { COLORS, ROOT_DIR } from './config';
 
 const AVATAR_IMAGE_PATH = path.join(ROOT_DIR, 'src', 'assets', 'avatar', 'base-og-site-colors.jpeg');
 const AVATAR_LIGHT = '#F4F1EB';
-const AVATAR_DARK = '#3D3832';
 
-let avatarDataUriPromise: Promise<string> | undefined;
+let avatarDataUriPromise: Promise<string> | null = null;
 
 async function loadAvatarDataUri(): Promise<string> {
   if (!avatarDataUriPromise) {
     avatarDataUriPromise = readFile(AVATAR_IMAGE_PATH).then(
-      (buffer) => `data:image/jpeg;base64,${buffer.toString('base64')}`,
+      (buffer: Buffer) => `data:image/jpeg;base64,${buffer.toString('base64')}`,
     );
   }
 

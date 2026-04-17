@@ -66,7 +66,12 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
 ---
 
 <!doctype html>
-<html lang="es" class="scroll-smooth">
+<html
+  lang="es"
+  class="scroll-smooth"
+  data-base-client-url={clientModules['base-client']}
+  data-folder-shapes-client-url={clientModules['folder-shapes-client']}
+>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -112,7 +117,7 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     <meta name="theme-color" content="#f4f1eb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)" />
     {schemas.map((schema) => (
-      <script type="application/ld+json" set:html={JSON.stringify(schema)}></script>
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)}></script>
     ))}
     <!-- Prevent FOUC: apply theme before render -->
     <script is:inline>
@@ -228,19 +233,23 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
   }
 </style>
 
-<script is:inline define:vars={{ baseClientUrl: clientModules['base-client'], folderShapesClientUrl: clientModules['folder-shapes-client'] }}>
+<script is:inline>
+
+  const injectedBaseClientUrl = document.documentElement.dataset.baseClientUrl;
+  const injectedFolderShapesClientUrl = document.documentElement.dataset.folderShapesClientUrl;
 
   let baseClientPromise;
   let folderShapesClientPromise;
 
   const loadBaseClient = () => {
-    baseClientPromise ??= import(baseClientUrl);
+    if (!injectedBaseClientUrl) return baseClientPromise;
+    baseClientPromise ??= import(injectedBaseClientUrl);
     return baseClientPromise;
   };
 
   const loadFolderShapesClient = () => {
-    if (!document.querySelector('[data-folder]')) return folderShapesClientPromise;
-    folderShapesClientPromise ??= import(folderShapesClientUrl);
+    if (!document.querySelector('[data-folder]') || !injectedFolderShapesClientUrl) return folderShapesClientPromise;
+    folderShapesClientPromise ??= import(injectedFolderShapesClientUrl);
     return folderShapesClientPromise;
   };
 

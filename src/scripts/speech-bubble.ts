@@ -36,6 +36,11 @@ function findTightContentWidthForBudget(
  * Speech Bubble — simplified letter-by-letter bubble with avatar mouth sync.
  */
 
+type MediaQueryListLegacy = MediaQueryList & {
+  addListener?: (listener: (this: MediaQueryList, ev: MediaQueryListEvent) => unknown) => void;
+  removeListener?: (listener: (this: MediaQueryList, ev: MediaQueryListEvent) => unknown) => void;
+};
+
 export interface SpeechBubbleOptions {
   charSpeed?: number;
   displayDuration?: number;
@@ -188,7 +193,7 @@ export class SpeechBubble {
   private hideTransitionTimer: number | null = null;
   private avatarRoot: HTMLElement | null = null;
   private prefersReducedMotion: boolean;
-  private reducedMotionQuery: MediaQueryList;
+  private reducedMotionQuery: MediaQueryListLegacy;
 
   private currentAnchor: HTMLElement | null = null;
   private viewportListenersAttached = false;
@@ -228,7 +233,7 @@ export class SpeechBubble {
 
   constructor(options: SpeechBubbleOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options } as SpeechBubbleOptions & typeof DEFAULT_OPTIONS;
-    this.reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    this.reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)') as MediaQueryListLegacy;
     this.prefersReducedMotion = this.reducedMotionQuery.matches;
 
     this.container = document.createElement('div');
@@ -254,8 +259,11 @@ export class SpeechBubble {
 
     if (this.reducedMotionQuery.addEventListener) {
       this.reducedMotionQuery.addEventListener('change', this.onReducedMotionChange);
-    } else if (this.reducedMotionQuery.addListener) {
-      this.reducedMotionQuery.addListener(this.onReducedMotionChange);
+    } else {
+      const legacyQuery = this.reducedMotionQuery as {
+        addListener?: (listener: (this: MediaQueryList, ev: MediaQueryListEvent) => unknown) => void;
+      };
+      legacyQuery.addListener?.(this.onReducedMotionChange);
     }
   }
 
@@ -382,8 +390,11 @@ export class SpeechBubble {
 
     if (this.reducedMotionQuery.removeEventListener) {
       this.reducedMotionQuery.removeEventListener('change', this.onReducedMotionChange);
-    } else if (this.reducedMotionQuery.removeListener) {
-      this.reducedMotionQuery.removeListener(this.onReducedMotionChange);
+    } else {
+      const legacyQuery = this.reducedMotionQuery as {
+        removeListener?: (listener: (this: MediaQueryList, ev: MediaQueryListEvent) => unknown) => void;
+      };
+      legacyQuery.removeListener?.(this.onReducedMotionChange);
     }
 
     this.container.remove();
@@ -504,17 +515,24 @@ export class SpeechBubble {
     const layout = layoutWithLines(prepared, wrapContentWidth, config.lineHeight);
     const lineTexts = (layout.lines.length ? layout.lines : [{ text: '' }]).map((line) => line.text);
     const lineElements = renderLines(lineTexts);
+    const isSingleLine = lineTexts.length <= 1;
+
+    this.inner.dataset.compact = isSingleLine ? 'true' : 'false';
+
+    const compactPaddingX = isSingleLine ? (config.isMobile ? 12 : 14) : config.paddingX;
+    const compactPaddingY = isSingleLine ? (config.isMobile ? 7 : 8) : config.paddingY;
 
     const maxLineW = layout.lines.reduce((m, line) => Math.max(m, line.width), 0);
     const width = Math.ceil(
-      Math.min(maxOuterWidth, maxLineW + config.paddingX * 2 + outerSkewFudgePx),
+      Math.min(maxOuterWidth, maxLineW + compactPaddingX * 2 + outerSkewFudgePx),
     );
     this.inner.style.width = `${width}px`;
 
-    /* Stable pill: at least the height of two text lines (centered via flex when shorter). */
     const measuredInner = Math.ceil(this.inner.scrollHeight + 2);
-    const twoLineInnerMin = Math.ceil(config.paddingY * 2 + config.lineHeight * 2) + 2;
-    const height = Math.max(measuredInner, twoLineInnerMin);
+    const minInnerHeight = isSingleLine
+      ? Math.ceil(compactPaddingY * 2 + config.lineHeight) + 2
+      : Math.ceil(config.paddingY * 2 + config.lineHeight * 2) + 2;
+    const height = Math.max(measuredInner, minInnerHeight);
     this.inner.style.height = '';
     this.inner.style.minHeight = `${height}px`;
 
@@ -745,6 +763,10 @@ export class SpeechBubble {
       z-index: 0;
     }
 
+    .avatar-speech-bubble__inner[data-compact='true'] {
+      padding: 8px 14px;
+    }
+
     /* Replicate the navbar hover shape without skewing the text */
     .avatar-speech-bubble__inner::before {
       content: '';
@@ -815,6 +837,10 @@ export class SpeechBubble {
         max-width: min(228px, calc(100vw - 24px));
         padding: 9px 14px;
         font-size: 0.875rem;
+      }
+
+      .avatar-speech-bubble__inner[data-compact='true'] {
+        padding: 7px 12px;
       }
     }
 
