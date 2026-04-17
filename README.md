@@ -1,51 +1,61 @@
 # allison.sh
 
-Un espacio digital personal donde la claridad es el estándar, no un accesorio. Construyo interfaces donde el código se lee como poesía y el diseño se siente como una herramienta de precisión.
+Portfolio personal construido con Astro y Tailwind CSS v4.
 
----
-
-## Ethos: "Functional Silence"
-
-### I. Texto como Arquitectura
-
-Si una idea no puede sostenerse solo con palabras y estructura, no merece ser adornada. En este sitio, la tipografía no es el vehículo del mensaje; es el mensaje mismo. El peso de una fuente y el aire entre líneas comunican más autoridad que cualquier gradiente.
-
-### II. El Acento es una Recompensa
-
-El color es un recurso escaso y valioso. Se usa para guiar, no para distraer. Un acento de color es la señal de que algo es interactivo, vital o urgente. Si todo brilla, nada importa.
-
-### III. El Lujo de la Brevedad
-
-Tener poco que mostrar es una oportunidad para la curaduría extrema. No colecciono repositorios; archivo soluciones. Cada proyecto expuesto es un caso de estudio en rigor técnico y accesibilidad.
-
-### IV. Brutalismo Humano
-
-Respeto la máquina (bordes de 1px, fuentes mono, grillas) y sirvo al humano (legibilidad perfecta, carga instantánea, navegación intuitiva). Mi estética es el resultado de la eficiencia, no del capricho.
-
----
-
-## Mantra de Diseño
-
-> "Si no añade claridad, resta valor."
-
----
+El sitio está pensado como una pieza editorial más que como un portfolio tradicional: tipografía dominante, contenido breve, ritmo vertical cuidado y una interfaz sobria donde cada elemento tiene una razón de existir.
 
 ## Stack
 
-- **Framework:** Astro v6 (latest)
-- **Enfoque:** Minimalismo funcional, rendimiento primero
-- **Sin dependencias externas de runtime**
+- **Framework:** Astro 6
+- **Styling:** Tailwind CSS v4
+- **Contenido:** MDX
+- **Fuentes:** Inter, Spline Sans Mono
+- **Generación de OG images:** Satori + Resvg
+- **Deploy:** sitio estático (`dist/`)
 
-## Desarrollo
+## Scripts
 
 ```bash
 npm install
 npm run dev
-```
-
-## Producción
-
-```bash
 npm run build
 npm run preview
 ```
+
+### Scripts disponibles
+
+- `npm run dev` — servidor de desarrollo
+- `npm run build` — genera OG images y build de producción
+- `npm run preview` — previsualiza el build local
+- `npm run start` — sirve `dist/` en el puerto 3000
+- `npm run generate:og` — regenera imágenes Open Graph
+
+## Estructura
+
+```txt
+src/
+├── components/        # Componentes Astro
+├── content/
+│   └── proyectos/     # Proyectos en MDX
+├── layouts/           # Layouts base y de proyectos
+├── pages/             # Rutas
+├── scripts/           # Scripts cliente
+├── styles/            # Estilos globales
+└── assets/            # Imágenes y recursos visuales
+```
+
+## Notas
+
+- Los proyectos viven en `src/content/proyectos/*.mdx`
+- El sitio genera imágenes OG durante el build
+- Parte de la interacción visual se carga como módulos cliente generados en `scripts/build-client-modules.mjs`
+
+## Filosofía
+
+La idea no es mostrar mucho, sino mostrar con criterio.
+
+- menos ruido
+- más jerarquía
+- mejor texto
+- interacciones sutiles
+- decisiones visuales deliberadas
