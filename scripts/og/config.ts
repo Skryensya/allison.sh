@@ -27,6 +27,15 @@ export const COLORS = {
 
 export type SocialVariant = 'og' | 'twitter';
 
+export const PROJECT_OG_ACCENTS: Record<string, { base: string }> = {
+  index: { base: '#1C6C66' },
+  'agenda-uc': { base: '#1A4F8C' },
+  barrancas: { base: '#9D4310' },
+  'kit-digital-uc': { base: '#4F3685' },
+  nike: { base: '#1C6C66' },
+  'portal-uc': { base: '#536907' },
+};
+
 export interface PageEntry {
   title: string;
   description: string;

@@ -74,6 +74,38 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+function hexToRgb(hex: string): [number, number, number] {
+  const normalized = hex.replace('#', '').trim();
+  const value = normalized.length === 3
+    ? normalized.split('').map((char) => char + char).join('')
+    : normalized;
+
+  return [
+    Number.parseInt(value.slice(0, 2), 16),
+    Number.parseInt(value.slice(2, 4), 16),
+    Number.parseInt(value.slice(4, 6), 16),
+  ];
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return `#${[r, g, b]
+    .map((channel) => clamp(Math.round(channel), 0, 255).toString(16).padStart(2, '0'))
+    .join('')}`;
+}
+
+export function mixHex(colorA: string, colorB: string, ratioA = 0.5): string {
+  const [r1, g1, b1] = hexToRgb(colorA);
+  const [r2, g2, b2] = hexToRgb(colorB);
+  const ratio = clamp(ratioA, 0, 1);
+  const inverse = 1 - ratio;
+
+  return rgbToHex(
+    r1 * ratio + r2 * inverse,
+    g1 * ratio + g2 * inverse,
+    b1 * ratio + b2 * inverse,
+  );
+}
+
 export function estimateTitleWidth(title: string, fontSize: number): number {
   const normalized = normalizeText(title);
   const averageGlyphWidth = fontSize * 0.56;

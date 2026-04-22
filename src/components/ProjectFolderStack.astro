@@ -150,12 +150,12 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     background: linear-gradient(
       to bottom,
       transparent 0%,
-      color-mix(in srgb, var(--color-bg) 3%, transparent) 34%,
-      color-mix(in srgb, var(--color-bg) 14%, transparent) 48%,
-      color-mix(in srgb, var(--color-bg) 34%, transparent) 60%,
-      color-mix(in srgb, var(--color-bg) 68%, transparent) 72%,
-      color-mix(in srgb, var(--color-bg) 92%, transparent) 84%,
-      var(--color-bg) 92% 92%,
+      color-mix(in srgb, var(--color-bg) 6%, transparent) 28%,
+      color-mix(in srgb, var(--color-bg) 22%, transparent) 42%,
+      color-mix(in srgb, var(--color-bg) 48%, transparent) 56%,
+      color-mix(in srgb, var(--color-bg) 78%, transparent) 68%,
+      color-mix(in srgb, var(--color-bg) 96%, transparent) 80%,
+      var(--color-bg) 88% 88%,
       var(--color-bg) 100%
     );
     opacity: 0;
@@ -367,8 +367,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       --folder-fill-top: color-mix(in srgb, var(--folder-accent, var(--flexoki-green-400, var(--color-link))) 22%, var(--color-bg) 78%);
       --folder-fill-bottom: color-mix(in srgb, var(--folder-accent, var(--flexoki-green-400, var(--color-link))) 12%, var(--color-bg) 88%);
       --folder-shadow-filter:
-        drop-shadow(0 -8px 14px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 1.4%, transparent))
-        drop-shadow(0 -2px 4px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.55%, transparent));
+        drop-shadow(0 -14px 26px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 3.8%, transparent))
+        drop-shadow(0 -5px 10px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 1.6%, transparent));
     }
 
     .project-folder-card:hover .project-folder-card__gradient,
@@ -414,6 +414,22 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     .project-folder-card[data-active='true'] [data-folder] {
       --folder-fill-top: color-mix(in srgb, var(--folder-accent, var(--flexoki-green-400, var(--color-link))) 22%, var(--color-bg) 78%) !important;
       --folder-fill-bottom: color-mix(in srgb, var(--folder-accent, var(--flexoki-green-400, var(--color-link))) 12%, var(--color-bg) 88%) !important;
+    }
+
+    html.dark .project-folder-card__link:hover [data-folder],
+    html.dark .project-folder-card:focus-within [data-folder],
+    html.dark .project-folder-card[data-preview-open='true'] [data-folder],
+    html.dark .project-folder-card[data-active='true'] [data-folder] {
+      --folder-fill-top: color-mix(in srgb, var(--folder-accent, var(--color-link)) 32%, var(--color-bg) 68%);
+      --folder-fill-bottom: color-mix(in srgb, var(--folder-accent, var(--color-link)) 18%, var(--color-bg) 82%);
+      --folder-shadow-filter:
+        drop-shadow(0 -18px 34px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 7.5%, transparent))
+        drop-shadow(0 -6px 12px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 3%, transparent));
+    }
+
+    html.dark .project-folder-card[data-active='true'] [data-folder] {
+      --folder-fill-top: color-mix(in srgb, var(--folder-accent, var(--color-link)) 32%, var(--color-bg) 68%) !important;
+      --folder-fill-bottom: color-mix(in srgb, var(--folder-accent, var(--color-link)) 18%, var(--color-bg) 82%) !important;
     }
 
     .project-folder-card__previews {
