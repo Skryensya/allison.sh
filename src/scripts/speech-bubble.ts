@@ -675,8 +675,8 @@ export class SpeechBubble {
       display: none;
 
       /* Share colors between inner + tail */
-      --bubble-bg: var(--color-text, #1F1C18);
-      --bubble-fg: var(--color-bg, #F4F1EB);
+      --bubble-bg: var(--color-text);
+      --bubble-fg: var(--color-bg);
 
       /* Shape tokens (match navbar hover pill) */
       --bubble-radius: 999px;
@@ -828,8 +828,8 @@ export class SpeechBubble {
 
     /* Dark mode (set explicit fallbacks) */
     html.dark .avatar-speech-bubble {
-      --bubble-bg: var(--color-text, #E8E4DD);
-      --bubble-fg: var(--color-bg, #0F0F0E);
+      --bubble-bg: var(--color-text);
+      --bubble-fg: var(--color-bg);
     }
 
     @media (max-width: 40rem) {

@@ -28,18 +28,47 @@ p {
 }
 
 ::selection {
-  background-color: color-mix(in srgb, var(--color-text) 16%, var(--color-bg));
+  background-color: var(--color-selection);
   color: var(--color-text);
 }
 
 .dark ::selection {
-  background-color: color-mix(in srgb, var(--color-text) 22%, transparent);
+  background-color: var(--color-selection);
   color: var(--color-text);
 }
 
 body {
   background-color: var(--color-bg);
   position: relative;
+}
+
+img,
+video {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-text) 7%, transparent);
+}
+
+.editorial-link,
+a.editorial-link {
+  color: var(--color-link);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-link) 30%, transparent);
+  text-underline-offset: 0.22em;
+  transition:
+    color 150ms ease,
+    text-decoration-color 150ms ease;
+}
+
+.editorial-link:hover,
+a.editorial-link:hover {
+  color: var(--color-link-hover);
+  text-decoration-color: color-mix(in srgb, var(--color-link-hover) 42%, transparent);
+}
+
+.footer-contact-link {
+  display: inline-block;
+  color: var(--color-text);
+  text-decoration: none;
+  text-wrap: pretty;
 }
 
 #viewport-gradient {

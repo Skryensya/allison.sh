@@ -333,13 +333,13 @@ const publishedTime = year ? `${year}-01-01` : undefined;
 
       .project-article :global(h2) {
         font-family: var(--font-sans);
-        font-size: 1.125rem;
+        font-size: 1.02rem;
         font-weight: 500;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.015em;
         line-height: 1.35;
         color: var(--color-text);
-        margin-top: 3.25rem;
-        margin-bottom: 1.125rem;
+        margin-top: 4rem;
+        margin-bottom: 1.2rem;
       }
 
       .project-article :global(h2:first-child) {
@@ -348,25 +348,27 @@ const publishedTime = year ? `${year}-01-01` : undefined;
 
       .project-article :global(p) {
         color: var(--color-text);
-        line-height: 1.6;
+        line-height: 1.82;
+        text-wrap: pretty;
       }
 
       .project-article :global(p + p) {
-        margin-top: 1.25rem;
+        margin-top: 1.45rem;
       }
 
       /* Exclude folder stack: same ul.project-folder-stack as home — prose ul rules would indent/bleed it wrong */
       .project-article :global(ul:not(.project-folder-stack)) {
-        margin-top: 1rem;
-        margin-bottom: 1rem;
+        margin-top: 1.25rem;
+        margin-bottom: 1.4rem;
         list-style-type: disc;
-        padding-left: 1.5rem;
+        padding-left: 1.4rem;
       }
 
       .project-article :global(ul:not(.project-folder-stack) li) {
         color: var(--color-text);
-        line-height: 1.6;
-        margin-top: 0.375rem;
+        line-height: 1.78;
+        margin-top: 0.48rem;
+        padding-left: 0.1rem;
       }
 
       .project-article :global(ul:not(.project-folder-stack) li:first-child) {
@@ -374,12 +376,12 @@ const publishedTime = year ? `${year}-01-01` : undefined;
       }
 
       .project-article :global(blockquote) {
-        border-left: 2px solid var(--color-border);
-        padding-left: 1.25rem;
-        margin: 1.5rem 0;
+        border-left: 1px solid var(--color-border);
+        padding-left: 1.1rem;
+        margin: 2rem 0;
         color: var(--color-muted);
         font-style: italic;
-        line-height: 1.6;
+        line-height: 1.8;
       }
 
       .project-article :global(strong) {
@@ -389,10 +391,10 @@ const publishedTime = year ? `${year}-01-01` : undefined;
 
       .project-article :global(p a),
       .project-article :global(li a) {
-        color: var(--color-text);
+        color: var(--color-link);
         text-underline-offset: 0.22em;
         text-decoration: underline;
-        text-decoration-color: color-mix(in srgb, var(--color-text) 32%, transparent);
+        text-decoration-color: color-mix(in srgb, var(--color-link) 30%, transparent);
         transition:
           color 150ms ease,
           text-decoration-color 150ms ease;
@@ -401,17 +403,12 @@ const publishedTime = year ? `${year}-01-01` : undefined;
       @media (hover: hover) and (pointer: fine) {
         .project-article :global(p a:hover),
         .project-article :global(li a:hover) {
-          color: var(--color-muted);
-          text-decoration-color: color-mix(in srgb, var(--color-text) 52%, transparent);
+          color: var(--color-link-hover);
+          text-decoration-color: color-mix(in srgb, var(--color-link-hover) 44%, transparent);
         }
       }
 
       :global(.lightbox-overlay) {
-        --lightbox-ink-1: oklch(0.32 0.07 305);
-        --lightbox-ink-2: oklch(0.28 0.08 215);
-        --lightbox-ink-3: oklch(0.36 0.06 25);
-        --lightbox-core: color-mix(in srgb, #050505 36%, transparent);
-        --lightbox-vignette: color-mix(in srgb, #000 18%, transparent);
         background:
           radial-gradient(circle at 50% 50%, var(--lightbox-vignette) 0%, transparent 60%),
           var(--lightbox-core);
@@ -422,11 +419,6 @@ const publishedTime = year ? `${year}-01-01` : undefined;
       }
 
       :global(html.dark .lightbox-overlay) {
-        --lightbox-ink-1: oklch(0.56 0.12 300);
-        --lightbox-ink-2: oklch(0.5 0.1 220);
-        --lightbox-ink-3: oklch(0.62 0.08 35);
-        --lightbox-core: color-mix(in srgb, #020202 42%, transparent);
-        --lightbox-vignette: color-mix(in srgb, #000 26%, transparent);
         backdrop-filter: blur(14px) saturate(1) contrast(0.98);
         -webkit-backdrop-filter: blur(14px) saturate(1) contrast(0.98);
       }
@@ -441,14 +433,14 @@ const publishedTime = year ? `${year}-01-01` : undefined;
       :global(.lightbox-overlay__shade) {
         background:
           radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--color-text) 10%, transparent) 0%, transparent 24%),
-          radial-gradient(circle at 50% 50%, color-mix(in srgb, #000 14%, transparent) 0%, transparent 66%);
+          radial-gradient(circle at 50% 50%, var(--lightbox-shade-core) 0%, transparent 66%);
         opacity: 0.4;
       }
 
       :global(html.dark .lightbox-overlay__shade) {
         background:
           radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--color-text) 8%, transparent) 0%, transparent 24%),
-          radial-gradient(circle at 50% 50%, color-mix(in srgb, #000 24%, transparent) 0%, transparent 68%);
+          radial-gradient(circle at 50% 50%, var(--lightbox-shade-core) 0%, transparent 68%);
         opacity: 0.52;
       }
 

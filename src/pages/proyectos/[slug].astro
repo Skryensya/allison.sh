@@ -25,6 +25,13 @@ const currentIndex = sorted.findIndex(p => p.id === entry.id);
 const nextProject = sorted[(currentIndex + 1) % sorted.length];
 
 const nextPreviews = nextProject.data.previewImages || [];
+const projectAccents: Record<string, string> = {
+  'agenda-uc': 'var(--flexoki-blue-400)',
+  'barrancas': 'var(--flexoki-orange-400)',
+  'kit-digital-uc': 'var(--flexoki-purple-400)',
+  'nike': 'var(--flexoki-cyan-400)',
+  'portal-uc': 'var(--flexoki-green-400)',
+};
 const projectStructuredData = {
   '@context': 'https://schema.org',
   '@type': 'CreativeWork',
@@ -76,6 +83,7 @@ const projectStructuredData = {
           description={nextProject.data.description}
           previewSrcs={nextPreviews}
           previewAlt={`Preview de ${nextProject.data.title}`}
+          accent={projectAccents[nextProject.id]}
         />
       </ProjectFolderStack>
     </div>
@@ -91,8 +99,8 @@ const projectStructuredData = {
 
     .next-folder-stack .project-folder-card [data-folder],
     .next-folder-stack .project-folder-card[data-active='true'] [data-folder] {
-      --folder-fill-top: var(--folder-hover-fill-top, color-mix(in srgb, var(--color-bg) 98%, var(--color-text) 2%)) !important;
-      --folder-fill-bottom: var(--folder-hover-fill-bottom, color-mix(in srgb, var(--color-bg) 88%, var(--color-text) 12%)) !important;
+      --folder-fill-top: color-mix(in srgb, var(--folder-accent, var(--flexoki-green-400, var(--color-link))) 22%, var(--color-bg) 78%) !important;
+      --folder-fill-bottom: color-mix(in srgb, var(--folder-accent, var(--flexoki-green-400, var(--color-link))) 12%, var(--color-bg) 88%) !important;
     }
   }
 </style>

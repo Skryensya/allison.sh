@@ -21,6 +21,14 @@ import {
 const proyectos = await getCollection('proyectos');
 const projects = proyectos.sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
 
+const projectAccents: Record<string, string> = {
+  'agenda-uc': 'var(--flexoki-blue-400)',
+  'barrancas': 'var(--flexoki-orange-400)',
+  'kit-digital-uc': 'var(--flexoki-purple-400)',
+  'nike': 'var(--flexoki-cyan-400)',
+  'portal-uc': 'var(--flexoki-green-400)',
+};
+
 const homeStructuredData = [
   {
     '@context': 'https://schema.org',
@@ -61,18 +69,21 @@ const homeStructuredData = [
 
   <main id="main-content" class="relative max-w-[42rem] mx-auto px-6 md:px-8 pt-4 pb-10 md:pb-16">
 
-    <section class="mt-20 md:mt-28 mb-36 md:mb-40">
-      <h1 class="hero-heading font-display text-3xl md:text-4xl xl:text-5xl leading-[1.04] tracking-[-0.03em] text-balance">
+    <section class="mt-20 md:mt-32 mb-36 md:mb-44">
+      <p class="font-mono text-[0.82rem] tracking-[0.16em] uppercase text-muted mb-6 md:mb-8">
+        Allison Peña
+      </p>
+      <h1 class="hero-heading font-display text-4xl md:text-5xl xl:text-6xl leading-[1.02] tracking-[-0.035em] text-balance max-w-[12ch]">
         Construyo interfaces que se sienten bien.
       </h1>
-      <p class="mt-5 font-sans text-base leading-[1.8] text-muted tracking-normal max-w-[32rem]">
+      <p class="mt-6 font-sans text-[1.02rem] leading-[1.9] text-muted tracking-normal max-w-[34rem] text-pretty">
          Me gusta construir cosas para la web, prototipar e iterar hasta que las ideas queden bien resueltas, poniendo atención en los detalles y buscando soluciones simples a problemas complejos.
       </p>
     </section>
 
-    <section id="proyectos" class="mb-24 md:mb-28 scroll-mt-20 relative z-20">
-      <h2 class="font-mono text-sm tracking-wide text-muted mb-6 md:mb-8">
-        Proyectos destacados
+    <section id="proyectos" class="mb-10 md:mb-12 scroll-mt-20 relative z-20">
+      <h2 class="font-mono text-[0.82rem] tracking-[0.16em] uppercase text-muted mb-6 md:mb-8">
+        Proyectos
       </h2>
       <ProjectFolderStack>
         {projects.map((p) => (
@@ -82,22 +93,26 @@ const homeStructuredData = [
             description={p.data.description}
             previewSrcs={p.data.previewImages}
             previewAlt={`Preview de ${p.data.title}`}
+            accent={projectAccents[p.id]}
           />
         ))}
       </ProjectFolderStack>
 
     </section>
 
-    <section id="sobre-mi" class="relative z-30 mb-32 md:mb-40 scroll-mt-64">
-      <div class="flex flex-col gap-8 items-start">
-        <Avatar id="about-avatar" className="w-[160px] h-[160px] rounded-full avatar-frame -mt-20 md:-mt-28" />
-        <div class="space-y-6">
-          <p class="font-sans text-lg leading-[1.8]">
+    <section id="sobre-mi" class="relative z-30 mb-32 md:mb-40 scroll-mt-64 pt-2 md:pt-4">
+      <p class="font-mono text-[0.82rem] tracking-[0.16em] uppercase text-muted mb-8 md:mb-10">
+        Sobre mí
+      </p>
+      <div class="flex flex-col gap-8 items-start md:gap-10">
+        <Avatar id="about-avatar" className="w-[160px] h-[160px] rounded-full avatar-frame" />
+        <div class="space-y-6 max-w-[34rem]">
+          <p class="font-sans text-[1.06rem] leading-[1.9] text-text text-pretty">
             Me gusta entender cómo funcionan las cosas y llevarlas un poco más allá. Disfruto construir, iterar, simplificar. Tengo una fascinación genuina por el diseño y me gusta trabajar cerca de él.
           </p>
-          <p class="font-sans text-base leading-[1.8] text-muted">
+          <p class="font-sans text-base leading-[1.9] text-muted text-pretty">
             Fuera del trabajo paso tiempo aprendiendo noruego, jugando ajedrez y explorando música. También construyo proyectos personales de forma constante, más por curiosidad que por necesidad.{' '}
-            <a href="https://fun.allison.sh" class="underline underline-offset-[0.22em] text-muted decoration-from-font transition-[color,text-decoration-color] duration-150 ease-out decoration-[color-mix(in_srgb,var(--color-text)_32%,transparent)] hover:text-text hover:decoration-[color-mix(in_srgb,var(--color-text)_52%,transparent)]" target="_blank" rel="noopener noreferrer">Este sitio</a>{' '}
+            <a href="https://fun.allison.sh" class="editorial-link" target="_blank" rel="noopener noreferrer">Este sitio</a>{' '}
             es una extensión de eso.
           </p>
         </div>

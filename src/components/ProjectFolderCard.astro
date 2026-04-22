@@ -10,6 +10,7 @@ interface Props {
   className?: string;
   previewSrcs?: ImageMetadata[];
   previewAlt?: string;
+  accent?: string;
 }
 
 const {
@@ -19,6 +20,7 @@ const {
   className = '',
   previewSrcs = [],
   previewAlt = '',
+  accent,
 } = Astro.props;
 
 const previewEntries = await Promise.all(
@@ -35,9 +37,10 @@ const previewEntries = await Promise.all(
 );
 
 const previewCount = previewEntries.length;
+const style = [`list-style: none;`, accent ? `--folder-accent:${accent};` : ''].filter(Boolean).join(' ');
 ---
 
-<li class={`project-folder-card ${className}`} data-project-folder-card data-preview-count={previewCount} style="list-style: none;">
+<li class={`project-folder-card ${className}`} data-project-folder-card data-preview-count={previewCount} style={style}>
   <div class="project-folder-card__gradient" aria-hidden="true"></div>
 
   {previewCount > 0 && (
