@@ -157,10 +157,9 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       var(--color-bg) 88% 88%,
       var(--color-bg) 100%
     );
-    opacity: 0;
-    transition: opacity 1ms linear;
+    opacity: 1;
     pointer-events: none;
-    z-index: 4;
+    z-index: 20;
     backface-visibility: hidden;
   }
 
@@ -187,6 +186,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     --folder-shadow-filter:
       drop-shadow(0 -4px 10px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.28%, transparent))
       drop-shadow(0 -1px 3px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 0.1%, transparent));
+    position: relative;
+    z-index: 1;
   }
 
   @media (max-width: 640px) {
@@ -372,13 +373,6 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       --folder-shadow-filter:
         drop-shadow(0 -14px 26px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 3.8%, transparent))
         drop-shadow(0 -5px 10px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 1.6%, transparent));
-    }
-
-    .project-folder-card:hover .project-folder-card__gradient,
-    .project-folder-card:focus-within .project-folder-card__gradient,
-    .project-folder-card[data-preview-open='true'] .project-folder-card__gradient,
-    .project-folder-card[data-active='true'] .project-folder-card__gradient {
-      opacity: 1;
     }
 
     .project-folder-card__link:active {
