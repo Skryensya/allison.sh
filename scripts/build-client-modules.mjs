@@ -31,6 +31,7 @@ const result = await build({
   tsconfig: path.join(root, 'tsconfig.json'),
   entryPoints: [
     'src/scripts/base-client.ts',
+    'src/scripts/folder-shapes-client.ts',
     'src/scripts/project-folder-stack-client.ts',
     'src/scripts/project-lightbox-client.ts',
     'src/scripts/avatar-client.ts',

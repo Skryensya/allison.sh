@@ -70,6 +70,7 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
   lang="es"
   class="scroll-smooth"
   data-base-client-url={clientModules['base-client']}
+  data-folder-shapes-client-url={clientModules['folder-shapes-client']}
 >
   <head>
     <meta charset="utf-8" />
@@ -229,14 +230,27 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
 <script is:inline>
 
   const injectedBaseClientUrl = document.documentElement.dataset.baseClientUrl;
+  const injectedFolderShapesClientUrl = document.documentElement.dataset.folderShapesClientUrl;
 
   let baseClientPromise;
+  let folderShapesClientPromise;
 
   const loadBaseClient = () => {
     if (!injectedBaseClientUrl) return baseClientPromise;
     baseClientPromise ??= import(injectedBaseClientUrl);
     return baseClientPromise;
   };
+
+  const loadFolderShapesClient = () => {
+    if (!injectedFolderShapesClientUrl || !document.querySelector('[data-folder]')) return folderShapesClientPromise;
+    folderShapesClientPromise ??= import(injectedFolderShapesClientUrl);
+    return folderShapesClientPromise;
+  };
+
+  void loadFolderShapesClient();
+  document.addEventListener('astro:page-load', () => {
+    void loadFolderShapesClient();
+  });
 
   const scheduleBaseClient = () => {
     const boot = () => {
