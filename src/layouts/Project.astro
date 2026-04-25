@@ -113,24 +113,41 @@ const mainStyle = `--project-page-accent:${accent}`;
             return t * t * (3 - 2 * t);
           }
 
+          function cubicBezier(value, x1, y1, x2, y2) {
+            var x = clamp(value, 0, 1);
+            var t = x;
+
+            for (var i = 0; i < 5; i += 1) {
+              var omt = 1 - t;
+              var currentX = 3 * omt * omt * t * x1 + 3 * omt * t * t * x2 + t * t * t;
+              var derivativeX = 3 * omt * omt * x1 + 6 * omt * t * (x2 - x1) + 3 * t * t * (1 - x2);
+              if (Math.abs(derivativeX) < 0.001) break;
+              t = clamp(t - (currentX - x) / derivativeX, 0, 1);
+            }
+
+            var omt = 1 - t;
+            return 3 * omt * omt * t * y1 + 3 * omt * t * t * y2 + t * t * t;
+          }
+
           function update() {
             raf = 0;
             var doc = document.documentElement;
             var maxScroll = Math.max(1, doc.scrollHeight - window.innerHeight);
             var progress = clamp((window.scrollY || window.pageYOffset || 0) / maxScroll, 0, 1);
-            var stage = smoothstep(progress);
+            var motionStage = smoothstep(progress);
+            var intensityStage = cubicBezier(progress, 0.58, 0, 0.24, 1);
             var isDark = doc.classList.contains('dark');
-            var maxOpacity = isDark ? 0.56 : 0.38;
-            var baseOpacity = isDark ? 0.26 : 0.16;
+            var maxOpacity = isDark ? 0.42 : 0.28;
+            var baseOpacity = isDark ? 0.12 : 0.07;
 
-            shell.style.setProperty('--project-page-glow-opacity', (baseOpacity + stage * (maxOpacity - baseOpacity)).toFixed(3));
-            shell.style.setProperty('--project-page-glow-scale', (0.98 + stage * 0.09).toFixed(3));
-            shell.style.setProperty('--project-page-glow-rise', (stage * -8).toFixed(2) + 'vh');
-            shell.style.setProperty('--project-page-glow-rise-soft', (stage * -4).toFixed(2) + 'vh');
-            shell.style.setProperty('--project-page-glow-drift', ((stage - 0.5) * 24).toFixed(1) + 'px');
-            shell.style.setProperty('--project-page-glow-core-opacity', (isDark ? 0.58 + stage * 0.16 : 0.46 + stage * 0.14).toFixed(3));
-            shell.style.setProperty('--project-page-glow-veil-opacity', (isDark ? 0.34 + stage * 0.16 : 0.25 + stage * 0.14).toFixed(3));
-            shell.style.setProperty('--project-page-glow-lick-opacity', (isDark ? 0.3 + stage * 0.14 : 0.22 + stage * 0.1).toFixed(3));
+            shell.style.setProperty('--project-page-glow-opacity', (baseOpacity + intensityStage * (maxOpacity - baseOpacity)).toFixed(3));
+            shell.style.setProperty('--project-page-glow-scale', (0.98 + motionStage * 0.09).toFixed(3));
+            shell.style.setProperty('--project-page-glow-rise', (motionStage * -8).toFixed(2) + 'vh');
+            shell.style.setProperty('--project-page-glow-rise-soft', (motionStage * -4).toFixed(2) + 'vh');
+            shell.style.setProperty('--project-page-glow-drift', ((motionStage - 0.5) * 24).toFixed(1) + 'px');
+            shell.style.setProperty('--project-page-glow-core-opacity', (isDark ? 0.42 + intensityStage * 0.12 : 0.32 + intensityStage * 0.1).toFixed(3));
+            shell.style.setProperty('--project-page-glow-veil-opacity', (isDark ? 0.24 + intensityStage * 0.11 : 0.17 + intensityStage * 0.09).toFixed(3));
+            shell.style.setProperty('--project-page-glow-lick-opacity', (isDark ? 0.18 + intensityStage * 0.1 : 0.13 + intensityStage * 0.08).toFixed(3));
           }
 
           function schedule() {
@@ -442,27 +459,27 @@ const mainStyle = `--project-page-accent:${accent}`;
         background:
           radial-gradient(
             ellipse at 50% 100%,
-            color-mix(in srgb, var(--project-page-accent) 44%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 25%, transparent) 22%,
-            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 56%,
+            color-mix(in srgb, var(--project-page-accent) 37%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 21%, transparent) 22%,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 56%,
             transparent 84%
           ),
           radial-gradient(
             ellipse at 4% 100%,
-            color-mix(in srgb, var(--project-page-accent) 14%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 7%, transparent) 44%,
+            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 6%, transparent) 44%,
             transparent 74%
           ),
           radial-gradient(
             ellipse at 96% 100%,
-            color-mix(in srgb, var(--project-page-accent) 14%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 7%, transparent) 44%,
+            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 6%, transparent) 44%,
             transparent 74%
           ),
           linear-gradient(
             to top,
-            color-mix(in srgb, var(--project-page-accent) 7%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 3%, transparent) 38%,
+            color-mix(in srgb, var(--project-page-accent) 6%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 2.6%, transparent) 38%,
             transparent 72%
           );
         filter: blur(18px);
@@ -477,18 +494,18 @@ const mainStyle = `--project-page-accent:${accent}`;
         background:
           radial-gradient(
             ellipse at 50% 100%,
-            color-mix(in srgb, var(--project-page-accent) 28%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 14%, transparent) 30%,
+            color-mix(in srgb, var(--project-page-accent) 24%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 30%,
             transparent 72%
           ),
           radial-gradient(
             ellipse at 0% 100%,
-            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 0%,
             transparent 64%
           ),
           radial-gradient(
             ellipse at 100% 100%,
-            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 0%,
             transparent 64%
           );
         filter: blur(10px);
@@ -500,27 +517,27 @@ const mainStyle = `--project-page-accent:${accent}`;
         background:
           radial-gradient(
             ellipse at 50% 100%,
-            color-mix(in srgb, var(--project-page-accent) 45%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 26%, transparent) 24%,
-            color-mix(in srgb, var(--project-page-accent) 11%, transparent) 57%,
+            color-mix(in srgb, var(--project-page-accent) 38%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 22%, transparent) 24%,
+            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 57%,
             transparent 85%
           ),
           radial-gradient(
             ellipse at 4% 100%,
-            color-mix(in srgb, var(--project-page-accent) 20%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 44%,
+            color-mix(in srgb, var(--project-page-accent) 17%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 44%,
             transparent 76%
           ),
           radial-gradient(
             ellipse at 96% 100%,
-            color-mix(in srgb, var(--project-page-accent) 20%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 44%,
+            color-mix(in srgb, var(--project-page-accent) 17%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 44%,
             transparent 76%
           ),
           linear-gradient(
             to top,
-            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 3.6%, transparent) 40%,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 3.1%, transparent) 40%,
             transparent 74%
           );
         filter: blur(16px);
@@ -530,18 +547,18 @@ const mainStyle = `--project-page-accent:${accent}`;
         background:
           radial-gradient(
             ellipse at 50% 100%,
-            color-mix(in srgb, var(--project-page-accent) 31%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 16%, transparent) 34%,
+            color-mix(in srgb, var(--project-page-accent) 26%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 14%, transparent) 34%,
             transparent 75%
           ),
           radial-gradient(
             ellipse at 0% 100%,
-            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 10%, transparent) 0%,
             transparent 66%
           ),
           radial-gradient(
             ellipse at 100% 100%,
-            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 10%, transparent) 0%,
             transparent 66%
           );
       }
@@ -556,8 +573,8 @@ const mainStyle = `--project-page-accent:${accent}`;
         background:
           radial-gradient(
             ellipse at 50% 100%,
-            color-mix(in srgb, var(--project-page-accent) 26%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 34%,
+            color-mix(in srgb, var(--project-page-accent) 22%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 10%, transparent) 34%,
             transparent 72%
           );
         filter: blur(12px);
@@ -587,8 +604,8 @@ const mainStyle = `--project-page-accent:${accent}`;
         background:
           radial-gradient(
             ellipse at 50% 100%,
-            color-mix(in srgb, var(--project-page-accent) 32%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 15%, transparent) 36%,
+            color-mix(in srgb, var(--project-page-accent) 27%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 13%, transparent) 36%,
             transparent 74%
           );
       }
