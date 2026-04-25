@@ -49,26 +49,32 @@ video {
 
 .editorial-link,
 a.editorial-link {
-  color: var(--color-link);
+  color: inherit;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--color-link) 30%, transparent);
+  text-decoration-color: color-mix(in srgb, currentColor 34%, transparent);
   text-underline-offset: 0.22em;
   transition:
-    color 150ms ease,
     text-decoration-color 150ms ease;
 }
 
 .editorial-link:hover,
 a.editorial-link:hover {
-  color: var(--color-link-hover);
-  text-decoration-color: color-mix(in srgb, var(--color-link-hover) 42%, transparent);
+  color: inherit;
+  text-decoration-color: currentColor;
 }
 
 .footer-contact-link {
   display: inline-block;
-  color: var(--color-text);
-  text-decoration: none;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 34%, transparent);
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color 150ms ease;
   text-wrap: pretty;
+}
+
+.footer-contact-link:hover {
+  text-decoration-color: currentColor;
 }
 
 #viewport-gradient {

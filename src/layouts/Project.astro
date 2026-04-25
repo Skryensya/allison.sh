@@ -13,11 +13,13 @@ interface Props {
   description: string;
   slug: string;
   year?: string;
+  accent?: string;
   structuredData?: StructuredData | StructuredData[];
 }
 
-const { title, description, slug, year, structuredData } = Astro.props;
+const { title, description, slug, year, accent = 'var(--color-link)', structuredData } = Astro.props;
 const publishedTime = year ? `${year}-01-01` : undefined;
+const mainStyle = `--project-page-accent:${accent}`;
 ---
 
 <Base
@@ -34,9 +36,19 @@ const publishedTime = year ? `${year}-01-01` : undefined;
 >
   <Navbar />
 
-  <main id="main-content" class="relative pb-10 md:pb-16">
+  <main
+    id="main-content"
+    class="project-page-shell relative pb-10 md:pb-16"
+    style={mainStyle}
+    data-project-page-shell
+  >
+    <div class="project-page-glow" data-project-page-glow aria-hidden="true">
+      <span class="project-page-glow__lick project-page-glow__lick--a"></span>
+      <span class="project-page-glow__lick project-page-glow__lick--b"></span>
+      <span class="project-page-glow__lick project-page-glow__lick--c"></span>
+    </div>
 
-    <div class="max-w-[42rem] mx-auto px-6 md:px-8 pt-10 md:pt-12">
+    <div class="relative z-30 max-w-[42rem] mx-auto px-6 md:px-8 pt-10 md:pt-12">
       <a href="/" class="group inline-flex items-center gap-2 font-mono text-sm tracking-wide text-muted hover:text-text transition-colors duration-200 mb-8 md:mb-10">
         <svg class="w-3 h-3 motion-safe:transition-transform motion-safe:duration-150 motion-safe:group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -54,18 +66,18 @@ const publishedTime = year ? `${year}-01-01` : undefined;
       </header>
     </div>
 
-    <div class="max-w-[42rem] mx-auto px-6 md:px-8 relative z-30">
-      <article class="project-article font-sans text-[16px] leading-[1.6] text-text tracking-[-0.01em] select-none">
+    <div class="max-w-[42rem] mx-auto px-6 md:px-8 relative">
+      <article class="project-article relative z-30 font-sans text-[16px] leading-[1.6] text-text tracking-[-0.01em] select-none">
         <div class="select-text">
         <slot />
         </div>
       </article>
 
-      <div data-after-article class="select-none">
+      <div data-after-article class="relative z-10 select-none">
         <slot name="after-article" />
       </div>
 
-      <footer class="mt-12 md:mt-14 mb-8">
+      <footer class="relative z-30 mt-12 md:mt-14 mb-8">
         <a href="/" class="group inline-flex items-center gap-2 font-mono text-sm tracking-wide text-muted hover:text-text transition-colors duration-200">
           <svg class="w-3 h-3 motion-safe:transition-transform motion-safe:duration-150 motion-safe:group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -74,12 +86,74 @@ const publishedTime = year ? `${year}-01-01` : undefined;
         </a>
       </footer>
 
-      <Footer />
+      <div class="relative z-30">
+        <Footer />
+      </div>
     </div>
 
     <script is:inline>
       (function () {
+        function initProjectGlow() {
+          var shell = document.querySelector('[data-project-page-shell]');
+          if (!shell) return;
+          var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+          if (reduceMotion.matches) {
+            shell.style.setProperty('--project-page-glow-opacity', '0');
+            return;
+          }
+
+          var raf = 0;
+
+          function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+          }
+
+          function smoothstep(value) {
+            var t = clamp(value, 0, 1);
+            return t * t * (3 - 2 * t);
+          }
+
+          function update() {
+            raf = 0;
+            var doc = document.documentElement;
+            var maxScroll = Math.max(1, doc.scrollHeight - window.innerHeight);
+            var progress = clamp((window.scrollY || window.pageYOffset || 0) / maxScroll, 0, 1);
+            var stage = smoothstep(progress);
+            var isDark = doc.classList.contains('dark');
+            var maxOpacity = isDark ? 0.56 : 0.38;
+            var baseOpacity = isDark ? 0.26 : 0.16;
+
+            shell.style.setProperty('--project-page-glow-opacity', (baseOpacity + stage * (maxOpacity - baseOpacity)).toFixed(3));
+            shell.style.setProperty('--project-page-glow-scale', (0.98 + stage * 0.09).toFixed(3));
+            shell.style.setProperty('--project-page-glow-rise', (stage * -8).toFixed(2) + 'vh');
+            shell.style.setProperty('--project-page-glow-rise-soft', (stage * -4).toFixed(2) + 'vh');
+            shell.style.setProperty('--project-page-glow-drift', ((stage - 0.5) * 24).toFixed(1) + 'px');
+            shell.style.setProperty('--project-page-glow-core-opacity', (isDark ? 0.58 + stage * 0.16 : 0.46 + stage * 0.14).toFixed(3));
+            shell.style.setProperty('--project-page-glow-veil-opacity', (isDark ? 0.34 + stage * 0.16 : 0.25 + stage * 0.14).toFixed(3));
+            shell.style.setProperty('--project-page-glow-lick-opacity', (isDark ? 0.3 + stage * 0.14 : 0.22 + stage * 0.1).toFixed(3));
+          }
+
+          function schedule() {
+            if (raf) return;
+            raf = window.requestAnimationFrame(update);
+          }
+
+          update();
+          window.addEventListener('scroll', schedule, { passive: true });
+          window.addEventListener('resize', schedule);
+
+          var themeObserver = new MutationObserver(schedule);
+          themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+          window.addEventListener('pagehide', function () {
+            if (raf) window.cancelAnimationFrame(raf);
+            themeObserver.disconnect();
+          }, { once: true });
+        }
+
         function init() {
+          initProjectGlow();
+
           var figures = document.querySelectorAll('[data-figure-root]');
           if (!figures.length) return;
 
@@ -323,6 +397,383 @@ const publishedTime = year ? `${year}-01-01` : undefined;
     </script>
 
     <style>
+      .project-page-shell {
+        isolation: isolate;
+        --project-page-glow-opacity: 0.16;
+        --project-page-glow-scale: 0.98;
+        --project-page-glow-rise: 0vh;
+        --project-page-glow-rise-soft: 0vh;
+        --project-page-glow-drift: 0px;
+        --project-page-glow-core-opacity: 0.46;
+        --project-page-glow-veil-opacity: 0.25;
+        --project-page-glow-lick-opacity: 0.22;
+      }
+
+      .project-page-glow {
+        position: fixed;
+        left: 50%;
+        bottom: -14vh;
+        z-index: 20;
+        width: 100vw;
+        height: min(74vh, 720px);
+        opacity: var(--project-page-glow-opacity);
+        pointer-events: none;
+        transform: translate3d(-50%, 0, 0) scale(var(--project-page-glow-scale));
+        transform-origin: 50% 100%;
+        transition:
+          opacity 160ms ease,
+          transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+        will-change: opacity, transform;
+      }
+
+      .project-page-glow::before,
+      .project-page-glow::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        pointer-events: none;
+        will-change: opacity, transform;
+      }
+
+      .project-page-glow::before {
+        width: min(220vw, 2200px);
+        height: 100%;
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 44%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 25%, transparent) 22%,
+            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 56%,
+            transparent 84%
+          ),
+          radial-gradient(
+            ellipse at 4% 100%,
+            color-mix(in srgb, var(--project-page-accent) 14%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 7%, transparent) 44%,
+            transparent 74%
+          ),
+          radial-gradient(
+            ellipse at 96% 100%,
+            color-mix(in srgb, var(--project-page-accent) 14%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 7%, transparent) 44%,
+            transparent 74%
+          ),
+          linear-gradient(
+            to top,
+            color-mix(in srgb, var(--project-page-accent) 7%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 3%, transparent) 38%,
+            transparent 72%
+          );
+        filter: blur(18px);
+        opacity: var(--project-page-glow-core-opacity);
+        animation: projectPageGlowFireCore 4.9s ease-in-out infinite;
+      }
+
+      .project-page-glow::after {
+        bottom: -2vh;
+        width: min(176vw, 1760px);
+        height: 78%;
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 28%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 14%, transparent) 30%,
+            transparent 72%
+          ),
+          radial-gradient(
+            ellipse at 0% 100%,
+            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 0%,
+            transparent 64%
+          ),
+          radial-gradient(
+            ellipse at 100% 100%,
+            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 0%,
+            transparent 64%
+          );
+        filter: blur(10px);
+        opacity: var(--project-page-glow-veil-opacity);
+        animation: projectPageGlowFireVeil 6.7s ease-in-out infinite;
+      }
+
+      :global(html.dark) .project-page-glow::before {
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 45%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 26%, transparent) 24%,
+            color-mix(in srgb, var(--project-page-accent) 11%, transparent) 57%,
+            transparent 85%
+          ),
+          radial-gradient(
+            ellipse at 4% 100%,
+            color-mix(in srgb, var(--project-page-accent) 20%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 44%,
+            transparent 76%
+          ),
+          radial-gradient(
+            ellipse at 96% 100%,
+            color-mix(in srgb, var(--project-page-accent) 20%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 44%,
+            transparent 76%
+          ),
+          linear-gradient(
+            to top,
+            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 3.6%, transparent) 40%,
+            transparent 74%
+          );
+        filter: blur(16px);
+      }
+
+      :global(html.dark) .project-page-glow::after {
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 31%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 16%, transparent) 34%,
+            transparent 75%
+          ),
+          radial-gradient(
+            ellipse at 0% 100%,
+            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 0%,
+            transparent 66%
+          ),
+          radial-gradient(
+            ellipse at 100% 100%,
+            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 0%,
+            transparent 66%
+          );
+      }
+
+      .project-page-glow__lick {
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        width: min(42vw, 460px);
+        height: 62%;
+        border-radius: 999px;
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 26%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 34%,
+            transparent 72%
+          );
+        filter: blur(12px);
+        opacity: 0;
+        pointer-events: none;
+        transform-origin: 50% 100%;
+        will-change: opacity, transform;
+      }
+
+      .project-page-glow__lick--a {
+        animation: projectPageGlowLickA 3.35s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+      }
+
+      .project-page-glow__lick--b {
+        width: min(36vw, 380px);
+        height: 54%;
+        animation: projectPageGlowLickB 4.25s cubic-bezier(0.5, 0, 0.45, 1) -1.1s infinite;
+      }
+
+      .project-page-glow__lick--c {
+        width: min(34vw, 360px);
+        height: 50%;
+        animation: projectPageGlowLickC 5.1s cubic-bezier(0.42, 0, 0.58, 1) -2.3s infinite;
+      }
+
+      :global(html.dark) .project-page-glow__lick {
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 32%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 15%, transparent) 36%,
+            transparent 74%
+          );
+      }
+
+      @keyframes projectPageGlowFireCore {
+        0%,
+        100% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 0.9);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 3px), var(--project-page-glow-rise), 0) scaleX(0.99) scaleY(0.98);
+        }
+
+        9% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 1.04);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 2px), calc(var(--project-page-glow-rise) - 0.5vh), 0) scaleX(1.012) scaleY(1.035);
+        }
+
+        18% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 0.95);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 1px), calc(var(--project-page-glow-rise) - 0.18vh), 0) scaleX(0.998) scaleY(1.005);
+        }
+
+        31% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 1.02);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 4px), calc(var(--project-page-glow-rise) - 0.9vh), 0) scaleX(1.02) scaleY(1.048);
+        }
+
+        47% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 0.93);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 5px), calc(var(--project-page-glow-rise) - 0.32vh), 0) scaleX(0.992) scaleY(1.012);
+        }
+
+        64% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 1.06);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 1px), calc(var(--project-page-glow-rise) - 0.72vh), 0) scaleX(1.017) scaleY(1.04);
+        }
+
+        81% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 0.97);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 2px), calc(var(--project-page-glow-rise) - 0.24vh), 0) scaleX(1.003) scaleY(1.018);
+        }
+      }
+
+      @keyframes projectPageGlowFireVeil {
+        0%,
+        100% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 0.78);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 14px), var(--project-page-glow-rise-soft), 0) scaleX(0.94) scaleY(0.985);
+        }
+
+        13% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 1.05);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 8px), calc(var(--project-page-glow-rise) - 1vh), 0) scaleX(1.025) scaleY(1.055);
+        }
+
+        29% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 0.86);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 7px), calc(var(--project-page-glow-rise-soft) - 0.16vh), 0) scaleX(0.98) scaleY(1.005);
+        }
+
+        46% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 1.01);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 13px), calc(var(--project-page-glow-rise) - 0.7vh), 0) scaleX(1.014) scaleY(1.035);
+        }
+
+        70% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 0.9);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 4px), calc(var(--project-page-glow-rise-soft) - 0.35vh), 0) scaleX(0.99) scaleY(1.018);
+        }
+
+        88% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 1.04);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 6px), calc(var(--project-page-glow-rise) - 0.8vh), 0) scaleX(1.02) scaleY(1.045);
+        }
+      }
+
+      @keyframes projectPageGlowLickA {
+        0%,
+        100% {
+          opacity: 0;
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 4px), calc(var(--project-page-glow-rise-soft) + 1vh), 0) scaleX(0.6) scaleY(0.72);
+        }
+
+        17% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.56);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 5px), calc(var(--project-page-glow-rise) - 1.6vh), 0) scaleX(0.86) scaleY(1.05);
+        }
+
+        36% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.28);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 8px), calc(var(--project-page-glow-rise) - 0.7vh), 0) scaleX(0.78) scaleY(0.9);
+        }
+
+        62% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.62);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 2px), calc(var(--project-page-glow-rise) - 2.2vh), 0) scaleX(0.92) scaleY(1.16);
+        }
+
+        82% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.16);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 3px), calc(var(--project-page-glow-rise) - 0.9vh), 0) scaleX(0.7) scaleY(0.82);
+        }
+      }
+
+      @keyframes projectPageGlowLickB {
+        0%,
+        100% {
+          opacity: 0;
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 34px), var(--project-page-glow-rise-soft), 0) scaleX(0.58) scaleY(0.7);
+        }
+
+        23% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.42);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 52px), calc(var(--project-page-glow-rise) - 1.2vh), 0) scaleX(0.82) scaleY(1.02);
+        }
+
+        49% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.18);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 26px), calc(var(--project-page-glow-rise) - 0.45vh), 0) scaleX(0.66) scaleY(0.88);
+        }
+
+        71% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.5);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 42px), calc(var(--project-page-glow-rise) - 1.9vh), 0) scaleX(0.88) scaleY(1.14);
+        }
+      }
+
+      @keyframes projectPageGlowLickC {
+        0%,
+        100% {
+          opacity: 0;
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 36px), var(--project-page-glow-rise-soft), 0) scaleX(0.58) scaleY(0.72);
+        }
+
+        14% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.36);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 54px), calc(var(--project-page-glow-rise) - 0.95vh), 0) scaleX(0.78) scaleY(0.98);
+        }
+
+        39% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.14);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 24px), calc(var(--project-page-glow-rise) - 0.3vh), 0) scaleX(0.64) scaleY(0.84);
+        }
+
+        58% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.52);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 44px), calc(var(--project-page-glow-rise) - 1.7vh), 0) scaleX(0.86) scaleY(1.1);
+        }
+
+        79% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.22);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 31px), calc(var(--project-page-glow-rise) - 0.75vh), 0) scaleX(0.72) scaleY(0.9);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .project-page-glow {
+          bottom: -10vh;
+          height: 62vh;
+        }
+
+        .project-page-glow::before {
+          width: 210vw;
+          filter: blur(16px);
+        }
+
+        .project-page-glow::after {
+          width: 166vw;
+          filter: blur(9px);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .project-page-glow {
+          opacity: 0;
+          transition: none;
+          will-change: auto;
+        }
+
+        .project-page-glow::before,
+        .project-page-glow::after,
+        .project-page-glow__lick {
+          animation: none;
+        }
+      }
+
       /* Prevent image selection in after-article slot */
       [data-after-article] img,
       [data-after-article] figcaption,
@@ -391,20 +842,19 @@ const publishedTime = year ? `${year}-01-01` : undefined;
 
       .project-article :global(p a),
       .project-article :global(li a) {
-        color: var(--color-link);
+        color: inherit;
         text-underline-offset: 0.22em;
         text-decoration: underline;
-        text-decoration-color: color-mix(in srgb, var(--color-link) 30%, transparent);
+        text-decoration-color: color-mix(in srgb, currentColor 34%, transparent);
         transition:
-          color 150ms ease,
           text-decoration-color 150ms ease;
       }
 
       @media (hover: hover) and (pointer: fine) {
         .project-article :global(p a:hover),
         .project-article :global(li a:hover) {
-          color: var(--color-link-hover);
-          text-decoration-color: color-mix(in srgb, var(--color-link-hover) 44%, transparent);
+          color: inherit;
+          text-decoration-color: currentColor;
         }
       }
 
