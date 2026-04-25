@@ -457,7 +457,7 @@ export class SpeechBubble {
     return {
       isMobile,
       /* Must match `.avatar-speech-bubble__inner` — Pretext uses canvas measureText (README). */
-      font: isMobile ? '400 14px Inter' : '400 16px Inter',
+      font: isMobile ? '400 14px Satoshi' : '400 16px Satoshi',
       lineHeight: isMobile ? 20.3 : 23.2,
       paddingX: isMobile ? 14 : 16,
       paddingY: isMobile ? 9 : 10,
@@ -752,7 +752,7 @@ export class SpeechBubble {
       color: var(--bubble-fg);
       border-radius: var(--bubble-radius);
       padding: 10px 16px;
-      font-family: Inter, var(--font-sans, system-ui, sans-serif);
+      font-family: var(--font-sans, Satoshi), ui-sans-serif, system-ui, sans-serif;
       font-size: 16px;
       line-height: 1.45;
       white-space: normal;

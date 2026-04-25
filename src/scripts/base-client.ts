@@ -2,7 +2,6 @@ type GlobalWindow = Window & typeof globalThis & {
   __baseClientInit?: boolean;
   __baseClientCleanup?: () => void;
   __glitchReducedMotionHandler?: (event: MediaQueryListEvent) => void;
-  __navSwipeDirectionInit?: boolean;
 };
 
 const win = window as GlobalWindow;
@@ -13,8 +12,6 @@ function setupBaseClient() {
 
   let themeSwitchTimer: number | null = null;
   let navAbortController: AbortController | null = null;
-  let lightOverlayBound = false;
-  let lightOverlayHandler: (() => void) | null = null;
 
   function withInstantFolderThemeSwitch(fn: () => void) {
     const root = document.documentElement;
@@ -42,21 +39,6 @@ function setupBaseClient() {
     const isDark = document.documentElement.classList.contains('dark');
     toggle.setAttribute('aria-pressed', String(isDark));
     toggle.setAttribute('title', isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro');
-  }
-
-  function initLightOverlay() {
-    if (lightOverlayBound) return;
-
-    const overlay = document.getElementById('light-overlay');
-    if (!overlay) return;
-
-    lightOverlayHandler = () => {
-      overlay.style.opacity = '0.4';
-    };
-
-    window.addEventListener('scroll', lightOverlayHandler, { passive: true });
-    lightOverlayHandler();
-    lightOverlayBound = true;
   }
 
   function initNavbarScroll() {
@@ -264,50 +246,12 @@ function setupBaseClient() {
     });
   }
 
-  function initNavSwipeDirection() {
-    if (win.__navSwipeDirectionInit) return;
-    win.__navSwipeDirectionInit = true;
-
-    const selector = '#nav-links a, #theme-toggle, #contacto a';
-
-    const getSide = (el: Element, clientX: number) => {
-      const r = el.getBoundingClientRect();
-      const mid = r.left + r.width / 2;
-      return clientX < mid ? 'left' : 'right';
-    };
-
-    const getItemFromEventTarget = (target: EventTarget | null) => {
-      if (!(target instanceof Element)) return null;
-      return target.closest(selector);
-    };
-
-    document.addEventListener('pointerover', (e) => {
-      if (e.pointerType && e.pointerType !== 'mouse') return;
-      const el = getItemFromEventTarget(e.target);
-      if (!el) return;
-      const rel = e.relatedTarget;
-      if (rel instanceof Node && el.contains(rel)) return;
-      (el as HTMLElement).style.setProperty('--nav-origin-in', getSide(el, e.clientX));
-    });
-
-    document.addEventListener('pointerout', (e) => {
-      if (e.pointerType && e.pointerType !== 'mouse') return;
-      const el = getItemFromEventTarget(e.target);
-      if (!el) return;
-      const rel = e.relatedTarget;
-      if (rel instanceof Node && el.contains(rel)) return;
-      (el as HTMLElement).style.setProperty('--nav-origin-out', getSide(el, e.clientX));
-    });
-  }
-
   function init() {
     applyTheme();
     updateToggleIcons();
-    initLightOverlay();
     initNavbarScroll();
     initGlitch();
     bindThemeToggle();
-    initNavSwipeDirection();
   }
 
   init();
@@ -316,12 +260,6 @@ function setupBaseClient() {
   win.__baseClientCleanup = () => {
     navAbortController?.abort();
     navAbortController = null;
-
-    if (lightOverlayHandler) {
-      window.removeEventListener('scroll', lightOverlayHandler);
-      lightOverlayHandler = null;
-      lightOverlayBound = false;
-    }
   };
 
   window.addEventListener('astro:before-preparation', () => {

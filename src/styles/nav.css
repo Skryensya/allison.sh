@@ -1,8 +1,4 @@
-/* Hover swipe (highlight) — direction-aware
-   - JS setea:
-     --nav-origin-in / --nav-origin-out
-   - Sin "completion" forzada: si salís, se envuelve rápido (exit corto).
-*/
+/* Hover swipe (highlight). CSS defaults keep it light; no JS needed. */
 :where(#nav-links a, #contacto a) {
   position: relative;
   display: inline-flex;
@@ -24,8 +20,6 @@
 
   isolation: isolate;
   z-index: 0;
-
-  will-change: transform;
 }
 
 :where(#theme-toggle) {
@@ -48,8 +42,6 @@
 
   isolation: isolate;
   z-index: 0;
-
-  will-change: transform;
 }
 
 :where(#nav-links a, #contacto a)::before {
@@ -68,8 +60,6 @@
   transition:
     transform 150ms cubic-bezier(0.4, 0, 1, 1),
     opacity 110ms ease;
-
-  will-change: transform, opacity;
   z-index: -1;
 }
 
@@ -87,8 +77,6 @@
   transition:
     transform 150ms cubic-bezier(0.4, 0, 1, 1),
     opacity 110ms ease;
-
-  will-change: transform, opacity;
   z-index: -1;
 }
 
@@ -145,7 +133,6 @@
     transform 220ms cubic-bezier(0.2, 0, 0, 1),
     filter 220ms cubic-bezier(0.2, 0, 0, 1);
   transform-origin: center;
-  will-change: opacity, transform, filter;
 }
 
 #theme-toggle .sun-icon {
@@ -192,7 +179,6 @@ footer #theme-toggle {
   position: relative;
   isolation: isolate;
   color: inherit;
-  will-change: transform;
   transition:
     color 130ms ease,
     transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
@@ -212,8 +198,6 @@ footer #theme-toggle::before {
   transition:
     transform 150ms cubic-bezier(0.4, 0, 1, 1),
     opacity 110ms ease;
-
-  will-change: transform, opacity;
   z-index: -1;
 }
 

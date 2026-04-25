@@ -550,7 +550,6 @@ function initAvatar(root: AvatarRoot) {
   };
 
   applyStoredAvatarConfig(root);
-  void loadSpeechBubbleModule();
 
   const symbolHref = (tileName: string) => getSpriteHref(root, tileName);
   const supportsFinePointer = window.matchMedia('(pointer: fine)').matches;
@@ -581,6 +580,7 @@ function initAvatar(root: AvatarRoot) {
   let clickLookThrottleUntil = 0;
   let isPointerDown = false;
   let lastDirectionChangeAt = 0;
+  let globalListenersBound = false;
 
   const render = () => {
     /* Durante el speech, la boca sigue los fonemas; la sonrisa solo en la celebración (cola agotada). */
@@ -768,10 +768,10 @@ function initAvatar(root: AvatarRoot) {
   };
 
   const runAvatarSpeak = async () => {
-    const SpeechBubble = speechBubbleCtor;
+    let SpeechBubble = speechBubbleCtor;
     if (!SpeechBubble) {
-      void loadSpeechBubbleModule();
-      return;
+      const module = await loadSpeechBubbleModule();
+      SpeechBubble = module.SpeechBubble;
     }
 
     const now = performance.now();
@@ -839,24 +839,26 @@ function initAvatar(root: AvatarRoot) {
   };
 
   const handleAvatarSpeak = () => {
+    startInteractions();
     void runAvatarSpeak();
   };
 
   const handleAvatarPointerEnter = (event: PointerEvent) => {
     if (!supportsFinePointer || event.pointerType === 'touch') return;
 
+    startInteractions();
     isAvatarHovered = true;
     pointerX = event.clientX;
     pointerY = event.clientY;
     hasPointer = true;
     void loadSpeechBubbleModule();
-    void loadVoicesModule();
     scheduleDirectionUpdate();
   };
 
   const handleAvatarPointerMove = (event: PointerEvent) => {
     if (!supportsFinePointer || event.pointerType === 'touch') return;
 
+    startInteractions();
     isAvatarHovered = true;
     pointerX = event.clientX;
     pointerY = event.clientY;
@@ -973,6 +975,7 @@ function initAvatar(root: AvatarRoot) {
   };
 
   const handleFocus = () => {
+    startInteractions();
     handlePointerReset();
   };
 
@@ -1010,12 +1013,29 @@ function initAvatar(root: AvatarRoot) {
     render();
   };
 
-  started = true;
-  render();
+  const bindGlobalListeners = () => {
+    if (globalListenersBound) return;
+    globalListenersBound = true;
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true });
+    window.addEventListener('pointermove', handleWindowPointerMove, { passive: true });
+    window.addEventListener('pointerup', handlePointerUp, { passive: true });
+    window.addEventListener('pointercancel', handlePointerUp, { passive: true });
+    window.addEventListener('blur', handlePointerReset);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+    root.addEventListener('avatar:set-mouth', handleSetMouth as EventListener);
+    root.addEventListener('avatar:set-gaze', handleSetGaze as EventListener);
+  };
 
-  startTimer = window.setTimeout(() => {
-    scheduleNextBlink(true);
-  }, 450);
+  const startInteractions = () => {
+    if (started) return;
+    started = true;
+    bindGlobalListeners();
+    render();
+    startTimer = window.setTimeout(() => {
+      scheduleNextBlink(true);
+    }, 450);
+  };
 
   button.addEventListener('click', handleAvatarSpeak);
   button.addEventListener('focus', handleFocus);
@@ -1023,15 +1043,6 @@ function initAvatar(root: AvatarRoot) {
   button.addEventListener('pointerenter', handleAvatarPointerEnter, { passive: true });
   button.addEventListener('pointermove', handleAvatarPointerMove, { passive: true });
   button.addEventListener('pointerleave', handleAvatarPointerLeave);
-  window.addEventListener('pointerdown', handlePointerDown, { passive: true });
-  window.addEventListener('pointermove', handleWindowPointerMove, { passive: true });
-  window.addEventListener('pointerup', handlePointerUp, { passive: true });
-  window.addEventListener('pointercancel', handlePointerUp, { passive: true });
-  window.addEventListener('blur', handlePointerReset);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  window.addEventListener('pagehide', handlePageHide);
-  root.addEventListener('avatar:set-mouth', handleSetMouth as EventListener);
-  root.addEventListener('avatar:set-gaze', handleSetGaze as EventListener);
 
   render();
 
@@ -1042,15 +1053,18 @@ function initAvatar(root: AvatarRoot) {
     button.removeEventListener('pointerenter', handleAvatarPointerEnter);
     button.removeEventListener('pointermove', handleAvatarPointerMove);
     button.removeEventListener('pointerleave', handleAvatarPointerLeave);
-    window.removeEventListener('pointerdown', handlePointerDown);
-    window.removeEventListener('pointermove', handleWindowPointerMove);
-    window.removeEventListener('pointerup', handlePointerUp);
-    window.removeEventListener('pointercancel', handlePointerUp);
-    window.removeEventListener('blur', handlePointerReset);
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-    window.removeEventListener('pagehide', handlePageHide);
-    root.removeEventListener('avatar:set-mouth', handleSetMouth as EventListener);
-    root.removeEventListener('avatar:set-gaze', handleSetGaze as EventListener);
+    if (globalListenersBound) {
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handleWindowPointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
+      window.removeEventListener('blur', handlePointerReset);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+      root.removeEventListener('avatar:set-mouth', handleSetMouth as EventListener);
+      root.removeEventListener('avatar:set-gaze', handleSetGaze as EventListener);
+      globalListenersBound = false;
+    }
     window.clearTimeout(startTimer);
     window.clearTimeout(blinkTimer);
     window.clearTimeout(blinkFollowupTimer);

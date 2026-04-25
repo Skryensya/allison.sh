@@ -1,11 +1,17 @@
 ---
+interface Props {
+  tone?: 'page' | 'home';
+}
+
+const { tone = 'page' } = Astro.props;
 const emailLinkMarkup = `<!--email_off--><a href="mailto:contacto@allison.sh" class="footer-contact-link font-sans text-xl md:text-2xl leading-tight">contacto@allison.sh</a><!--/email_off-->`;
+const colorClass = tone === 'home' ? 'text-home' : 'text-text';
 ---
 
-<div class="relative z-[60]">
+<div class={`relative z-[60] ${colorClass}`}>
   <section id="contacto" aria-labelledby="contacto-heading" class="mb-32 md:mb-40 pt-12 md:pt-16">
     <h2 id="contacto-heading" class="sr-only">Contacto</h2>
-    <p class="font-mono text-[0.82rem] tracking-[0.16em] uppercase text-muted mb-8 md:mb-10">Contacto</p>
+    <p class="font-mono text-[0.82rem] tracking-[0.16em] uppercase mb-8 md:mb-10">Contacto</p>
     <ul class="space-y-3 -mx-2 max-w-[34rem]">
       <li set:html={emailLinkMarkup}></li>
       <li>
@@ -31,14 +37,14 @@ const emailLinkMarkup = `<!--email_off--><a href="mailto:contacto@allison.sh" cl
     </ul>
   </section>
 
-  <footer class="font-mono text-xs tracking-wide text-muted flex items-center justify-between gap-4 pt-5">
+  <footer class="font-mono text-xs tracking-wide flex items-center justify-between gap-4 pt-5">
     <div class="flex items-center gap-3 tabular-nums">
       <p>© 2026 Allison Peña</p>
       <span aria-label="Versión del sitio">v2.0</span>
     </div>
     <button
       id="theme-toggle"
-      class="theme-toggle pointer-events-auto opacity-80 hover:opacity-100 cursor-pointer -mr-1"
+      class="theme-toggle pointer-events-auto opacity-100 cursor-pointer -mr-1"
       aria-label="Cambiar tema"
       title="Cambiar tema"
     >

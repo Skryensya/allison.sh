@@ -73,6 +73,9 @@ const {
   function loadAvatarModule() {
     avatarModulePromise ??= import(avatarClientUrl).then((module) => {
       module.setupAvatars();
+      document.querySelectorAll('.avatar[data-avatar-id] .avatar__button').forEach((button) => {
+        button.dataset.avatarReady = 'true';
+      });
       return module;
     });
 
@@ -96,7 +99,7 @@ const {
         void loadAvatarModule();
       },
       {
-        rootMargin: '160px 0px',
+        rootMargin: '420px 0px',
         threshold: 0.01,
       }
     );
@@ -111,43 +114,37 @@ const {
       if (button.dataset.avatarBootstrapBound === 'true') return;
       button.dataset.avatarBootstrapBound = 'true';
 
-      const prime = () => {
-        void loadAvatarModule();
+      const prime = (event) => {
+        if (button.dataset.avatarReady === 'true') return;
+
+        const shouldReplayClick = event.type === 'click';
+        if (shouldReplayClick) event.preventDefault();
+
+        void loadAvatarModule().then(() => {
+          if (shouldReplayClick && button.isConnected) {
+            button.click();
+          }
+        });
       };
 
       button.addEventListener('pointerenter', prime, { passive: true });
       button.addEventListener('pointerdown', prime, { passive: true });
       button.addEventListener('focus', prime, { passive: true });
+      button.addEventListener('click', prime);
 
     });
   }
 
-  function warmupAvatarModule() {
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(() => {
-        void loadAvatarModule();
-      }, { timeout: 1400 });
-      return;
-    }
-
-    window.setTimeout(() => {
-      void loadAvatarModule();
-    }, 900);
-  }
-
   observeAvatarBoot();
-  warmupAvatarModule();
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       observeAvatarBoot();
-      warmupAvatarModule();
     }, { once: true });
   }
 
   document.addEventListener('astro:page-load', () => {
     observeAvatarBoot();
-    warmupAvatarModule();
   });
 </script>
 

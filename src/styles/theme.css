@@ -51,6 +51,7 @@
   --color-bg: var(--flexoki-paper);
   --color-surface: var(--flexoki-50);
   --color-text: var(--flexoki-black);
+  --color-home-text: var(--color-text);
   --color-muted: var(--flexoki-600);
   --color-subtle: var(--flexoki-700);
   --color-border: var(--flexoki-150);
@@ -76,6 +77,7 @@
   --color-bg: var(--flexoki-black);
   --color-surface: var(--flexoki-950);
   --color-text: var(--flexoki-200);
+  --color-home-text: var(--flexoki-50);
   --color-muted: var(--flexoki-500);
   --color-subtle: var(--flexoki-700);
   --color-border: var(--flexoki-850);

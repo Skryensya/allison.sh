@@ -6,6 +6,7 @@ interface Props {
 }
 
 const { title, description, className = '' } = Astro.props;
+const folderPath = 'M0 60 Q0 0 12 0 H34 C45 0 45 35 58 60 H86 Q100 60 100 104 V392 Q100 400 98 400 H2 Q0 400 0 392 V60 Z';
 ---
 
 <div class={`relative ${className}`} data-folder>
@@ -13,15 +14,16 @@ const { title, description, className = '' } = Astro.props;
     <svg
       data-folder-svg
       height="400"
+      viewBox="0 0 100 400"
       class="block w-full"
       aria-hidden="true"
       preserveAspectRatio="none"
     >
       <!-- Fill only -->
-      <path data-folder-fill-path fill="var(--folder-fill, var(--folder-base-fill, var(--color-bg)))"></path>
+      <path data-folder-fill-path fill="var(--folder-fill, var(--folder-base-fill, var(--color-bg)))" d={folderPath}></path>
     </svg>
 
-    <!-- Text overlay (doesn't affect layout; JS will grow the SVG when needed) -->
+    <!-- Text overlay sits above the static folder shape. -->
     <div data-folder-text-layer class="pointer-events-none absolute inset-0 z-[2]">
       <div
         data-folder-label
@@ -86,8 +88,8 @@ const { title, description, className = '' } = Astro.props;
 
   /* Sombra hacia arriba (overrideable from outside via --folder-shadow-filter) */
   [data-folder-svg] {
+    height: var(--folder-min-h);
     transition: filter 180ms cubic-bezier(0.23, 1, 0.32, 1);
-    will-change: filter;
 
     filter: var(
       --folder-shadow-filter,
@@ -104,7 +106,6 @@ const { title, description, className = '' } = Astro.props;
 
     [data-folder-svg] {
       filter: none !important;
-      will-change: auto;
     }
   }
 

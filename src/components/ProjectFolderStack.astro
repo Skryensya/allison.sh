@@ -44,8 +44,6 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     --folder-gap: 58px;
     --folder-lift: 10px;
     --stack-compress-step: 12px;
-    /* Debe coincidir con FOLDER_GEOMETRY.bottomPadding en folder-shapes-client.ts */
-    --folder-shape-bottom-padding: 26px;
     position: relative;
     list-style: none;
     padding: 0;
@@ -110,7 +108,6 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     --preview-right-hover-y: -198px;
     --preview-right-hover-rot: 2.2deg;
     transform: translate3d(0, 0, 0);
-    will-change: transform;
   }
 
   .project-folder-card + .project-folder-card {
@@ -160,7 +157,6 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     );
     opacity: 0;
     transition: opacity 1ms linear;
-    will-change: opacity;
     pointer-events: none;
     z-index: 1002;
   }
@@ -178,7 +174,6 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     transform-origin: 50% 114%;
     transition: transform 200ms var(--ease-return);
     transition-delay: 0ms;
-    will-change: transform;
     backface-visibility: hidden;
   }
 
@@ -214,7 +209,6 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
 
   .project-folder-card [data-folder-svg] {
     transition: filter 200ms var(--ease-return);
-    will-change: filter;
     filter: var(
       --folder-shadow-filter,
       drop-shadow(0 -7px 13px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 5%, transparent))
@@ -261,7 +255,6 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     transform-origin: 50% 100%;
     opacity: 0;
     visibility: visible;
-    will-change: transform, opacity;
     transition-property: opacity, transform;
     transition-duration: 60ms, 150ms;
     transition-timing-function: var(--ease-color), var(--ease-preview-return);
@@ -509,7 +502,6 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
 
     .project-folder-card [data-folder-svg] {
       filter: none !important;
-      will-change: auto;
     }
   }
 

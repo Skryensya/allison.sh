@@ -1,5 +1,6 @@
 ---
 import Base from './Base.astro';
+import clientModules from '@/generated/client-modules.json';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import { getOgImagePath, getTwitterImagePath } from '@/lib/seo';
@@ -91,18 +92,17 @@ const mainStyle = `--project-page-accent:${accent}`;
       </div>
     </div>
 
-    <script is:inline>
+    <script is:inline define:vars={{ projectLightboxClientUrl: clientModules['project-lightbox-client'] }}>
       (function () {
         function initProjectGlow() {
           var shell = document.querySelector('[data-project-page-shell]');
           if (!shell) return;
-          var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-          if (reduceMotion.matches) {
-            shell.style.setProperty('--project-page-glow-opacity', '0');
-            return;
-          }
 
+          var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+          var controller = new AbortController();
+          var signal = controller.signal;
           var raf = 0;
+          var lastKey = '';
 
           function clamp(value, min, max) {
             return Math.min(max, Math.max(min, value));
@@ -113,300 +113,122 @@ const mainStyle = `--project-page-accent:${accent}`;
             return t * t * (3 - 2 * t);
           }
 
-          function cubicBezier(value, x1, y1, x2, y2) {
-            var x = clamp(value, 0, 1);
-            var t = x;
-
-            for (var i = 0; i < 5; i += 1) {
-              var omt = 1 - t;
-              var currentX = 3 * omt * omt * t * x1 + 3 * omt * t * t * x2 + t * t * t;
-              var derivativeX = 3 * omt * omt * x1 + 6 * omt * t * (x2 - x1) + 3 * t * t * (1 - x2);
-              if (Math.abs(derivativeX) < 0.001) break;
-              t = clamp(t - (currentX - x) / derivativeX, 0, 1);
-            }
-
-            var omt = 1 - t;
-            return 3 * omt * omt * t * y1 + 3 * omt * t * t * y2 + t * t * t;
+          function setVar(name, value) {
+            shell.style.setProperty(name, value);
           }
 
-          function update() {
+          function updateGlow() {
             raf = 0;
+
+            if (reduceMotion.matches) {
+              if (lastKey !== 'reduced') {
+                lastKey = 'reduced';
+                setVar('--project-page-glow-opacity', '0');
+              }
+              return;
+            }
+
             var doc = document.documentElement;
             var maxScroll = Math.max(1, doc.scrollHeight - window.innerHeight);
             var progress = clamp((window.scrollY || window.pageYOffset || 0) / maxScroll, 0, 1);
-            var motionStage = smoothstep(progress);
-            var intensityStage = cubicBezier(progress, 0.58, 0, 0.24, 1);
+            var bucket = Math.round(progress * 1000);
             var isDark = doc.classList.contains('dark');
-            var maxOpacity = isDark ? 0.42 : 0.28;
+            var key = bucket + ':' + (isDark ? 'dark' : 'light');
+
+            if (key === lastKey) return;
+            lastKey = key;
+
+            var p = bucket / 1000;
+            var motion = smoothstep(p);
+            var intensity = smoothstep(p * 0.92 + 0.04);
             var baseOpacity = isDark ? 0.12 : 0.07;
+            var maxOpacity = isDark ? 0.42 : 0.28;
 
-            shell.style.setProperty('--project-page-glow-opacity', (baseOpacity + intensityStage * (maxOpacity - baseOpacity)).toFixed(3));
-            shell.style.setProperty('--project-page-glow-scale', (0.98 + motionStage * 0.09).toFixed(3));
-            shell.style.setProperty('--project-page-glow-rise', (motionStage * -8).toFixed(2) + 'vh');
-            shell.style.setProperty('--project-page-glow-rise-soft', (motionStage * -4).toFixed(2) + 'vh');
-            shell.style.setProperty('--project-page-glow-drift', ((motionStage - 0.5) * 24).toFixed(1) + 'px');
-            shell.style.setProperty('--project-page-glow-core-opacity', (isDark ? 0.42 + intensityStage * 0.12 : 0.32 + intensityStage * 0.1).toFixed(3));
-            shell.style.setProperty('--project-page-glow-veil-opacity', (isDark ? 0.24 + intensityStage * 0.11 : 0.17 + intensityStage * 0.09).toFixed(3));
-            shell.style.setProperty('--project-page-glow-lick-opacity', (isDark ? 0.18 + intensityStage * 0.1 : 0.13 + intensityStage * 0.08).toFixed(3));
+            setVar('--project-page-glow-opacity', (baseOpacity + intensity * (maxOpacity - baseOpacity)).toFixed(3));
+            setVar('--project-page-glow-scale', (0.98 + motion * 0.09).toFixed(3));
+            setVar('--project-page-glow-rise', (motion * -8).toFixed(2) + 'vh');
+            setVar('--project-page-glow-rise-soft', (motion * -4).toFixed(2) + 'vh');
+            setVar('--project-page-glow-drift', ((motion - 0.5) * 24).toFixed(1) + 'px');
+            setVar('--project-page-glow-core-opacity', (isDark ? 0.42 + intensity * 0.12 : 0.32 + intensity * 0.1).toFixed(3));
+            setVar('--project-page-glow-veil-opacity', (isDark ? 0.24 + intensity * 0.11 : 0.17 + intensity * 0.09).toFixed(3));
+            setVar('--project-page-glow-lick-opacity', (isDark ? 0.18 + intensity * 0.1 : 0.13 + intensity * 0.08).toFixed(3));
           }
 
-          function schedule() {
+          function scheduleGlow(force) {
+            if (!force && document.hidden) return;
             if (raf) return;
-            raf = window.requestAnimationFrame(update);
+            raf = window.requestAnimationFrame(updateGlow);
           }
 
-          update();
-          window.addEventListener('scroll', schedule, { passive: true });
-          window.addEventListener('resize', schedule);
-
-          var themeObserver = new MutationObserver(schedule);
-          themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-
+          updateGlow();
+          window.addEventListener('scroll', function () { scheduleGlow(false); }, { passive: true, signal: signal });
+          window.addEventListener('resize', function () { scheduleGlow(true); }, { signal: signal });
+          reduceMotion.addEventListener?.('change', function () { scheduleGlow(true); }, { signal: signal });
+          document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) scheduleGlow(true);
+          }, { signal: signal });
+          document.addEventListener('click', function (event) {
+            if (!(event.target instanceof Element) || !event.target.closest('#theme-toggle')) return;
+            window.setTimeout(function () { scheduleGlow(true); }, 0);
+          }, { signal: signal });
           window.addEventListener('pagehide', function () {
+            controller.abort();
             if (raf) window.cancelAnimationFrame(raf);
-            themeObserver.disconnect();
           }, { once: true });
+        }
+
+        var projectLightboxPromise;
+
+        function loadProjectLightbox() {
+          if (!projectLightboxClientUrl) return Promise.resolve();
+          projectLightboxPromise ??= import(projectLightboxClientUrl);
+          return projectLightboxPromise;
+        }
+
+        function prepareProjectFigures() {
+          var figures = document.querySelectorAll('[data-figure-root]');
+          figures.forEach(function (fig, i) {
+            var frame = fig.querySelector('[data-figure-frame]');
+            if (!frame) return;
+
+            if (!fig.dataset.side) fig.dataset.side = i % 2 === 0 ? 'right' : 'left';
+            if (!frame.style.transitionDelay) frame.style.transitionDelay = (i * 150) + 'ms';
+            frame.setAttribute('tabindex', '0');
+            frame.setAttribute('role', 'button');
+            frame.setAttribute('aria-label', 'Ampliar imagen');
+
+            if (frame.dataset.lightboxLoaderBound === 'true') return;
+            frame.dataset.lightboxLoaderBound = 'true';
+
+            var prime = function (event) {
+              if (window.__projectLightboxLoaded || frame.dataset.lightboxReady === 'true') return;
+
+              var shouldReplay = event.type === 'click';
+              if (event.type === 'keydown') {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                shouldReplay = true;
+              }
+
+              if (shouldReplay) event.preventDefault();
+              void loadProjectLightbox().then(function () {
+                if (shouldReplay && frame.isConnected) frame.click();
+              });
+            };
+
+            frame.addEventListener('pointerenter', prime, { passive: true });
+            frame.addEventListener('focus', prime, { passive: true });
+            frame.addEventListener('click', prime);
+            frame.addEventListener('keydown', prime);
+          });
         }
 
         function init() {
           initProjectGlow();
-
-          var figures = document.querySelectorAll('[data-figure-root]');
-          if (!figures.length) return;
-
-          // Assign staggered sides, fade in with delay
-          figures.forEach(function (fig, i) {
-            var frame = fig.querySelector('[data-figure-frame]');
-            if (frame) frame.style.transitionDelay = (i * 150) + 'ms';
-            fig.dataset.side = i % 2 === 0 ? 'right' : 'left';
-          });
-
-          var isOpen = false;
-          var overlay = null;
-          var closeButton = null;
-          var flyingClone = null;
-          var activeFrame = null;
-          var onKeyDown = null;
-          var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-          function getOverlay() {
-            if (overlay) return overlay;
-            overlay = document.createElement('div');
-            overlay.className =
-              'lightbox-overlay fixed inset-0 z-[250] opacity-0 pointer-events-none transition-opacity duration-[240ms] ease-out data-[open]:opacity-100 data-[open]:pointer-events-auto motion-reduce:transition-none';
-            overlay.setAttribute('aria-hidden', 'true');
-            overlay.innerHTML = [
-              '<span class="lightbox-overlay__shade"></span>',
-              '<span class="lightbox-overlay__shader lightbox-overlay__shader--a"></span>',
-              '<span class="lightbox-overlay__shader lightbox-overlay__shader--b"></span>',
-              '<span class="lightbox-overlay__grain"></span>'
-            ].join('');
-            document.body.appendChild(overlay);
-            overlay.addEventListener('click', closeExpanded);
-            return overlay;
-          }
-
-          function getCloseButton() {
-            if (closeButton) return closeButton;
-            closeButton = document.createElement('button');
-            closeButton.setAttribute('type', 'button');
-            closeButton.setAttribute('data-lightbox-close', '');
-            closeButton.setAttribute('aria-label', 'Cerrar imagen');
-            closeButton.className =
-              'group fixed top-5 right-5 z-[270] inline-flex h-11 w-11 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--color-text)_18%,transparent)] bg-[color:color-mix(in_srgb,var(--color-bg)_72%,transparent)] text-[color:color-mix(in_srgb,var(--color-text)_76%,transparent)] opacity-0 pointer-events-none select-none shadow-[0_10px_30px_color-mix(in_srgb,var(--color-text)_8%,transparent),0_1px_0_color-mix(in_srgb,var(--color-bg)_65%,transparent)_inset] backdrop-blur-md supports-[backdrop-filter]:bg-[color:color-mix(in_srgb,var(--color-bg)_58%,transparent)] transition-[opacity,color,border-color,background-color,transform,box-shadow] duration-150 ease-out data-[open]:opacity-100 data-[open]:pointer-events-auto hover:border-[color:color-mix(in_srgb,var(--color-text)_30%,transparent)] hover:bg-[color:color-mix(in_srgb,var(--color-bg)_52%,transparent)] hover:text-[var(--color-text)] hover:shadow-[0_14px_36px_color-mix(in_srgb,var(--color-text)_10%,transparent),0_1px_0_color-mix(in_srgb,var(--color-bg)_72%,transparent)_inset] active:scale-[0.96] focus-visible:border-[color:color-mix(in_srgb,var(--color-text)_38%,transparent)] focus-visible:text-[var(--color-text)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-[color:color-mix(in_srgb,var(--color-text)_24%,transparent)] focus-visible:outline-offset-[4px] motion-reduce:transition-none';
-            closeButton.innerHTML = '<span aria-hidden="true" class="pointer-events-none inline-flex items-center justify-center transition-transform duration-150 ease-out motion-reduce:transition-none group-active:scale-[0.96]"><svg width="14" height="14" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg></span>';
-            closeButton.addEventListener('click', function (e) {
-              e.stopPropagation();
-              closeExpanded();
-            });
-            document.body.appendChild(closeButton);
-            return closeButton;
-          }
-
-          function getExpandedMetrics(frame) {
-            var sourceRect = frame.getBoundingClientRect();
-            var measure = frame.cloneNode(true);
-            measure.classList.add('is-flying');
-            measure.style.cssText = [
-              'position:fixed',
-              'top:0',
-              'left:0',
-              'width:min(92vw, 900px)',
-              'margin:0',
-              'z-index:-1',
-              'opacity:0',
-              'pointer-events:none',
-              'transform:none',
-              'transition:none',
-            ].join(';');
-            document.body.appendChild(measure);
-
-            var media = measure.querySelector('[data-figure-media]');
-            var caption = measure.querySelector('[data-figure-caption]');
-            var imageAspect = media.offsetHeight / media.offsetWidth;
-            var captionH = caption ? caption.offsetHeight : 0;
-            var isMobile = window.innerWidth < 768;
-            var maxW = isMobile ? window.innerWidth * 0.92 : Math.min(window.innerWidth * 0.72, 900);
-            var maxWidthFromHeight = (window.innerHeight * 0.85 - captionH) / imageAspect;
-            var width = Math.max(sourceRect.width, Math.min(maxW, maxWidthFromHeight));
-            measure.style.width = width + 'px';
-            var height = measure.offsetHeight;
-            measure.remove();
-
-            return {
-              sourceRect: sourceRect,
-              targetWidth: width,
-              targetHeight: height,
-              targetLeft: (window.innerWidth - width) / 2,
-              targetTop: Math.max(isMobile ? 64 : 32, (window.innerHeight - height) / 2),
-            };
-          }
-
-          function openExpanded(frame) {
-            if (isOpen) return;
-            isOpen = true;
-            activeFrame = frame;
-
-            var metrics = getExpandedMetrics(frame);
-            var rect = metrics.sourceRect;
-
-            var ov = getOverlay();
-            requestAnimationFrame(function () {
-              ov.setAttribute('data-open', '');
-            });
-
-            var clone = frame.cloneNode(true);
-            clone.classList.add('is-flying');
-            clone.style.cssText = [
-              'position:fixed',
-              'top:' + metrics.targetTop + 'px',
-              'left:' + metrics.targetLeft + 'px',
-              'width:' + metrics.targetWidth + 'px',
-              'margin:0',
-              'z-index:260',
-              'opacity:1',
-              'transform-origin:top left',
-              'will-change:transform,opacity',
-              'transition:none',
-              'transition-delay:0ms',
-            ].join(';');
-
-            var startX = rect.left - metrics.targetLeft;
-            var startY = rect.top - metrics.targetTop;
-            var startScale = rect.width / metrics.targetWidth;
-            clone.style.transform = 'translate3d(' + startX + 'px, ' + startY + 'px, 0) scale(' + startScale + ')';
-            document.body.appendChild(clone);
-            flyingClone = clone;
-
-            var closeBtn = getCloseButton();
-            closeBtn.setAttribute('data-open', '');
-
-            frame.style.transition = 'none';
-            frame.style.opacity = '0';
-
-            var shouldReduce = reduceMotion.matches;
-            var ease = 'cubic-bezier(0.19, 1, 0.22, 1)';
-            var dur = shouldReduce ? '1ms' : '360ms';
-
-            requestAnimationFrame(function () {
-              clone.style.transition = [
-                'transform ' + dur + ' ' + ease,
-                'opacity ' + dur + ' ease-out'
-              ].join(',');
-              clone.style.transform = 'translate3d(0, 0, 0) scale(1)';
-              closeBtn.focus();
-            });
-
-            onKeyDown = function (e) { if (e.key === 'Escape') closeExpanded(); };
-            document.addEventListener('keydown', onKeyDown);
-            var scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-            document.body.style.paddingRight = scrollbarWidth + 'px';
-            document.documentElement.style.overflow = 'hidden';
-          }
-
-          function closeExpanded() {
-            if (!isOpen || !flyingClone || !activeFrame) return;
-
-            var clone = flyingClone;
-            var frame = activeFrame;
-            var ov = overlay;
-            var closeBtn = closeButton;
-            var shouldReduce = reduceMotion.matches;
-
-            if (closeBtn) closeBtn.removeAttribute('data-open');
-
-            frame.style.transition = shouldReduce ? 'opacity 1ms linear' : 'opacity 140ms ease-out';
-            frame.style.transitionDelay = shouldReduce ? '0ms' : '140ms';
-            frame.style.opacity = '';
-
-            if (ov) ov.removeAttribute('data-open');
-
-            var origRect = frame.getBoundingClientRect();
-            var cloneRect = clone.getBoundingClientRect();
-            var endX = origRect.left - cloneRect.left;
-            var endY = origRect.top - cloneRect.top;
-            var endScale = origRect.width / cloneRect.width;
-            var easeOut = 'cubic-bezier(0.19, 1, 0.22, 1)';
-            var dur = shouldReduce ? '1ms' : '380ms';
-
-            clone.style.transition = [
-              'transform ' + dur + ' ' + easeOut,
-              'opacity ' + (shouldReduce ? '1ms linear' : '160ms ease-out 180ms')
-            ].join(',');
-            clone.style.transform = 'translate3d(' + endX + 'px, ' + endY + 'px, 0) scale(' + endScale + ')';
-            clone.style.opacity = shouldReduce ? '0' : '0.08';
-
-            function cleanup() {
-              clone.remove();
-              frame.style.transition = 'none';
-              frame.style.transitionDelay = '';
-              requestAnimationFrame(function () {
-                frame.style.transition = '';
-              });
-              frame.focus();
-              document.documentElement.style.overflow = '';
-              document.body.style.paddingRight = '';
-              isOpen = false;
-              flyingClone = null;
-              activeFrame = null;
-            }
-
-            function onTransitionEnd(e) {
-              if (e.propertyName !== 'transform') return;
-              clone.removeEventListener('transitionend', onTransitionEnd);
-              cleanup();
-            }
-
-            if (shouldReduce) {
-              requestAnimationFrame(cleanup);
-            } else {
-              clone.addEventListener('transitionend', onTransitionEnd);
-            }
-
-            if (onKeyDown) {
-              document.removeEventListener('keydown', onKeyDown);
-              onKeyDown = null;
-            }
-          }
-
-          figures.forEach(function (fig) {
-            var frame = fig.querySelector('[data-figure-frame]');
-            if (!frame) return;
-            frame.setAttribute('tabindex', '0');
-            frame.setAttribute('role', 'button');
-            frame.setAttribute('aria-label', 'Ampliar imagen');
-            frame.addEventListener('click', function () { openExpanded(frame); });
-            frame.addEventListener('keydown', function (e) {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openExpanded(frame);
-              }
-            });
-          });
+          prepareProjectFigures();
         }
 
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', init);
+          document.addEventListener('DOMContentLoaded', init, { once: true });
         } else {
           init();
         }
@@ -440,7 +262,6 @@ const mainStyle = `--project-page-accent:${accent}`;
         transition:
           opacity 160ms ease,
           transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
-        will-change: opacity, transform;
       }
 
       .project-page-glow::before,
@@ -450,7 +271,6 @@ const mainStyle = `--project-page-accent:${accent}`;
         left: 50%;
         bottom: 0;
         pointer-events: none;
-        will-change: opacity, transform;
       }
 
       .project-page-glow::before {
@@ -581,7 +401,6 @@ const mainStyle = `--project-page-accent:${accent}`;
         opacity: 0;
         pointer-events: none;
         transform-origin: 50% 100%;
-        will-change: opacity, transform;
       }
 
       .project-page-glow__lick--a {
@@ -781,7 +600,6 @@ const mainStyle = `--project-page-accent:${accent}`;
         .project-page-glow {
           opacity: 0;
           transition: none;
-          will-change: auto;
         }
 
         .project-page-glow::before,
@@ -875,159 +693,6 @@ const mainStyle = `--project-page-accent:${accent}`;
         }
       }
 
-      :global(.lightbox-overlay) {
-        background:
-          radial-gradient(circle at 50% 50%, var(--lightbox-vignette) 0%, transparent 60%),
-          var(--lightbox-core);
-        overflow: hidden;
-        isolation: isolate;
-        backdrop-filter: blur(12px) saturate(0.9) contrast(0.96);
-        -webkit-backdrop-filter: blur(12px) saturate(0.9) contrast(0.96);
-      }
-
-      :global(html.dark .lightbox-overlay) {
-        backdrop-filter: blur(14px) saturate(1) contrast(0.98);
-        -webkit-backdrop-filter: blur(14px) saturate(1) contrast(0.98);
-      }
-
-      :global(.lightbox-overlay > span) {
-        position: absolute;
-        inset: 0;
-        display: block;
-        pointer-events: none;
-      }
-
-      :global(.lightbox-overlay__shade) {
-        background:
-          radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--color-text) 10%, transparent) 0%, transparent 24%),
-          radial-gradient(circle at 50% 50%, var(--lightbox-shade-core) 0%, transparent 66%);
-        opacity: 0.4;
-      }
-
-      :global(html.dark .lightbox-overlay__shade) {
-        background:
-          radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--color-text) 8%, transparent) 0%, transparent 24%),
-          radial-gradient(circle at 50% 50%, var(--lightbox-shade-core) 0%, transparent 68%);
-        opacity: 0.52;
-      }
-
-      :global(.lightbox-overlay__shader) {
-        inset: -18%;
-        filter: blur(78px) saturate(1.18);
-        transform: translate3d(0, 0, 0) scale(1.04);
-        will-change: transform, opacity, filter;
-      }
-
-      :global(.lightbox-overlay__shader--a) {
-        background:
-          radial-gradient(42% 38% at 18% 28%, color-mix(in srgb, var(--lightbox-ink-1) 34%, transparent) 0%, transparent 68%),
-          radial-gradient(34% 30% at 74% 20%, color-mix(in srgb, var(--lightbox-ink-2) 28%, transparent) 0%, transparent 72%),
-          radial-gradient(38% 44% at 58% 78%, color-mix(in srgb, var(--lightbox-ink-3) 24%, transparent) 0%, transparent 70%),
-          radial-gradient(30% 34% at 84% 72%, color-mix(in srgb, var(--color-text) 10%, transparent) 0%, transparent 74%);
-        opacity: 0.24;
-        mix-blend-mode: screen;
-        animation: lightboxLiquidDriftA 20s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
-      }
-
-      :global(.lightbox-overlay__shader--b) {
-        background:
-          radial-gradient(36% 34% at 26% 72%, color-mix(in srgb, var(--lightbox-ink-2) 24%, transparent) 0%, transparent 70%),
-          radial-gradient(46% 40% at 68% 46%, color-mix(in srgb, var(--lightbox-ink-1) 18%, transparent) 0%, transparent 68%),
-          radial-gradient(28% 32% at 48% 14%, color-mix(in srgb, var(--lightbox-ink-3) 18%, transparent) 0%, transparent 72%),
-          conic-gradient(from 120deg at 50% 50%, transparent 0deg, color-mix(in srgb, var(--lightbox-ink-1) 14%, transparent) 90deg, transparent 175deg, color-mix(in srgb, var(--lightbox-ink-2) 12%, transparent) 250deg, transparent 360deg);
-        opacity: 0.18;
-        mix-blend-mode: color-dodge;
-        filter: blur(92px) saturate(1.25);
-        animation: lightboxLiquidDriftB 26s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
-      }
-
-      :global(html.dark .lightbox-overlay__shader--a) {
-        opacity: 0.3;
-      }
-
-      :global(html.dark .lightbox-overlay__shader--b) {
-        opacity: 0.22;
-        filter: blur(96px) saturate(1.32);
-      }
-
-      :global(.lightbox-overlay__grain) {
-        inset: -30%;
-        opacity: 0.03;
-        mix-blend-mode: soft-light;
-        background-image:
-          radial-gradient(circle at 20% 20%, rgba(255,255,255,0.9) 0 0.7px, transparent 1px),
-          radial-gradient(circle at 80% 30%, rgba(255,255,255,0.65) 0 0.7px, transparent 1px),
-          radial-gradient(circle at 30% 80%, rgba(255,255,255,0.65) 0 0.7px, transparent 1px),
-          radial-gradient(circle at 70% 70%, rgba(255,255,255,0.5) 0 0.7px, transparent 1px);
-        background-size: 24px 24px, 31px 31px, 27px 27px, 35px 35px;
-        animation: lightboxGrainDrift 16s linear infinite;
-      }
-
-      @keyframes lightboxLiquidDriftA {
-        0% {
-          transform: translate3d(-4%, -3%, 0) scale(1.02) rotate(0deg);
-          opacity: 0.14;
-          filter: blur(68px) saturate(1.08);
-        }
-        25% {
-          transform: translate3d(2%, 1%, 0) scale(1.08) rotate(4deg);
-          opacity: 0.2;
-          filter: blur(76px) saturate(1.14);
-        }
-        50% {
-          transform: translate3d(5%, -2%, 0) scale(1.12) rotate(10deg);
-          opacity: 0.18;
-          filter: blur(82px) saturate(1.18);
-        }
-        75% {
-          transform: translate3d(1%, 4%, 0) scale(1.06) rotate(5deg);
-          opacity: 0.22;
-          filter: blur(74px) saturate(1.12);
-        }
-        100% {
-          transform: translate3d(-3%, 2%, 0) scale(1.1) rotate(-3deg);
-          opacity: 0.16;
-          filter: blur(78px) saturate(1.1);
-        }
-      }
-
-      @keyframes lightboxLiquidDriftB {
-        0% {
-          transform: translate3d(5%, -2%, 0) scale(1.04) rotate(0deg);
-          opacity: 0.1;
-        }
-        30% {
-          transform: translate3d(-2%, 3%, 0) scale(1.1) rotate(-6deg);
-          opacity: 0.14;
-        }
-        60% {
-          transform: translate3d(-5%, -1%, 0) scale(1.06) rotate(-12deg);
-          opacity: 0.11;
-        }
-        100% {
-          transform: translate3d(3%, 4%, 0) scale(1.12) rotate(-4deg);
-          opacity: 0.15;
-        }
-      }
-
-      @keyframes lightboxGrainDrift {
-        0% {
-          transform: translate3d(0, 0, 0) scale(1);
-        }
-        50% {
-          transform: translate3d(4%, 3%, 0) scale(1.02);
-        }
-        100% {
-          transform: translate3d(8%, 6%, 0) scale(1);
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        :global(.lightbox-overlay__shader),
-        :global(.lightbox-overlay__grain) {
-          animation: none;
-        }
-      }
     </style>
 
   </main>

@@ -1,8 +1,8 @@
 {
-  "base-client": "/client/base-client-E2QFMQAN.js",
-  "folder-shapes-client": "/client/folder-shapes-client-TNOVCRLM.js",
-  "project-folder-stack-client": "/client/project-folder-stack-client-OJSOP46S.js",
-  "avatar-client": "/client/avatar-client-MJAXMDWN.js",
+  "base-client": "/client/base-client-G73QBWNH.js",
+  "project-folder-stack-client": "/client/project-folder-stack-client-HDDRGRVH.js",
+  "project-lightbox-client": "/client/project-lightbox-client-PVEQVZ5N.js",
+  "avatar-client": "/client/avatar-client-QQ4GEJI5.js",
   "voices": "/client/chunks/voices-NBLWGTRX.js",
-  "speech-bubble": "/client/chunks/speech-bubble-52WJUSBC.js"
+  "speech-bubble": "/client/chunks/speech-bubble-3VYKXACE.js"
 }

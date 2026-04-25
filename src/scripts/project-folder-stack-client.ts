@@ -338,109 +338,69 @@ function setupProjectFolderStacks() {
         return;
       }
 
-      const ACTIVE_LINE = 0.42;
-      const MIN_VISIBLE_RATIO = 0.5;
-      let metricsReady = false;
-      let stackTop = 0;
-      let stackBottom = 0;
-      let itemTops: number[] = [];
-
-      function recalcMetrics() {
-        const sy = window.scrollY || window.pageYOffset || 0;
-        const rect = stack.getBoundingClientRect();
-        stackTop = rect.top + sy;
-        stackBottom = rect.bottom + sy;
-        itemTops = items.map((item) => stackTop + item.offsetTop);
-        metricsReady = true;
+      if (!('IntersectionObserver' in window)) {
+        setActive(items[0]);
+        return;
       }
 
-      function visibleHeight(sy: number, vh: number) {
-        return Math.max(0, Math.min(stackBottom, sy + vh) - Math.max(stackTop, sy));
-      }
+      const activeCandidates = new Map<HTMLElement, number>();
+      let selectRaf = 0;
 
-      function pickActive() {
-        const vh = window.innerHeight || 0;
-        const sy = window.scrollY || window.pageYOffset || 0;
-        if (!vh) return;
-        if (!metricsReady) recalcMetrics();
+      function selectActiveCandidate() {
+        selectRaf = 0;
 
-        if (visibleHeight(sy, vh) < vh * MIN_VISIBLE_RATIO) {
-          clearActive();
-          return;
-        }
-
-        const yDoc = sy + vh * ACTIVE_LINE;
-        let lo = 0;
-        let hi = itemTops.length - 1;
-        let ans = 0;
-
-        while (lo <= hi) {
-          const mid = (lo + hi) >> 1;
-          if (itemTops[mid] <= yDoc) {
-            ans = mid;
-            lo = mid + 1;
-          } else {
-            hi = mid - 1;
-          }
-        }
-
-        setActive(items[ans]);
-      }
-
-      let pickRaf = 0;
-      let recalcRaf = 0;
-
-      function schedulePick() {
-        if (pickRaf) return;
-        pickRaf = window.requestAnimationFrame(() => {
-          pickRaf = 0;
-          pickActive();
+        let bestItem: HTMLElement | null = null;
+        let bestScore = 0;
+        activeCandidates.forEach((score, item) => {
+          if (score <= bestScore) return;
+          bestItem = item;
+          bestScore = score;
         });
-      }
 
-      function scheduleRecalc() {
-        if (recalcRaf) return;
-        recalcRaf = window.requestAnimationFrame(() => {
-          recalcRaf = 0;
-          recalcMetrics();
-          pickActive();
-        });
-      }
-
-      function onScroll() {
-        const vh = window.innerHeight || 0;
-        const sy = window.scrollY || window.pageYOffset || 0;
-        if (!vh) return;
-
-        if (!metricsReady) {
-          scheduleRecalc();
-          return;
-        }
-
-        if (sy + vh < stackTop - vh || sy > stackBottom + vh) {
+        if (bestItem) {
+          setActive(bestItem);
+        } else {
           clearActive();
-          return;
         }
-
-        schedulePick();
       }
 
-      const ro = new ResizeObserver(scheduleRecalc);
-      runtime.observers.push(ro);
-      ro.observe(stack);
+      function scheduleSelectActiveCandidate() {
+        if (selectRaf) return;
+        selectRaf = window.requestAnimationFrame(selectActiveCandidate);
+      }
 
-      window.addEventListener('scroll', onScroll, { passive: true, signal: ac.signal });
-      window.addEventListener('resize', scheduleRecalc, { signal: ac.signal });
-      window.addEventListener('load', scheduleRecalc, { once: true, signal: ac.signal });
-      void (document as any).fonts?.ready?.then(scheduleRecalc).catch(() => {});
+      const activeObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!(entry.target instanceof HTMLElement)) return;
+            if (entry.isIntersecting) {
+              activeCandidates.set(entry.target, entry.intersectionRatio || 1);
+            } else {
+              activeCandidates.delete(entry.target);
+            }
+          });
+          scheduleSelectActiveCandidate();
+        },
+        {
+          root: null,
+          rootMargin: '-38% 0px -46% 0px',
+          threshold: [0, 0.2, 0.45, 0.7, 1],
+        }
+      );
+
+      runtime.observers.push(activeObserver);
+      items.forEach((item) => activeObserver.observe(item));
 
       ac.signal.addEventListener('abort', () => {
         openTimers.forEach((timer) => window.clearTimeout(timer));
         openTimers.clear();
+        closeTimers.forEach((timer) => window.clearTimeout(timer));
+        closeTimers.clear();
+        previewStateTimers.forEach((timer) => window.clearTimeout(timer));
+        previewStateTimers.clear();
+        activeCandidates.clear();
+        if (selectRaf) window.cancelAnimationFrame(selectRaf);
       });
-
-      recalcMetrics();
-      pickActive();
     });
   }
 

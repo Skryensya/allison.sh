@@ -10,7 +10,6 @@ interface Props {
   gradient?: boolean;
   gradientClassName?: string;
   minHeight?: string;
-  svgHeight?: string;
   active?: boolean;
   year?: string;
   metaSlotClassName?: string;
@@ -28,7 +27,6 @@ const {
   gradient = false,
   gradientClassName = '',
   minHeight,
-  svgHeight,
   active = false,
   year,
   metaSlotClassName = '',
@@ -41,6 +39,7 @@ if (minHeight) styleParts.push(`--folder-min-h:${minHeight}`);
 const style = styleParts.length ? styleParts.join('; ') : undefined;
 
 const yearTopClass = description ? 'top-[128px] md:top-[136px]' : 'top-[84px] md:top-[92px]';
+const folderPath = 'M0 60 Q0 0 12 0 H34 C45 0 45 35 58 60 H86 Q100 60 100 104 V392 Q100 400 98 400 H2 Q0 400 0 392 V60 Z';
 ---
 
 <div class={`folder-surface ${rootClassName} ${className}`.trim()} data-folder data-active={active ? 'true' : undefined} style={style}>
@@ -49,7 +48,8 @@ const yearTopClass = description ? 'top-[128px] md:top-[136px]' : 'top-[84px] md
   <div data-folder-shell class="folder-surface__shell relative">
     <svg
       data-folder-svg
-      height={svgHeight ?? minHeight ?? '400'}
+      height="400"
+      viewBox="0 0 100 400"
       class="folder-surface__svg block w-full"
       aria-hidden="true"
       preserveAspectRatio="none"
@@ -60,7 +60,7 @@ const yearTopClass = description ? 'top-[128px] md:top-[136px]' : 'top-[84px] md
           <stop offset="100%" style={`stop-color:${active ? 'var(--folder-hover-fill-bottom, var(--folder-fill-bottom, var(--folder-base-fill, var(--color-bg))))' : 'var(--folder-fill-bottom, var(--folder-base-fill, var(--color-bg)))'}`} />
         </linearGradient>
       </defs>
-      <path data-folder-fill-path fill={`url(#${gradientId})`}></path>
+      <path data-folder-fill-path fill={`url(#${gradientId})`} d={folderPath}></path>
     </svg>
 
     <div data-folder-text-layer class="folder-surface__text-layer pointer-events-none absolute inset-0 z-[2]">
@@ -140,13 +140,19 @@ const yearTopClass = description ? 'top-[128px] md:top-[136px]' : 'top-[84px] md
   }
 
   .folder-surface [data-folder-svg] {
+    height: var(--folder-min-h);
     transition: filter 180ms cubic-bezier(0.23, 1, 0.32, 1);
-    will-change: filter;
     filter: var(
       --folder-shadow-filter,
       drop-shadow(0 -7px 13px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 5%, transparent))
         drop-shadow(0 -2px 4px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 2.5%, transparent))
     );
+  }
+
+  .folder-surface__title {
+    max-width: calc(100% - var(--folder-pad-x) * 2 - 3.5rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .folder-surface[data-active],
@@ -175,7 +181,6 @@ const yearTopClass = description ? 'top-[128px] md:top-[136px]' : 'top-[84px] md
 
     .folder-surface [data-folder-svg] {
       filter: none !important;
-      will-change: auto;
     }
   }
 
