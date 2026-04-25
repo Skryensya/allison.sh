@@ -41,8 +41,6 @@ const style = [`list-style: none;`, accent ? `--folder-accent:${accent};` : ''].
 ---
 
 <li class={`project-folder-card ${className}`} data-project-folder-card data-preview-count={previewCount} style={style}>
-  <div class="project-folder-card__gradient" aria-hidden="true"></div>
-
   {previewCount > 0 && (
     <div class="project-folder-card__previews" aria-hidden="true">
       {previewEntries.map((preview, index) => {
@@ -76,5 +74,6 @@ const style = [`list-style: none;`, accent ? `--folder-accent:${accent};` : ''].
       description={description}
       rootClassName="project-folder-card__folder"
     />
+    <div class="project-folder-card__gradient" aria-hidden="true"></div>
   </a>
 </li>

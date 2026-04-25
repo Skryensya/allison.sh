@@ -165,7 +165,7 @@ function setupProjectFolderStacks() {
 
       const DESKTOP_OPEN_DELAY = reducedMotionMql.matches ? 0 : 120;
       const DESKTOP_CLOSE_SLIDE = reducedMotionMql.matches ? 0 : 150;
-      const DESKTOP_ACTIVE_RELEASE = reducedMotionMql.matches ? 0 : 0;
+      const DESKTOP_ACTIVE_RELEASE = reducedMotionMql.matches ? 0 : 120;
 
       function clearOpenTimer(item: HTMLElement) {
         const timer = openTimers.get(item);
@@ -254,8 +254,9 @@ function setupProjectFolderStacks() {
 
       function clearActive() {
         if (!activeItem) return;
-        activeItem.dataset.active = 'false';
-        closePreview(activeItem);
+        const item = activeItem;
+        closePreview(item);
+        if (mobileMql.matches) item.dataset.active = 'false';
         activeItem = null;
       }
 
@@ -267,8 +268,9 @@ function setupProjectFolderStacks() {
         }
 
         if (activeItem) {
-          activeItem.dataset.active = 'false';
-          closePreview(activeItem);
+          const previousItem = activeItem;
+          closePreview(previousItem);
+          if (mobileMql.matches) previousItem.dataset.active = 'false';
         }
 
         activeItem = item;

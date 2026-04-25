@@ -87,6 +87,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
 
   .project-folder-card {
     position: relative;
+    z-index: calc(var(--i, 0) * 10);
+    isolation: isolate;
     width: calc(100% + var(--folder-pad-x) + var(--folder-pad-x));
     margin-left: calc(0px - var(--folder-pad-x));
     margin-right: calc(0px - var(--folder-pad-x));
@@ -158,7 +160,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     opacity: 0;
     transition: opacity 1ms linear;
     pointer-events: none;
-    z-index: 1002;
+    z-index: 4;
+    backface-visibility: hidden;
   }
 
   .project-folder-card__link {
@@ -169,7 +172,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     color: inherit;
     touch-action: manipulation;
     pointer-events: auto;
-    z-index: calc(var(--i, 0) * 2 + 3);
+    z-index: 3;
+    isolation: isolate;
     transform: translate3d(0, 0, 0) rotateX(0deg) scale(1);
     transform-origin: 50% 114%;
     transition: transform 200ms var(--ease-return);
@@ -237,7 +241,7 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     height: 0;
     transform: translateX(-50%);
     pointer-events: none;
-    z-index: calc(var(--i, 0) * 2 + 1);
+    z-index: 2;
     overflow: visible;
   }
 
@@ -350,10 +354,6 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
       transition-duration: 150ms;
       transition-timing-function: var(--ease-hover);
       transition-delay: 0ms;
-    }
-
-    .project-folder-card__link:hover {
-      z-index: 999;
     }
 
     .project-folder-card__link:hover [data-folder-fill-path],
