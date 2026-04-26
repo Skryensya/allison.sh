@@ -38,7 +38,7 @@ const styleParts: string[] = [];
 if (minHeight) styleParts.push(`--folder-min-h:${minHeight}`);
 const style = styleParts.length ? styleParts.join('; ') : undefined;
 
-const yearTopClass = description ? 'top-[128px] md:top-[136px]' : 'top-[84px] md:top-[92px]';
+const yearTopClass = description ? 'top-[118px] md:top-[126px]' : 'top-[84px] md:top-[92px]';
 const folderPath = 'M0 60 Q0 0 12 0 H34 C45 0 45 35 58 60 H86 Q100 60 100 104 V392 Q100 400 98 400 H2 Q0 400 0 392 V60 Z';
 ---
 
@@ -75,7 +75,7 @@ const folderPath = 'M0 60 Q0 0 12 0 H34 C45 0 45 35 58 60 H86 Q100 60 100 104 V3
         description && (
           <div
             data-folder-description
-            class={`folder-surface__description absolute left-[var(--folder-pad-x)] top-[76px] md:top-[86px] right-[var(--folder-pad-x)] text-muted font-sans text-[0.98rem] md:text-[1rem] leading-[1.72] tracking-[-0.005em] pointer-events-auto select-text text-pretty ${descriptionClassName}`.trim()}
+            class={`folder-surface__description absolute left-[var(--folder-pad-x)] top-[66px] md:top-[76px] right-[var(--folder-pad-x)] text-muted font-sans text-[0.98rem] md:text-[1rem] leading-[1.72] tracking-[-0.005em] pointer-events-auto select-text text-pretty ${descriptionClassName}`.trim()}
           >
             {description}
           </div>
