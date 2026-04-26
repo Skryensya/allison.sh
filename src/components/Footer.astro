@@ -8,11 +8,10 @@ const emailLinkMarkup = `<!--email_off--><a href="mailto:contacto@allison.sh" cl
 const colorClass = tone === 'home' ? 'text-home' : 'text-text';
 ---
 
-<div class={`relative z-[60] ${colorClass}`}>
-  <section id="contacto" aria-labelledby="contacto-heading" class="mb-32 md:mb-40 pt-12 md:pt-16">
+<section id="contacto" aria-labelledby="contacto-heading" class={`relative z-[60] ${colorClass} pt-12 pb-24 md:pt-16 md:pb-32`}>
     <h2 id="contacto-heading" class="sr-only">Contacto</h2>
     <p class="font-mono text-[0.82rem] tracking-[0.16em] uppercase mb-8 md:mb-10">Contacto</p>
-    <ul class="space-y-3 -mx-2 max-w-[34rem]">
+    <ul class="space-y-3 -mx-1 md:-mx-2 max-w-[34rem]">
       <li set:html={emailLinkMarkup}></li>
       <li>
         <a
@@ -35,9 +34,9 @@ const colorClass = tone === 'home' ? 'text-home' : 'text-text';
         </a>
       </li>
     </ul>
-  </section>
+</section>
 
-  <footer class="font-mono text-xs tracking-wide flex items-center justify-between gap-4 pt-5">
+<footer class={`relative z-[60] ${colorClass} font-mono text-xs tracking-wide flex items-center justify-between gap-4 py-10 md:py-12`}>
     <div class="flex items-center gap-3 tabular-nums">
       <p>© 2026 Allison Peña</p>
       <span aria-label="Versión del sitio">v2.0</span>
@@ -57,5 +56,4 @@ const colorClass = tone === 'home' ? 'text-home' : 'text-text';
         </svg>
       </span>
     </button>
-  </footer>
-</div>
+</footer>
