@@ -37,8 +37,10 @@ function setupBaseClient() {
     if (!toggle) return;
 
     const isDark = document.documentElement.classList.contains('dark');
+    const currentThemeLabel = isDark ? 'Tema oscuro activo' : 'Tema claro activo';
     toggle.setAttribute('aria-pressed', String(isDark));
-    toggle.setAttribute('title', isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro');
+    toggle.setAttribute('aria-label', currentThemeLabel);
+    toggle.setAttribute('title', currentThemeLabel);
   }
 
   function initNavbarScroll() {
@@ -73,8 +75,17 @@ function setupBaseClient() {
     let rafId = 0;
     const threshold = 20;
     const navbarExtraOffset = 50;
-    const logoWidth = logo.getBoundingClientRect().width + navbarExtraOffset;
-    const linksWidth = links.getBoundingClientRect().width + navbarExtraOffset;
+
+    const getHiddenOffsets = () => ({
+      logo: (logo as HTMLElement).offsetWidth + navbarExtraOffset,
+      links: (links as HTMLElement).offsetWidth + navbarExtraOffset,
+    });
+
+    const applyHiddenTransform = () => {
+      const offsets = getHiddenOffsets();
+      (logo as HTMLElement).style.transform = `translateX(-${offsets.logo}px)`;
+      (links as HTMLElement).style.transform = `translateX(${offsets.links}px)`;
+    };
 
     const animate = () => {
       rafId = 0;
@@ -91,9 +102,8 @@ function setupBaseClient() {
       const isBase = scrollY <= threshold;
 
       if (shouldHide && !isHidden) {
-        (logo as HTMLElement).style.transform = `translateX(-${logoWidth}px)`;
+        applyHiddenTransform();
         (logo as HTMLElement).style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
-        (links as HTMLElement).style.transform = `translateX(${linksWidth}px)`;
         (links as HTMLElement).style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
         isHidden = true;
       } else if (isHidden && isBase) {
@@ -107,6 +117,11 @@ function setupBaseClient() {
       lastScrollY = scrollY;
     };
 
+    const updateHiddenGeometry = () => {
+      if (!isHidden || !mql.matches || reducedMotionMql.matches) return;
+      applyHiddenTransform();
+    };
+
     window.addEventListener(
       'scroll',
       () => {
@@ -115,6 +130,8 @@ function setupBaseClient() {
       },
       { passive: true, signal: navAbortController.signal }
     );
+    window.addEventListener('resize', updateHiddenGeometry, { passive: true, signal: navAbortController.signal });
+    void (document as any).fonts?.ready?.then(updateHiddenGeometry).catch(() => {});
   }
 
   function initGlitch() {

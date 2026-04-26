@@ -32,6 +32,7 @@ const result = await build({
   entryPoints: [
     'src/scripts/base-client.ts',
     'src/scripts/folder-shapes-client.ts',
+    'src/scripts/project-page-client.ts',
     'src/scripts/project-folder-stack-client.ts',
     'src/scripts/project-lightbox-client.ts',
     'src/scripts/avatar-client.ts',

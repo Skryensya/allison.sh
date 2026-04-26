@@ -1,5 +1,6 @@
 ---
 import '@/styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import clientModules from '@/generated/client-modules.json';
 import clashGrotesk400 from '@/assets/fonts/clash-grotesk-400.woff2';
 import satoshi400 from '@/assets/fonts/satoshi-400.woff2';
@@ -71,10 +72,14 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
   class="scroll-smooth"
   data-base-client-url={clientModules['base-client']}
   data-folder-shapes-client-url={clientModules['folder-shapes-client']}
+  data-project-page-client-url={clientModules['project-page-client']}
+  data-project-folder-stack-client-url={clientModules['project-folder-stack-client']}
+  data-project-lightbox-client-url={clientModules['project-lightbox-client']}
 >
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <ClientRouter />
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="author" content={SITE_AUTHOR} />
@@ -178,14 +183,14 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     transition: none !important;
   }
 
-  @keyframes fade-in {
+  @keyframes page-enter {
     from {
       opacity: 0;
-      transform: translateY(12px);
+      transform: translate3d(0, 4px, 0) scale(0.998);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translate3d(0, 0, 0) scale(1);
     }
   }
 
@@ -200,26 +205,47 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     }
   }
 
-  @keyframes fade-out {
+  @keyframes page-exit {
     from {
       opacity: 1;
-      transform: translateY(0);
+      transform: translate3d(0, 0, 0);
     }
     to {
       opacity: 0;
-      transform: translateY(-12px);
+      transform: translate3d(0, 0, 0);
     }
   }
 
+  ::view-transition {
+    background: var(--color-bg);
+  }
+
+  ::view-transition-group(root) {
+    animation-duration: 170ms;
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-fill-mode: both;
+    mix-blend-mode: normal;
+    backface-visibility: hidden;
+  }
+
   ::view-transition-old(root) {
-    animation: fade-out 0.15s ease-out forwards;
+    animation-name: page-exit;
+    animation-duration: 90ms;
+    animation-timing-function: ease;
   }
 
   ::view-transition-new(root) {
-    animation: fade-in 0.2s ease-out forwards;
+    animation-name: page-enter;
+    animation-duration: 170ms;
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
   }
 
 @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(root),
     ::view-transition-old(root),
     ::view-transition-new(root) {
       animation: none;
@@ -231,9 +257,13 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
 
   const injectedBaseClientUrl = document.documentElement.dataset.baseClientUrl;
   const injectedFolderShapesClientUrl = document.documentElement.dataset.folderShapesClientUrl;
+  const injectedProjectPageClientUrl = document.documentElement.dataset.projectPageClientUrl;
+  const injectedProjectFolderStackClientUrl = document.documentElement.dataset.projectFolderStackClientUrl;
 
   let baseClientPromise;
   let folderShapesClientPromise;
+  let projectPageClientPromise;
+  let projectFolderStackClientPromise;
 
   const loadBaseClient = () => {
     if (!injectedBaseClientUrl) return baseClientPromise;
@@ -247,9 +277,25 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     return folderShapesClientPromise;
   };
 
+  const loadProjectPageClient = () => {
+    if (!injectedProjectPageClientUrl || !document.querySelector('[data-project-page-shell], [data-figure-root], [data-blur-up]')) return projectPageClientPromise;
+    projectPageClientPromise ??= import(injectedProjectPageClientUrl);
+    return projectPageClientPromise;
+  };
+
+  const loadProjectFolderStackClient = () => {
+    if (!injectedProjectFolderStackClientUrl || !document.querySelector('[data-project-folder-stack]')) return projectFolderStackClientPromise;
+    projectFolderStackClientPromise ??= import(injectedProjectFolderStackClientUrl);
+    return projectFolderStackClientPromise;
+  };
+
   void loadFolderShapesClient();
+  void loadProjectPageClient();
+  void loadProjectFolderStackClient();
   document.addEventListener('astro:page-load', () => {
     void loadFolderShapesClient();
+    void loadProjectPageClient();
+    void loadProjectFolderStackClient();
   });
 
   const scheduleBaseClient = () => {

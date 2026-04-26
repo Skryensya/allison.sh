@@ -24,6 +24,8 @@ function setupProjectFolderStacks() {
     observers: [],
   });
 
+  let responsiveReinitRaf = 0;
+
   function resetDomState() {
     const stacks = document.querySelectorAll('[data-project-folder-stack]');
     stacks.forEach((stack) => {
@@ -61,6 +63,11 @@ function setupProjectFolderStacks() {
     });
     runtime.observers.length = 0;
 
+    if (responsiveReinitRaf) {
+      window.cancelAnimationFrame(responsiveReinitRaf);
+      responsiveReinitRaf = 0;
+    }
+
     resetDomState();
   }
 
@@ -70,6 +77,15 @@ function setupProjectFolderStacks() {
     window.addEventListener('pagehide', cleanup);
     window.addEventListener('pageshow', () => {
       resetDomState();
+      init();
+    });
+  }
+
+  function scheduleResponsiveReinit() {
+    if (responsiveReinitRaf) return;
+    responsiveReinitRaf = window.requestAnimationFrame(() => {
+      responsiveReinitRaf = 0;
+      cleanup();
       init();
     });
   }
@@ -164,8 +180,8 @@ function setupProjectFolderStacks() {
       let activeItem: HTMLElement | null = null;
 
       const DESKTOP_OPEN_DELAY = reducedMotionMql.matches ? 0 : 120;
-      const DESKTOP_CLOSE_SLIDE = reducedMotionMql.matches ? 0 : 150;
-      const DESKTOP_ACTIVE_RELEASE = reducedMotionMql.matches ? 0 : 120;
+      const DESKTOP_CLOSE_SLIDE = reducedMotionMql.matches ? 0 : 130;
+      const DESKTOP_ACTIVE_RELEASE = reducedMotionMql.matches ? 0 : 48;
 
       function clearOpenTimer(item: HTMLElement) {
         const timer = openTimers.get(item);
@@ -415,6 +431,8 @@ function setupProjectFolderStacks() {
   }
 
   document.addEventListener('astro:page-load', boot);
+  mobileMql.addEventListener?.('change', scheduleResponsiveReinit);
+  reducedMotionMql.addEventListener?.('change', scheduleResponsiveReinit);
 }
 
 setupProjectFolderStacks();

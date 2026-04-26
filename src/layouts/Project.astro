@@ -1,6 +1,5 @@
 ---
 import Base from './Base.astro';
-import clientModules from '@/generated/client-modules.json';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import { getOgImagePath, getTwitterImagePath } from '@/lib/seo';
@@ -36,206 +35,182 @@ const mainStyle = `--project-page-accent:${accent}`;
   structuredData={structuredData}
 >
   <Navbar />
+  <div class="project-page-frame relative">
+    <main
+      id="main-content"
+      class="project-page-shell relative pb-10 md:pb-16"
+      style={mainStyle}
+      data-project-page-shell
+    >
+      <div class="project-page-glow" data-project-page-glow aria-hidden="true">
+        <span class="project-page-glow__lick project-page-glow__lick--a"></span>
+        <span class="project-page-glow__lick project-page-glow__lick--b"></span>
+        <span class="project-page-glow__lick project-page-glow__lick--c"></span>
+      </div>
 
-  <main
-    id="main-content"
-    class="project-page-shell relative pb-10 md:pb-16"
-    style={mainStyle}
-    data-project-page-shell
-  >
-    <div class="project-page-glow" data-project-page-glow aria-hidden="true">
-      <span class="project-page-glow__lick project-page-glow__lick--a"></span>
-      <span class="project-page-glow__lick project-page-glow__lick--b"></span>
-      <span class="project-page-glow__lick project-page-glow__lick--c"></span>
-    </div>
+      <div class="project-page-intro relative z-30 max-w-[42rem] mx-auto px-6 md:px-8">
+        <a href="/" class="project-home-button" aria-label="Volver al inicio" title="Volver al inicio">
+          <span class="project-home-button__icon-wrap" aria-hidden="true">
+            <svg class="project-home-button__icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M236,144a68.07,68.07,0,0,1-68,68H80a12,12,0,0,1,0-24h88a44,44,0,0,0,0-88H61l27.52,27.51a12,12,0,0,1-17,17l-48-48a12,12,0,0,1,0-17l48-48a12,12,0,1,1,17,17L61,76H168A68.08,68.08,0,0,1,236,144Z"/>
+            </svg>
+          </span>
+          <span class="project-home-button__label">volver</span>
+        </a>
 
-    <div class="relative z-30 max-w-[42rem] mx-auto px-6 md:px-8 pt-10 md:pt-12">
-      <a href="/" class="group inline-flex items-center gap-2 font-mono text-sm tracking-wide text-muted hover:text-text transition-colors duration-200 mb-8 md:mb-10">
-        <svg class="w-3 h-3 motion-safe:transition-transform motion-safe:duration-150 motion-safe:group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        volver al inicio
-      </a>
-
-      <header class="project-header mb-10 md:mb-12">
-        <div class="flex items-start justify-between gap-6">
-          <h1 class="font-sans text-[1.85rem] md:text-[2.15rem] leading-[1.08] tracking-[-0.028em] text-text max-w-[18rem]">
+        <header class="project-header relative">
+          <h1 class="project-title">
             {title}
           </h1>
-          {year && <span class="font-mono text-sm tracking-wide text-muted shrink-0 pt-2 tabular-nums">{year}</span>}
-        </div>
-      </header>
-    </div>
-
-    <div class="max-w-[42rem] mx-auto px-6 md:px-8 relative">
-      <article class="project-article relative z-30 font-sans text-[16px] leading-[1.6] text-text tracking-[-0.01em] select-none">
-        <div class="select-text">
-        <slot />
-        </div>
-      </article>
-
-      <div data-after-article class="relative z-10 select-none">
-        <slot name="after-article" />
+          {year && (
+            <p class="project-meta tabular-nums" aria-label={`Periodo del proyecto: ${year}`}>
+              {year}
+            </p>
+          )}
+        </header>
       </div>
 
-      <footer class="relative z-30 mt-12 md:mt-14 mb-8">
-        <a href="/" class="group inline-flex items-center gap-2 font-mono text-sm tracking-wide text-muted hover:text-text transition-colors duration-200">
-          <svg class="w-3 h-3 motion-safe:transition-transform motion-safe:duration-150 motion-safe:group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          volver al inicio
-        </a>
-      </footer>
+      <div class="max-w-[42rem] mx-auto px-6 md:px-8 relative">
+        <article class="project-article relative z-30 font-sans text-[16px] leading-[1.6] text-text tracking-[-0.01em] select-none">
+          <div class="select-text">
+          <slot />
+          </div>
+        </article>
 
-      <div class="relative z-30">
-        <Footer />
+        <div data-after-article class="relative z-10 select-none">
+          <slot name="after-article" />
+        </div>
+
+        <div class="relative z-30">
+          <Footer />
+        </div>
       </div>
-    </div>
-
-    <script is:inline define:vars={{ projectLightboxClientUrl: clientModules['project-lightbox-client'] }}>
-      (function () {
-        function initProjectGlow() {
-          var shell = document.querySelector('[data-project-page-shell]');
-          if (!shell) return;
-
-          var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-          var controller = new AbortController();
-          var signal = controller.signal;
-          var raf = 0;
-          var lastKey = '';
-
-          function clamp(value, min, max) {
-            return Math.min(max, Math.max(min, value));
-          }
-
-          function smoothstep(value) {
-            var t = clamp(value, 0, 1);
-            return t * t * (3 - 2 * t);
-          }
-
-          function setVar(name, value) {
-            shell.style.setProperty(name, value);
-          }
-
-          function updateGlow() {
-            raf = 0;
-
-            if (reduceMotion.matches) {
-              if (lastKey !== 'reduced') {
-                lastKey = 'reduced';
-                setVar('--project-page-glow-opacity', '0');
-              }
-              return;
-            }
-
-            var doc = document.documentElement;
-            var maxScroll = Math.max(1, doc.scrollHeight - window.innerHeight);
-            var progress = clamp((window.scrollY || window.pageYOffset || 0) / maxScroll, 0, 1);
-            var bucket = Math.round(progress * 1000);
-            var isDark = doc.classList.contains('dark');
-            var key = bucket + ':' + (isDark ? 'dark' : 'light');
-
-            if (key === lastKey) return;
-            lastKey = key;
-
-            var p = bucket / 1000;
-            var motion = smoothstep(p);
-            var intensity = smoothstep(p * 0.92 + 0.04);
-            var baseOpacity = isDark ? 0.12 : 0.07;
-            var maxOpacity = isDark ? 0.42 : 0.28;
-
-            setVar('--project-page-glow-opacity', (baseOpacity + intensity * (maxOpacity - baseOpacity)).toFixed(3));
-            setVar('--project-page-glow-scale', (0.98 + motion * 0.09).toFixed(3));
-            setVar('--project-page-glow-rise', (motion * -8).toFixed(2) + 'vh');
-            setVar('--project-page-glow-rise-soft', (motion * -4).toFixed(2) + 'vh');
-            setVar('--project-page-glow-drift', ((motion - 0.5) * 24).toFixed(1) + 'px');
-            setVar('--project-page-glow-core-opacity', (isDark ? 0.42 + intensity * 0.12 : 0.32 + intensity * 0.1).toFixed(3));
-            setVar('--project-page-glow-veil-opacity', (isDark ? 0.24 + intensity * 0.11 : 0.17 + intensity * 0.09).toFixed(3));
-            setVar('--project-page-glow-lick-opacity', (isDark ? 0.18 + intensity * 0.1 : 0.13 + intensity * 0.08).toFixed(3));
-          }
-
-          function scheduleGlow(force) {
-            if (!force && document.hidden) return;
-            if (raf) return;
-            raf = window.requestAnimationFrame(updateGlow);
-          }
-
-          updateGlow();
-          window.addEventListener('scroll', function () { scheduleGlow(false); }, { passive: true, signal: signal });
-          window.addEventListener('resize', function () { scheduleGlow(true); }, { signal: signal });
-          reduceMotion.addEventListener?.('change', function () { scheduleGlow(true); }, { signal: signal });
-          document.addEventListener('visibilitychange', function () {
-            if (!document.hidden) scheduleGlow(true);
-          }, { signal: signal });
-          document.addEventListener('click', function (event) {
-            if (!(event.target instanceof Element) || !event.target.closest('#theme-toggle')) return;
-            window.setTimeout(function () { scheduleGlow(true); }, 0);
-          }, { signal: signal });
-          window.addEventListener('pagehide', function () {
-            controller.abort();
-            if (raf) window.cancelAnimationFrame(raf);
-          }, { once: true });
-        }
-
-        var projectLightboxPromise;
-
-        function loadProjectLightbox() {
-          if (!projectLightboxClientUrl) return Promise.resolve();
-          projectLightboxPromise ??= import(projectLightboxClientUrl);
-          return projectLightboxPromise;
-        }
-
-        function prepareProjectFigures() {
-          var figures = document.querySelectorAll('[data-figure-root]');
-          figures.forEach(function (fig, i) {
-            var frame = fig.querySelector('[data-figure-frame]');
-            if (!frame) return;
-
-            if (!fig.dataset.side) fig.dataset.side = i % 2 === 0 ? 'right' : 'left';
-            if (!frame.style.transitionDelay) frame.style.transitionDelay = (i * 150) + 'ms';
-            frame.setAttribute('tabindex', '0');
-            frame.setAttribute('role', 'button');
-            frame.setAttribute('aria-label', 'Ampliar imagen');
-
-            if (frame.dataset.lightboxLoaderBound === 'true') return;
-            frame.dataset.lightboxLoaderBound = 'true';
-
-            var prime = function (event) {
-              if (window.__projectLightboxLoaded || frame.dataset.lightboxReady === 'true') return;
-
-              var shouldReplay = event.type === 'click';
-              if (event.type === 'keydown') {
-                if (event.key !== 'Enter' && event.key !== ' ') return;
-                shouldReplay = true;
-              }
-
-              if (shouldReplay) event.preventDefault();
-              void loadProjectLightbox().then(function () {
-                if (shouldReplay && frame.isConnected) frame.click();
-              });
-            };
-
-            frame.addEventListener('pointerenter', prime, { passive: true });
-            frame.addEventListener('focus', prime, { passive: true });
-            frame.addEventListener('click', prime);
-            frame.addEventListener('keydown', prime);
-          });
-        }
-
-        function init() {
-          initProjectGlow();
-          prepareProjectFigures();
-        }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', init, { once: true });
-        } else {
-          init();
-        }
-      })();
-    </script>
+    </main>
 
     <style>
+      .project-page-intro {
+        padding-top: clamp(4.25rem, 8vw, 6.25rem);
+        padding-bottom: clamp(2rem, 5vw, 3.5rem);
+      }
+
+      .project-home-button {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        min-height: 32px;
+        margin-left: -8px;
+        padding: 5px 8px;
+        border-radius: 999px;
+        color: var(--color-muted);
+        font-family: var(--font-sans);
+        font-size: 0.88rem;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        line-height: 1;
+        text-decoration: none;
+        pointer-events: auto;
+        isolation: isolate;
+        transition:
+          color 130ms ease,
+          transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+      }
+
+      .project-home-button::before {
+        content: '';
+        position: absolute;
+        inset: -5px -6px;
+        border-radius: 999px;
+        background: var(--color-text);
+        opacity: 0;
+        transform: scaleX(0) skewX(-12deg);
+        transform-origin: right;
+        transition:
+          transform 150ms cubic-bezier(0.4, 0, 1, 1),
+          opacity 110ms ease;
+        z-index: -1;
+      }
+
+      .project-home-button__icon-wrap,
+      .project-home-button__label {
+        position: relative;
+        z-index: 1;
+      }
+
+      .project-home-button__icon-wrap {
+        display: inline-flex;
+        transform: translateX(-0.5px);
+      }
+
+      .project-home-button__icon {
+        width: 0.98rem;
+        height: 0.98rem;
+        transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+      }
+
+      .project-home-button:focus-visible {
+        color: var(--color-bg);
+        outline: none;
+        transform: translateY(-1px);
+      }
+
+      .project-home-button:focus-visible::before {
+        opacity: 1;
+        transform: scaleX(1) skewX(-12deg);
+        transform-origin: left;
+      }
+
+      .project-home-button:active {
+        transform: translateY(0) scale(0.96);
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .project-home-button:hover {
+          color: var(--color-bg);
+          transform: translateY(-1px);
+        }
+
+        .project-home-button:hover::before {
+          opacity: 1;
+          transform: scaleX(1) skewX(-12deg);
+          transform-origin: left;
+          transition:
+            transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+            opacity 110ms ease;
+        }
+
+        .project-home-button:hover .project-home-button__icon,
+        .project-home-button:focus-visible .project-home-button__icon {
+          transform: translateX(-1px);
+        }
+      }
+
+      .project-header {
+        margin-top: clamp(1.75rem, 4.5vw, 3rem);
+      }
+
+      .project-title {
+        max-width: 12.5ch;
+        color: var(--color-text);
+        font-family: var(--font-sans);
+        font-size: clamp(2.55rem, 7.2vw, 4.6rem);
+        font-weight: 400;
+        letter-spacing: -0.055em;
+        line-height: 0.92;
+        text-wrap: balance;
+      }
+
+      .project-meta {
+        display: flex;
+        justify-content: flex-end;
+        margin: clamp(1.25rem, 3vw, 1.9rem) 0 0;
+        color: var(--color-muted);
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        letter-spacing: 0.04em;
+        font-variant-numeric: tabular-nums;
+      }
+
       .project-page-shell {
         isolation: isolate;
         --project-page-glow-opacity: 0.16;
@@ -279,27 +254,27 @@ const mainStyle = `--project-page-accent:${accent}`;
         background:
           radial-gradient(
             ellipse at 50% 100%,
-            color-mix(in srgb, var(--project-page-accent) 37%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 21%, transparent) 22%,
-            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 56%,
+            color-mix(in srgb, var(--project-page-accent) 65%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 38%, transparent) 22%,
+            color-mix(in srgb, var(--project-page-accent) 16%, transparent) 56%,
             transparent 84%
           ),
           radial-gradient(
             ellipse at 4% 100%,
-            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 6%, transparent) 44%,
+            color-mix(in srgb, var(--project-page-accent) 25%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 44%,
             transparent 74%
           ),
           radial-gradient(
             ellipse at 96% 100%,
-            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 6%, transparent) 44%,
+            color-mix(in srgb, var(--project-page-accent) 25%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 44%,
             transparent 74%
           ),
           linear-gradient(
             to top,
-            color-mix(in srgb, var(--project-page-accent) 6%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 2.6%, transparent) 38%,
+            color-mix(in srgb, var(--project-page-accent) 22%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 38%,
             transparent 72%
           );
         filter: blur(18px);
@@ -314,18 +289,18 @@ const mainStyle = `--project-page-accent:${accent}`;
         background:
           radial-gradient(
             ellipse at 50% 100%,
-            color-mix(in srgb, var(--project-page-accent) 24%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 30%,
+            color-mix(in srgb, var(--project-page-accent) 46%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 24%, transparent) 30%,
             transparent 72%
           ),
           radial-gradient(
             ellipse at 0% 100%,
-            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 18%, transparent) 0%,
             transparent 64%
           ),
           radial-gradient(
             ellipse at 100% 100%,
-            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 18%, transparent) 0%,
             transparent 64%
           );
         filter: blur(10px);
@@ -393,8 +368,8 @@ const mainStyle = `--project-page-accent:${accent}`;
         background:
           radial-gradient(
             ellipse at 50% 100%,
-            color-mix(in srgb, var(--project-page-accent) 22%, transparent) 0%,
-            color-mix(in srgb, var(--project-page-accent) 10%, transparent) 34%,
+            color-mix(in srgb, var(--project-page-accent) 42%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 19%, transparent) 34%,
             transparent 72%
           );
         filter: blur(12px);
@@ -580,6 +555,15 @@ const mainStyle = `--project-page-accent:${accent}`;
       }
 
       @media (max-width: 768px) {
+        .project-page-intro {
+          padding-top: 3.5rem;
+          padding-bottom: 2.25rem;
+        }
+
+        .project-title {
+          max-width: 10.5ch;
+        }
+
         .project-page-glow {
           bottom: -10vh;
           height: 62vh;
@@ -596,7 +580,18 @@ const mainStyle = `--project-page-accent:${accent}`;
         }
       }
 
+      @media (min-width: 768px) {
+        .project-page-intro {
+          padding-top: clamp(4.75rem, 7vw, 6.25rem);
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
+        .project-home-button,
+        .project-home-button__icon {
+          transition: none;
+        }
+
         .project-page-glow {
           opacity: 0;
           transition: none;

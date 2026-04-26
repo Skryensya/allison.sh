@@ -66,15 +66,12 @@ a.editorial-link:hover {
 .footer-contact-link {
   display: inline-block;
   color: inherit;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, currentColor 34%, transparent);
-  text-underline-offset: 0.22em;
-  transition: text-decoration-color 150ms ease;
+  text-decoration: none;
   text-wrap: pretty;
 }
 
 .footer-contact-link:hover {
-  text-decoration-color: currentColor;
+  text-decoration: none;
 }
 
 #viewport-gradient {

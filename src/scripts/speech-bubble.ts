@@ -178,6 +178,16 @@ function buildMouthTimeline(phrase: string, totalDuration: number): { shape: str
 
 type BubbleState = 'hidden' | 'typing' | 'visible' | 'hiding';
 
+type SpeechBubbleTypographyConfig = {
+  isMobile: boolean;
+  font: string;
+  lineHeight: number;
+  paddingX: number;
+  paddingY: number;
+  viewportPadding: number;
+  preferredMaxLines: number;
+};
+
 export class SpeechBubble {
   private container: HTMLDivElement;
   private inner: HTMLDivElement;
@@ -291,7 +301,7 @@ export class SpeechBubble {
     // Must be visible before measuring.
     this.container.style.display = 'block';
 
-    const { width, height, totalChars, applyVisibleCharacters } = this.renderPhraseLayout(phrase);
+    const { width, height, totalChars, applyVisibleCharacters } = this.renderPhraseLayout(phrase, anchorEl);
 
     this.typingApply = applyVisibleCharacters;
     this.typingTotalChars = totalChars;
@@ -451,7 +461,7 @@ export class SpeechBubble {
     return null;
   }
 
-  private getTypographyConfig() {
+  private getTypographyConfig(): SpeechBubbleTypographyConfig {
     const isMobile = window.matchMedia('(max-width: 40rem)').matches;
 
     return {
@@ -461,13 +471,31 @@ export class SpeechBubble {
       lineHeight: isMobile ? 20.3 : 23.2,
       paddingX: isMobile ? 14 : 16,
       paddingY: isMobile ? 9 : 10,
-      maxWidthCap: isMobile ? 228 : 280,
       viewportPadding: isMobile ? 24 : 28,
       preferredMaxLines: isMobile ? 3 : 2,
     };
   }
 
-  private renderPhraseLayout(phrase: string): {
+  private getMaxOuterWidth(anchor: HTMLElement, config: SpeechBubbleTypographyConfig): number {
+    const margin = 12;
+    const gutterX = 10;
+    const rect = anchor.getBoundingClientRect();
+    const viewportRight = window.innerWidth - gutterX;
+    const viewportBudget = Math.max(100, window.innerWidth - config.viewportPadding);
+    const main = anchor.closest('#main-content');
+
+    if (main instanceof HTMLElement) {
+      const mainRect = main.getBoundingClientRect();
+      const contentRight = Math.min(mainRect.right, viewportRight);
+      const availableNextToAvatar = contentRight - rect.right - margin;
+      return Math.max(100, Math.min(viewportBudget, availableNextToAvatar));
+    }
+
+    const availableNextToAvatar = viewportRight - rect.right - margin;
+    return Math.max(100, Math.min(viewportBudget, availableNextToAvatar));
+  }
+
+  private renderPhraseLayout(phrase: string, anchor: HTMLElement): {
     width: number;
     height: number;
     totalChars: number;
@@ -476,7 +504,7 @@ export class SpeechBubble {
     const config = this.getTypographyConfig();
     const prepared = getPreparedText(phrase, config.font);
 
-    const maxOuterWidth = Math.max(100, Math.min(config.maxWidthCap, window.innerWidth - config.viewportPadding));
+    const maxOuterWidth = this.getMaxOuterWidth(anchor, config);
     const maxContentWidth = Math.max(56, maxOuterWidth - config.paddingX * 2);
     const natural = measureNaturalWidth(prepared);
     /* Skewed ::before extends past the text box slightly; keep in sync with bubble CSS insets. */
@@ -742,7 +770,7 @@ export class SpeechBubble {
 
     .avatar-speech-bubble__inner {
       position: relative;
-      max-width: min(280px, calc(100vw - 28px));
+      max-width: calc(100vw - 28px);
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -834,7 +862,7 @@ export class SpeechBubble {
 
     @media (max-width: 40rem) {
       .avatar-speech-bubble__inner {
-        max-width: min(228px, calc(100vw - 24px));
+        max-width: calc(100vw - 24px);
         padding: 9px 14px;
         font-size: 0.875rem;
       }

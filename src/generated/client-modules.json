@@ -1,9 +1,10 @@
 {
-  "base-client": "/client/base-client-G73QBWNH.js",
+  "base-client": "/client/base-client-KP2MCXJG.js",
   "folder-shapes-client": "/client/folder-shapes-client-TNOVCRLM.js",
-  "project-folder-stack-client": "/client/project-folder-stack-client-L735S2NL.js",
-  "project-lightbox-client": "/client/project-lightbox-client-PVEQVZ5N.js",
-  "avatar-client": "/client/avatar-client-6KABFVVK.js",
+  "project-page-client": "/client/project-page-client-FWLLWDCR.js",
+  "project-folder-stack-client": "/client/project-folder-stack-client-H4PGY6EL.js",
+  "project-lightbox-client": "/client/project-lightbox-client-UNPFJ75I.js",
+  "avatar-client": "/client/avatar-client-3BZILARG.js",
   "voices": "/client/chunks/voices-NBLWGTRX.js",
-  "speech-bubble": "/client/chunks/speech-bubble-5ZVA5PFX.js"
+  "speech-bubble": "/client/chunks/speech-bubble-FASJVYQI.js"
 }

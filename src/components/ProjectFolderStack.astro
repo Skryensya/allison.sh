@@ -34,8 +34,8 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   .project-folder-stack-wrap {
     position: relative;
     --ease-hover: cubic-bezier(0.16, 1, 0.3, 1);
-    --ease-return: cubic-bezier(0.645, 0.045, 0.355, 1);
-    --ease-preview-return: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+    --ease-return: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-preview-return: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-color: ease;
   }
 
@@ -175,9 +175,10 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
     isolation: isolate;
     transform: translate3d(0, 0, 0) rotateX(0deg) scale(1);
     transform-origin: 50% 114%;
-    transition: transform 200ms var(--ease-return);
+    transition: transform 160ms var(--ease-return);
     transition-delay: 0ms;
     backface-visibility: hidden;
+    will-change: transform;
   }
 
 
@@ -213,7 +214,7 @@ const style = styleParts.length ? styleParts.join('; ') : undefined;
   }
 
   .project-folder-card [data-folder-svg] {
-    transition: filter 200ms var(--ease-return);
+    transition: filter 160ms var(--ease-return);
     filter: var(
       --folder-shadow-filter,
       drop-shadow(0 -7px 13px color-mix(in srgb, var(--folder-shadow-ink, var(--color-text)) 5%, transparent))
