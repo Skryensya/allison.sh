@@ -38,7 +38,7 @@ const mainStyle = `--project-page-accent:${accent}`;
   <div class="project-page-frame relative">
     <main
       id="main-content"
-      class="project-page-shell relative pb-10 md:pb-16"
+      class="project-page-shell relative pb-0"
       style={mainStyle}
       data-project-page-shell
     >
@@ -48,7 +48,7 @@ const mainStyle = `--project-page-accent:${accent}`;
         <span class="project-page-glow__lick project-page-glow__lick--c"></span>
       </div>
 
-      <div class="project-page-intro relative z-30 max-w-[42rem] mx-auto px-6 md:px-8">
+      <div class="project-page-intro relative z-30 max-w-[42rem] mx-auto px-3 md:px-8">
         <a href="/" class="project-home-button" aria-label="Volver al inicio" title="Volver al inicio">
           <span class="project-home-button__icon-wrap" aria-hidden="true">
             <svg class="project-home-button__icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256">
@@ -70,7 +70,7 @@ const mainStyle = `--project-page-accent:${accent}`;
         </header>
       </div>
 
-      <div class="max-w-[42rem] mx-auto px-6 md:px-8 relative">
+      <div class="max-w-[42rem] mx-auto px-3 md:px-8 relative">
         <article class="project-article relative z-30 font-sans text-[16px] leading-[1.6] text-text tracking-[-0.01em] select-none">
           <div class="select-text">
           <slot />
@@ -111,9 +111,13 @@ const mainStyle = `--project-page-accent:${accent}`;
         text-decoration: none;
         pointer-events: auto;
         isolation: isolate;
+        --project-home-highlight-skew: -12deg;
+        --project-home-highlight-lift: 5px;
+        --project-home-highlight-scale: 0.94;
+        --project-home-highlight-shine: color-mix(in srgb, var(--color-bg) 28%, transparent);
         transition:
-          color 130ms ease,
-          transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+          color 180ms ease,
+          transform 240ms cubic-bezier(0.2, 0, 0, 1);
       }
 
       .project-home-button::before {
@@ -121,13 +125,31 @@ const mainStyle = `--project-page-accent:${accent}`;
         position: absolute;
         inset: -5px -6px;
         border-radius: 999px;
-        background: var(--color-text);
+        background: color-mix(in srgb, var(--color-text) 96%, var(--color-bg));
+        box-shadow: 0 10px 26px color-mix(in srgb, var(--color-text) 10%, transparent);
         opacity: 0;
-        transform: scaleX(0) skewX(-12deg);
-        transform-origin: right;
+        transform: translateY(var(--project-home-highlight-lift)) scale(var(--project-home-highlight-scale)) skewX(var(--project-home-highlight-skew));
+        transform-origin: center;
         transition:
-          transform 150ms cubic-bezier(0.4, 0, 1, 1),
-          opacity 110ms ease;
+          opacity 170ms ease,
+          transform 260ms cubic-bezier(0.2, 0, 0, 1);
+        z-index: -1;
+      }
+
+      .project-home-button::after {
+        content: '';
+        position: absolute;
+        inset: -5px -6px;
+        border-radius: 999px;
+        background: linear-gradient(
+          105deg,
+          transparent 24%,
+          var(--project-home-highlight-shine) 46%,
+          transparent 68%
+        );
+        opacity: 0;
+        transform: translateX(-42%) scaleX(0.62) skewX(var(--project-home-highlight-skew));
+        transform-origin: center;
         z-index: -1;
       }
 
@@ -156,8 +178,7 @@ const mainStyle = `--project-page-accent:${accent}`;
 
       .project-home-button:focus-visible::before {
         opacity: 1;
-        transform: scaleX(1) skewX(-12deg);
-        transform-origin: left;
+        transform: translateY(0) scale(1) skewX(var(--project-home-highlight-skew));
       }
 
       .project-home-button:active {
@@ -172,16 +193,35 @@ const mainStyle = `--project-page-accent:${accent}`;
 
         .project-home-button:hover::before {
           opacity: 1;
-          transform: scaleX(1) skewX(-12deg);
-          transform-origin: left;
+          transform: translateY(0) scale(1) skewX(var(--project-home-highlight-skew));
           transition:
-            transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
-            opacity 110ms ease;
+            opacity 150ms ease-out,
+            transform 280ms cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .project-home-button:hover::after {
+          animation: projectHomeHighlightGlint 560ms cubic-bezier(0.19, 1, 0.22, 1) both;
         }
 
         .project-home-button:hover .project-home-button__icon,
         .project-home-button:focus-visible .project-home-button__icon {
           transform: translateX(-1px);
+        }
+      }
+
+      @keyframes projectHomeHighlightGlint {
+        0% {
+          opacity: 0;
+          transform: translateX(-42%) scaleX(0.62) skewX(var(--project-home-highlight-skew));
+        }
+
+        32% {
+          opacity: 0.22;
+        }
+
+        100% {
+          opacity: 0;
+          transform: translateX(42%) scaleX(0.86) skewX(var(--project-home-highlight-skew));
         }
       }
 
@@ -588,7 +628,10 @@ const mainStyle = `--project-page-accent:${accent}`;
 
       @media (prefers-reduced-motion: reduce) {
         .project-home-button,
+        .project-home-button::before,
+        .project-home-button::after,
         .project-home-button__icon {
+          animation: none;
           transition: none;
         }
 

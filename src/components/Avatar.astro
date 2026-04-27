@@ -6,10 +6,26 @@ import {
   avatarHatIndices,
   avatarOutfitIndices,
 } from '@/data/avatarSprite';
+import {
+  LEFT_EYE_TILES,
+  MOUTH_LEFT_TILES,
+  MOUTH_RIGHT_TILES,
+  RIGHT_EYE_TILES,
+} from '@/scripts/avatar/sprite';
 import spriteSheetUrl from '../assets/avatar/tileset.svg?url';
 
 const avatarHatIndexSet = new Set<number>(avatarHatIndices as readonly number[]);
 const avatarOutfitIndexSet = new Set<number>(avatarOutfitIndices as readonly number[]);
+const leftEyeEntries = Object.entries(LEFT_EYE_TILES);
+const rightEyeEntries = Object.entries(RIGHT_EYE_TILES);
+const mouthLeftEntries = Object.entries(MOUTH_LEFT_TILES);
+const mouthRightEntries = Object.entries(MOUTH_RIGHT_TILES);
+const dynamicTileNames = Array.from(new Set([
+  ...Object.values(LEFT_EYE_TILES),
+  ...Object.values(RIGHT_EYE_TILES),
+  ...Object.values(MOUTH_LEFT_TILES),
+  ...Object.values(MOUTH_RIGHT_TILES),
+]));
 
 interface Props {
   alt?: string;
@@ -55,6 +71,44 @@ const {
         const hatClass = avatarHatIndexSet.has(i) ? ' avatar__part--hat' : '';
         const outfitClass = avatarOutfitIndexSet.has(i) ? ' avatar__part--outfit' : '';
 
+        if (name === 'left-eye-base' || name === 'right-eye-base') {
+          const side = name === 'left-eye-base' ? 'left' : 'right';
+          const entries = side === 'left' ? leftEyeEntries : rightEyeEntries;
+
+          return (
+            <svg class="avatar__tile" viewBox="0 0 25 25" aria-hidden="true" focusable="false">
+              {entries.map(([state, tileName]) => (
+                <use
+                  class={`avatar__part avatar__eye-state avatar__part--${side}-eye`}
+                  data-eye-side={side}
+                  data-eye-state={state}
+                  data-active={state === 'base' ? 'true' : 'false'}
+                  href={`${spriteSheetUrl}#avatar-sprite-${tileName}`}
+                ></use>
+              ))}
+            </svg>
+          );
+        }
+
+        if (name === 'mouth-rest-left' || name === 'mouth-rest-right') {
+          const side = name === 'mouth-rest-left' ? 'left' : 'right';
+          const entries = side === 'left' ? mouthLeftEntries : mouthRightEntries;
+
+          return (
+            <svg class="avatar__tile" viewBox="0 0 25 25" aria-hidden="true" focusable="false">
+              {entries.map(([state, tileName]) => (
+                <use
+                  class={`avatar__part avatar__mouth-state avatar__part--mouth-${side}`}
+                  data-mouth-side={side}
+                  data-mouth-state={state}
+                  data-active={state === 'default' ? 'true' : 'false'}
+                  href={`${spriteSheetUrl}#avatar-sprite-${tileName}`}
+                ></use>
+              ))}
+            </svg>
+          );
+        }
+
         return (
           <svg class="avatar__tile" viewBox="0 0 25 25" aria-hidden="true" focusable="false">
             <use class={`avatar__part${partClass}${outfitClass}`} href={`${spriteSheetUrl}#avatar-sprite-${name}`}></use>
@@ -64,6 +118,13 @@ const {
       })}
     </div>
   </button>
+  <div class="avatar__sprite-preload" aria-hidden="true">
+    {dynamicTileNames.map((name) => (
+      <svg viewBox="0 0 25 25" focusable="false">
+        <use href={`${spriteSheetUrl}#avatar-sprite-${name}`}></use>
+      </svg>
+    ))}
+  </div>
 </div>
 
 <script is:inline define:vars={{ avatarClientUrl: clientModules['avatar-client'] }}>
@@ -193,6 +254,35 @@ const {
     user-select: none;
     pointer-events: none;
     shape-rendering: crispEdges;
+  }
+
+  .avatar__eye-state,
+  .avatar__mouth-state {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .avatar__eye-state[data-active='true'],
+  .avatar__mouth-state[data-active='true'] {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .avatar__sprite-preload {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .avatar__sprite-preload svg {
+    position: absolute;
+    width: 25px;
+    height: 25px;
   }
 </style>
 

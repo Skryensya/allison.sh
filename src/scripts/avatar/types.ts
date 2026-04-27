@@ -7,10 +7,6 @@ export type AvatarRoot = HTMLElement & {
   __avatarCleanup?: () => void;
   __avatarObserved?: boolean;
   __avatarSpeechBubble?: SpeechBubble | null;
-  __avatarVoiceAudio?: HTMLAudioElement | null;
-  __avatarVoiceFadeRaf?: number;
-  __avatarVoiceEndDelayTimer?: number;
-  __avatarVoiceUrl?: string | null;
   __avatarPartCache?: {
     outfitUses: SVGUseElement[];
     hatUses: SVGUseElement[];

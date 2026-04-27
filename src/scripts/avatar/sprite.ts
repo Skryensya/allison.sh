@@ -146,8 +146,13 @@ function sameSpriteRef(a: string, b: string): boolean {
 export function setUseTarget(use: SVGUseElement, href: string) {
   const current = getUseHrefAttribute(use);
   if (current && sameSpriteRef(current, href)) return;
+
+  // Writing both href and xlink:href can trigger two SVG invalidations per phoneme.
+  // The markup uses href; only preserve xlink when an existing browser/path needs it.
   use.setAttribute('href', href);
-  use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', href);
+  if (use.hasAttribute('xlink:href') || use.hasAttributeNS('http://www.w3.org/1999/xlink', 'href')) {
+    use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', href);
+  }
 }
 
 export function getSpriteBaseUrl(root: HTMLElement) {

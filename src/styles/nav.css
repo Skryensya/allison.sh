@@ -1,4 +1,4 @@
-/* Hover swipe (highlight). CSS defaults keep it light; no JS needed. */
+/* Shared interaction highlight for nav, contact, and footer controls. */
 :where(#nav-links a, #contacto a) {
   position: relative;
   display: inline-flex;
@@ -8,15 +8,17 @@
   border-radius: 999px;
   text-decoration: none;
 
-  /* Defaults (fallback si no hay JS / keyboard focus) */
-  --nav-origin-in: left;
-  --nav-origin-out: right;
-  --nav-skew: -12deg;
+  --nav-highlight-skew: -12deg;
+  --nav-highlight-lift: 5px;
+  --nav-highlight-scale: 0.94;
+  --nav-highlight-radius: 999px;
+  --nav-highlight-bg: color-mix(in srgb, var(--color-text) 96%, var(--color-bg));
+  --nav-highlight-shine: color-mix(in srgb, var(--color-bg) 28%, transparent);
+  --nav-highlight-shadow: 0 10px 26px color-mix(in srgb, var(--color-text) 8%, transparent);
 
-  /* Hover-out usa el transition del estado base */
   transition:
-    color 130ms ease,
-    transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+    color 180ms ease,
+    transform 240ms cubic-bezier(0.2, 0, 0, 1);
 
   isolation: isolate;
   z-index: 0;
@@ -32,13 +34,17 @@
   border-radius: 999px;
   text-decoration: none;
 
-  --nav-origin-in: left;
-  --nav-origin-out: right;
-  --nav-skew: -12deg;
+  --nav-highlight-skew: -12deg;
+  --nav-highlight-lift: 4px;
+  --nav-highlight-scale: 0.9;
+  --nav-highlight-radius: 999px;
+  --nav-highlight-bg: color-mix(in srgb, var(--color-text) 96%, var(--color-bg));
+  --nav-highlight-shine: color-mix(in srgb, var(--color-bg) 28%, transparent);
+  --nav-highlight-shadow: 0 10px 26px color-mix(in srgb, var(--color-text) 8%, transparent);
 
   transition:
-    color 130ms ease,
-    transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+    color 180ms ease,
+    transform 240ms cubic-bezier(0.2, 0, 0, 1);
 
   isolation: isolate;
   z-index: 0;
@@ -48,18 +54,33 @@
   content: '';
   position: absolute;
   inset: -6px -8px;
-  border-radius: 999px;
-  background: var(--color-text);
-
-  /* Exit/repose */
+  border-radius: var(--nav-highlight-radius);
+  background: var(--nav-highlight-bg);
+  box-shadow: var(--nav-highlight-shadow);
   opacity: 0;
-  transform: scaleX(0) skewX(var(--nav-skew));
-  transform-origin: var(--nav-origin-out);
+  transform: translateY(var(--nav-highlight-lift)) scale(var(--nav-highlight-scale)) skewX(var(--nav-highlight-skew));
+  transform-origin: center;
 
-  /* Wrap-up rápido al salir */
   transition:
-    transform 150ms cubic-bezier(0.4, 0, 1, 1),
-    opacity 110ms ease;
+    opacity 170ms ease,
+    transform 260ms cubic-bezier(0.2, 0, 0, 1);
+  z-index: -1;
+}
+
+:where(#nav-links a, #contacto a)::after {
+  content: '';
+  position: absolute;
+  inset: -6px -8px;
+  border-radius: var(--nav-highlight-radius);
+  background: linear-gradient(
+    105deg,
+    transparent 24%,
+    var(--nav-highlight-shine) 46%,
+    transparent 68%
+  );
+  opacity: 0;
+  transform: translateX(-42%) scaleX(0.62) skewX(var(--nav-highlight-skew));
+  transform-origin: center;
   z-index: -1;
 }
 
@@ -67,16 +88,33 @@
   content: '';
   position: absolute;
   inset: -2px;
-  border-radius: 999px;
-  background: var(--color-text);
-
+  border-radius: var(--nav-highlight-radius);
+  background: var(--nav-highlight-bg);
+  box-shadow: var(--nav-highlight-shadow);
   opacity: 0;
-  transform: scaleX(0) skewX(var(--nav-skew));
-  transform-origin: var(--nav-origin-out);
+  transform: translateY(var(--nav-highlight-lift)) scale(var(--nav-highlight-scale)) skewX(var(--nav-highlight-skew));
+  transform-origin: center;
 
   transition:
-    transform 150ms cubic-bezier(0.4, 0, 1, 1),
-    opacity 110ms ease;
+    opacity 170ms ease,
+    transform 260ms cubic-bezier(0.2, 0, 0, 1);
+  z-index: -1;
+}
+
+#theme-toggle::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: var(--nav-highlight-radius);
+  background: linear-gradient(
+    105deg,
+    transparent 24%,
+    var(--nav-highlight-shine) 46%,
+    transparent 68%
+  );
+  opacity: 0;
+  transform: translateX(-42%) scaleX(0.62) skewX(var(--nav-highlight-skew));
+  transform-origin: center;
   z-index: -1;
 }
 
@@ -88,13 +126,14 @@
 
   :where(#nav-links a, #theme-toggle, #contacto a):hover::before {
     opacity: 1;
-    transform: scaleX(1) skewX(var(--nav-skew));
-    transform-origin: var(--nav-origin-in);
-
-    /* Entry un toque más largo y suave */
+    transform: translateY(0) scale(1) skewX(var(--nav-highlight-skew));
     transition:
-      transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
-      opacity 110ms ease;
+      opacity 150ms ease-out,
+      transform 280ms cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  :where(#nav-links a, #theme-toggle, #contacto a):hover::after {
+    animation: navHighlightGlint 560ms cubic-bezier(0.19, 1, 0.22, 1) both;
   }
 }
 
@@ -105,8 +144,7 @@
 
 :where(#nav-links a, #theme-toggle, #contacto a):focus-visible::before {
   opacity: 1;
-  transform: scaleX(1) skewX(var(--nav-skew));
-  transform-origin: var(--nav-origin-in);
+  transform: translateY(0) scale(1) skewX(var(--nav-highlight-skew));
 }
 
 /* En mobile: solo mostrar el toggle, ocultar links del nav (work/about/contact)
@@ -114,6 +152,15 @@
 @media (max-width: 47.999rem) {
   #nav-links a {
     display: none !important;
+  }
+
+  #contacto a {
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  #contacto a::before {
+    inset: -6px -4px;
   }
 }
 
@@ -180,8 +227,8 @@ footer #theme-toggle {
   isolation: isolate;
   color: inherit;
   transition:
-    color 130ms ease,
-    transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+    color 180ms ease,
+    transform 240ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 footer #theme-toggle::before {
@@ -189,15 +236,32 @@ footer #theme-toggle::before {
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  background: var(--color-text);
-
+  background: var(--nav-highlight-bg);
+  box-shadow: var(--nav-highlight-shadow);
   opacity: 0;
-  transform: scaleX(0) skewX(var(--nav-skew));
-  transform-origin: var(--nav-origin-out);
+  transform: translateY(var(--nav-highlight-lift)) scale(var(--nav-highlight-scale)) skewX(var(--nav-highlight-skew));
+  transform-origin: center;
 
   transition:
-    transform 150ms cubic-bezier(0.4, 0, 1, 1),
-    opacity 110ms ease;
+    opacity 170ms ease,
+    transform 260ms cubic-bezier(0.2, 0, 0, 1);
+  z-index: -1;
+}
+
+footer #theme-toggle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    105deg,
+    transparent 24%,
+    var(--nav-highlight-shine) 46%,
+    transparent 68%
+  );
+  opacity: 0;
+  transform: translateX(-42%) scaleX(0.62) skewX(var(--nav-highlight-skew));
+  transform-origin: center;
   z-index: -1;
 }
 
@@ -207,11 +271,14 @@ footer #theme-toggle:hover {
 
 footer #theme-toggle:hover::before {
   opacity: 1;
-  transform: scaleX(1) skewX(var(--nav-skew));
-  transform-origin: var(--nav-origin-in);
+  transform: translateY(0) scale(1) skewX(var(--nav-highlight-skew));
   transition:
-    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 110ms ease;
+    opacity 150ms ease-out,
+    transform 280ms cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+footer #theme-toggle:hover::after {
+  animation: navHighlightGlint 560ms cubic-bezier(0.19, 1, 0.22, 1) both;
 }
 
 footer #theme-toggle:focus-visible {
@@ -221,11 +288,38 @@ footer #theme-toggle:focus-visible {
 
 footer #theme-toggle:focus-visible::before {
   opacity: 1;
-  transform: scaleX(1) skewX(var(--nav-skew));
-  transform-origin: var(--nav-origin-in);
+  transform: translateY(0) scale(1) skewX(var(--nav-highlight-skew));
 }
 
 footer #theme-toggle:active {
   transition: none;
   transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(#nav-links a, #theme-toggle, #contacto a),
+  :where(#nav-links a, #theme-toggle, #contacto a)::before,
+  :where(#nav-links a, #theme-toggle, #contacto a)::after,
+  footer #theme-toggle,
+  footer #theme-toggle::before,
+  footer #theme-toggle::after {
+    animation: none;
+    transition: none;
+  }
+}
+
+@keyframes navHighlightGlint {
+  0% {
+    opacity: 0;
+    transform: translateX(-42%) scaleX(0.62) skewX(var(--nav-highlight-skew));
+  }
+
+  32% {
+    opacity: 0.22;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(42%) scaleX(0.86) skewX(var(--nav-highlight-skew));
+  }
 }

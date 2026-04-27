@@ -1,7 +1,5 @@
 import { avatarHats, avatarOutfits, avatarSpecialConfigs } from '@/data/avatarSprite';
 import { setUseTarget } from './avatar/sprite';
-import { loadVoicesModule } from './avatar/voice-loader';
-import { playMouthSfx, playSpeechPresenceBlip, resumeAvatarSfxContext } from './avatar-speech-sfx';
 
 type PhraseCategory = 'short' | 'mid' | 'long';
 
@@ -97,6 +95,12 @@ function buildLoopPhraseQueue(now: Date = new Date()): AvatarPhrase[] {
   return generals;
 }
 
+function getPhraseDisplayDuration(phrase: AvatarPhrase): number {
+  if (phrase.category === 'long') return 4200;
+  if (phrase.category === 'mid') return 3200;
+  return 2400;
+}
+
 type AvatarDirection =
   | 'base'
   | 'top-left'
@@ -114,10 +118,6 @@ type AvatarRoot = HTMLElement & {
   __avatarCleanup?: () => void;
   __avatarObserved?: boolean;
   __avatarSpeechBubble?: InstanceType<SpeechBubbleModule['SpeechBubble']> | null;
-  __avatarVoiceAudio?: HTMLAudioElement | null;
-  __avatarVoiceFadeRaf?: number;
-  __avatarVoiceEndDelayTimer?: number;
-  __avatarVoiceUrl?: string | null;
   __avatarPartCache?: {
     outfitUses: SVGUseElement[];
     hatUses: SVGUseElement[];
@@ -140,9 +140,6 @@ const AVATAR_DIRECTIONS = [
 ] as const;
 const SPEECH_MOUTH_STATES = ['neutral', 'closed', 'a', 'e', 'i', 'o', 'u'] as const;
 const SPRITE_PREFIX = 'avatar-sprite';
-
-/** Voice clips never play above 50% — fixed ceiling, not user-adjustable in code. */
-const AVATAR_VOICE_VOLUME = 0.5;
 
 let avatarObserver: IntersectionObserver | null = null;
 let lifecycleBound = false;
@@ -383,10 +380,33 @@ function initAvatar(root: AvatarRoot) {
   const rightEye = root.querySelector<SVGUseElement>('.avatar__part--right-eye');
   const mouthLeft = root.querySelector<SVGUseElement>('.avatar__part--mouth-left');
   const mouthRight = root.querySelector<SVGUseElement>('.avatar__part--mouth-right');
+  const leftEyeStates = new Map<LeftEyeState, SVGUseElement>();
+  const rightEyeStates = new Map<RightEyeState, SVGUseElement>();
+  const mouthLeftStates = new Map<MouthState, SVGUseElement>();
+  const mouthRightStates = new Map<MouthState, SVGUseElement>();
 
-  if (!button || !leftEye || !rightEye || !mouthLeft || !mouthRight) return;
+  root.querySelectorAll<SVGUseElement>('[data-eye-side="left"][data-eye-state]').forEach((use) => {
+    const state = use.dataset.eyeState;
+    if (state && state in LEFT_EYE_TILES) leftEyeStates.set(state as LeftEyeState, use);
+  });
+  root.querySelectorAll<SVGUseElement>('[data-eye-side="right"][data-eye-state]').forEach((use) => {
+    const state = use.dataset.eyeState;
+    if (state && state in RIGHT_EYE_TILES) rightEyeStates.set(state as RightEyeState, use);
+  });
 
-  const pickRandom = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
+  root.querySelectorAll<SVGUseElement>('[data-mouth-side="left"][data-mouth-state]').forEach((use) => {
+    const state = use.dataset.mouthState;
+    if (state && state in MOUTH_LEFT_TILES) mouthLeftStates.set(state as MouthState, use);
+  });
+  root.querySelectorAll<SVGUseElement>('[data-mouth-side="right"][data-mouth-state]').forEach((use) => {
+    const state = use.dataset.mouthState;
+    if (state && state in MOUTH_RIGHT_TILES) mouthRightStates.set(state as MouthState, use);
+  });
+
+  const hasBufferedEyes = leftEyeStates.size > 0 && rightEyeStates.size > 0;
+  const hasBufferedMouth = mouthLeftStates.size > 0 && mouthRightStates.size > 0;
+
+  if (!button || (!hasBufferedEyes && (!leftEye || !rightEye)) || (!hasBufferedMouth && (!mouthLeft || !mouthRight))) return;
 
   let introPhraseQueue: AvatarPhrase[] | null = null;
   let introPhraseIndex = 0;
@@ -456,99 +476,6 @@ function initAvatar(root: AvatarRoot) {
 
   resetAvatarPhrases();
 
-  const VOICE_TAIL_AFTER_TYPING_MS = 250;
-
-  const cancelVoiceFade = () => {
-    if (root.__avatarVoiceFadeRaf) {
-      cancelAnimationFrame(root.__avatarVoiceFadeRaf);
-      root.__avatarVoiceFadeRaf = 0;
-    }
-  };
-
-  const cancelVoiceEndDelay = () => {
-    if (root.__avatarVoiceEndDelayTimer) {
-      window.clearTimeout(root.__avatarVoiceEndDelayTimer);
-      root.__avatarVoiceEndDelayTimer = 0;
-    }
-  };
-
-  const stopVoice = () => {
-    cancelVoiceFade();
-    cancelVoiceEndDelay();
-
-    if (!root.__avatarVoiceAudio) {
-      root.__avatarVoiceUrl = null;
-      return;
-    }
-
-    root.__avatarVoiceAudio.pause();
-    root.__avatarVoiceAudio.currentTime = 0;
-    root.__avatarVoiceAudio.volume = AVATAR_VOICE_VOLUME;
-    root.__avatarVoiceAudio = null;
-    root.__avatarVoiceUrl = null;
-  };
-
-  const getVoiceAudio = (voiceUrl: string) => {
-    if (root.__avatarVoiceAudio && root.__avatarVoiceUrl === voiceUrl) {
-      return root.__avatarVoiceAudio;
-    }
-
-    stopVoice();
-    const audio = new Audio(voiceUrl);
-    audio.preload = 'auto';
-    audio.volume = AVATAR_VOICE_VOLUME;
-    root.__avatarVoiceAudio = audio;
-    root.__avatarVoiceUrl = voiceUrl;
-    return audio;
-  };
-
-  /** Quick linear fade to silence, then teardown (feels less abrupt than a hard stop). */
-  const fadeOutVoice = (durationMs = 130) => {
-    cancelVoiceFade();
-    const audio = root.__avatarVoiceAudio;
-    if (!audio) return;
-
-    const startVol = Math.min(AVATAR_VOICE_VOLUME, audio.volume);
-    const t0 = performance.now();
-
-    const step = () => {
-      const a = root.__avatarVoiceAudio;
-      if (!a) {
-        root.__avatarVoiceFadeRaf = 0;
-        return;
-      }
-
-      const elapsed = performance.now() - t0;
-      const u = Math.min(1, elapsed / durationMs);
-      a.volume = Math.max(0, startVol * (1 - u));
-
-      if (u < 1) {
-        root.__avatarVoiceFadeRaf = requestAnimationFrame(step);
-      } else {
-        root.__avatarVoiceFadeRaf = 0;
-        a.pause();
-        a.currentTime = 0;
-        a.volume = AVATAR_VOICE_VOLUME;
-        root.__avatarVoiceAudio = null;
-        root.__avatarVoiceUrl = null;
-      }
-    };
-
-    root.__avatarVoiceFadeRaf = requestAnimationFrame(step);
-  };
-
-  const playVoice = (voiceUrl: string) => {
-    const audio = getVoiceAudio(voiceUrl);
-    cancelVoiceFade();
-    audio.currentTime = 0;
-    audio.muted = false;
-    audio.volume = AVATAR_VOICE_VOLUME;
-
-    void audio.play().catch(() => {
-      // ignore play edge cases
-    });
-  };
-
   applyStoredAvatarConfig(root);
 
   const symbolHref = (tileName: string) => getSpriteHref(root, tileName);
@@ -582,11 +509,43 @@ function initAvatar(root: AvatarRoot) {
   let lastDirectionChangeAt = 0;
   let globalListenersBound = false;
 
+  const setBufferedMouthTarget = (target: MouthState) => {
+    mouthLeftStates.forEach((use, state) => {
+      use.dataset.active = state === target ? 'true' : 'false';
+    });
+    mouthRightStates.forEach((use, state) => {
+      use.dataset.active = state === target ? 'true' : 'false';
+    });
+  };
+
+  const setBufferedEyeTarget = (leftTarget: LeftEyeState, rightTarget: RightEyeState) => {
+    leftEyeStates.forEach((use, state) => {
+      use.dataset.active = state === leftTarget ? 'true' : 'false';
+    });
+    rightEyeStates.forEach((use, state) => {
+      use.dataset.active = state === rightTarget ? 'true' : 'false';
+    });
+  };
+
+  const setEyeTarget = (leftTarget: LeftEyeState, rightTarget: RightEyeState) => {
+    if (hasBufferedEyes) {
+      setBufferedEyeTarget(leftTarget, rightTarget);
+      return;
+    }
+
+    setUseTarget(leftEye!, symbolHref(LEFT_EYE_TILES[leftTarget]));
+    setUseTarget(rightEye!, symbolHref(RIGHT_EYE_TILES[rightTarget]));
+  };
+
   const render = () => {
     /* Durante el speech, la boca sigue los fonemas; la sonrisa solo en la celebración (cola agotada). */
     const mouthTarget: MouthState = isSpeaking ? mouthState : isSmiling ? 'smile' : mouthState;
-    setUseTarget(mouthLeft, symbolHref(MOUTH_LEFT_TILES[mouthTarget]));
-    setUseTarget(mouthRight, symbolHref(MOUTH_RIGHT_TILES[mouthTarget]));
+    if (hasBufferedMouth) {
+      setBufferedMouthTarget(mouthTarget);
+    } else {
+      setUseTarget(mouthLeft!, symbolHref(MOUTH_LEFT_TILES[mouthTarget]));
+      setUseTarget(mouthRight!, symbolHref(MOUTH_RIGHT_TILES[mouthTarget]));
+    }
 
     // During speech or smile, do NOT track the pointer (forward gaze).
     const shouldUseInteractiveDirection =
@@ -597,21 +556,18 @@ function initAvatar(root: AvatarRoot) {
     const eyeDirection = shouldUseInteractiveDirection ? direction : speakingDirection;
 
     if (isBlinking) {
-      setUseTarget(leftEye, symbolHref(LEFT_EYE_TILES.blink));
-      setUseTarget(rightEye, symbolHref(RIGHT_EYE_TILES.blink));
+      setEyeTarget('blink', 'blink');
       return;
     }
 
     if (isWinking) {
       /* Wink reads as a forward look; keep both eyes neutral / center. */
-      setUseTarget(leftEye, symbolHref(LEFT_EYE_TILES.base));
-      setUseTarget(rightEye, symbolHref(RIGHT_EYE_TILES.wink));
+      setEyeTarget('base', 'wink');
       return;
     }
 
     const target = started ? eyeDirection : 'base';
-    setUseTarget(leftEye, symbolHref(LEFT_EYE_TILES[target]));
-    setUseTarget(rightEye, symbolHref(RIGHT_EYE_TILES[target]));
+    setEyeTarget(target, target);
   };
 
   const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
@@ -790,42 +746,13 @@ function initAvatar(root: AvatarRoot) {
     }
 
     advanceAvatarPhraseQueue();
-    const { VOICES_BY_CATEGORY } = await loadVoicesModule();
-    const voiceOptions = VOICES_BY_CATEGORY[phrase.category];
-    const voiceUrl = voiceOptions.length ? pickRandom(voiceOptions) : null;
 
-    stopVoice();
     root.__avatarSpeechBubble?.destroy();
-
-    resumeAvatarSfxContext();
-
-    // Start voice on the same user gesture, before bubble layout — avoids a late start after renderPhraseLayout.
-    if (voiceUrl) {
-      playVoice(voiceUrl);
-    }
 
     const bubble = new SpeechBubble({
       charSpeed: 35,
-      /* Tras terminar de escribir: breve pausa antes del auto-hide; un clic también salta esta espera. */
-      displayDuration: 450,
+      displayDuration: getPhraseDisplayDuration(phrase),
       phrases: [phrase.text],
-      onTypingStart: () => {
-        if (!voiceUrl) {
-          playSpeechPresenceBlip();
-        }
-      },
-      onTypingEnd: () => {
-        if (!voiceUrl) return;
-        cancelVoiceEndDelay();
-        root.__avatarVoiceEndDelayTimer = window.setTimeout(() => {
-          root.__avatarVoiceEndDelayTimer = 0;
-          fadeOutVoice(130);
-        }, VOICE_TAIL_AFTER_TYPING_MS);
-      },
-      onMouthShape: (shape) => {
-        if (voiceUrl) return;
-        playMouthSfx(shape);
-      },
       onAfterHide: () => {
         if (lastPhraseCameFromLoop && justFinishedLoopCycle) {
           celebrateAvatarClick();
@@ -967,11 +894,6 @@ function initAvatar(root: AvatarRoot) {
   const handleVisibilityChange = () => {
     if (!document.hidden) return;
     handlePointerReset();
-    stopVoice();
-  };
-
-  const handlePageHide = () => {
-    stopVoice();
   };
 
   const handleFocus = () => {
@@ -1022,7 +944,6 @@ function initAvatar(root: AvatarRoot) {
     window.addEventListener('pointercancel', handlePointerUp, { passive: true });
     window.addEventListener('blur', handlePointerReset);
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('pagehide', handlePageHide);
     root.addEventListener('avatar:set-mouth', handleSetMouth as EventListener);
     root.addEventListener('avatar:set-gaze', handleSetGaze as EventListener);
   };
@@ -1060,7 +981,6 @@ function initAvatar(root: AvatarRoot) {
       window.removeEventListener('pointercancel', handlePointerUp);
       window.removeEventListener('blur', handlePointerReset);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pagehide', handlePageHide);
       root.removeEventListener('avatar:set-mouth', handleSetMouth as EventListener);
       root.removeEventListener('avatar:set-gaze', handleSetGaze as EventListener);
       globalListenersBound = false;
@@ -1079,7 +999,6 @@ function initAvatar(root: AvatarRoot) {
       window.cancelAnimationFrame(rafId);
     }
 
-    stopVoice();
     root.__avatarSpeechBubble?.destroy();
     root.__avatarSpeechBubble = null;
   };

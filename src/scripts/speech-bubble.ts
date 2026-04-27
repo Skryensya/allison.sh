@@ -7,32 +7,6 @@ import {
 } from '@chenglou/pretext';
 
 /**
- * Narrowest max line width that keeps the same line count as laying out at `contentBudget`.
- * Same idea as `findTightWrapMetrics` in Pretext's bubbles demo (binary search on width).
- */
-function findTightContentWidthForBudget(
-  prepared: PreparedTextWithSegments,
-  contentBudget: number,
-): number {
-  const initialLineCount = measureLineStats(prepared, contentBudget).lineCount;
-  if (initialLineCount <= 1) {
-    return Math.min(contentBudget, measureNaturalWidth(prepared));
-  }
-
-  let lo = 1;
-  let hi = Math.max(1, Math.ceil(contentBudget));
-  while (lo < hi) {
-    const mid = Math.floor((lo + hi) / 2);
-    if (measureLineStats(prepared, mid).lineCount <= initialLineCount) {
-      hi = mid;
-    } else {
-      lo = mid + 1;
-    }
-  }
-  return lo;
-}
-
-/**
  * Speech Bubble — simplified letter-by-letter bubble with avatar mouth sync.
  */
 
@@ -62,6 +36,7 @@ const DEFAULT_OPTIONS = {
 const preparedTextCache = new Map<string, PreparedTextWithSegments>();
 
 const SPEECH_BUBBLE_LAYER_ID = 'avatar-speech-bubble-layer';
+const TEXT_MEASURE_SAFETY_PX = 10;
 
 /**
  * Capa bajo `#main-content` (o `body`): bubble `absolute` respecto al main con `position: relative`.
@@ -181,11 +156,18 @@ type BubbleState = 'hidden' | 'typing' | 'visible' | 'hiding';
 type SpeechBubbleTypographyConfig = {
   isMobile: boolean;
   font: string;
+  fontSize: number;
   lineHeight: number;
   paddingX: number;
   paddingY: number;
   viewportPadding: number;
-  preferredMaxLines: number;
+  minFontSize: number;
+};
+
+type SpeechBubbleFit = SpeechBubbleTypographyConfig & {
+  prepared: PreparedTextWithSegments;
+  lineTexts: string[];
+  lineWidth: number;
 };
 
 export class SpeechBubble {
@@ -463,16 +445,18 @@ export class SpeechBubble {
 
   private getTypographyConfig(): SpeechBubbleTypographyConfig {
     const isMobile = window.matchMedia('(max-width: 40rem)').matches;
+    const fontSize = isMobile ? 14 : 16;
 
     return {
       isMobile,
       /* Must match `.avatar-speech-bubble__inner` — Pretext uses canvas measureText (README). */
-      font: isMobile ? '400 14px Satoshi' : '400 16px Satoshi',
-      lineHeight: isMobile ? 20.3 : 23.2,
-      paddingX: isMobile ? 14 : 16,
-      paddingY: isMobile ? 9 : 10,
+      font: `400 ${fontSize}px Satoshi`,
+      fontSize,
+      lineHeight: fontSize * 1.45,
+      paddingX: isMobile ? 12 : 14,
+      paddingY: isMobile ? 7 : 8,
       viewportPadding: isMobile ? 24 : 28,
-      preferredMaxLines: isMobile ? 3 : 2,
+      minFontSize: isMobile ? 9.5 : 14,
     };
   }
 
@@ -480,19 +464,50 @@ export class SpeechBubble {
     const margin = 12;
     const gutterX = 10;
     const rect = anchor.getBoundingClientRect();
-    const viewportRight = window.innerWidth - gutterX;
-    const viewportBudget = Math.max(100, window.innerWidth - config.viewportPadding);
-    const main = anchor.closest('#main-content');
+    const viewportBudget = Math.max(96, window.innerWidth - config.viewportPadding);
+    const availableRight = window.innerWidth - gutterX - rect.right - margin;
 
-    if (main instanceof HTMLElement) {
-      const mainRect = main.getBoundingClientRect();
-      const contentRight = Math.min(mainRect.right, viewportRight);
-      const availableNextToAvatar = contentRight - rect.right - margin;
-      return Math.max(100, Math.min(viewportBudget, availableNextToAvatar));
+    return Math.max(96, Math.min(viewportBudget, availableRight));
+  }
+
+  private getFitForPhrase(
+    phrase: string,
+    baseConfig: SpeechBubbleTypographyConfig,
+    maxContentWidth: number,
+  ): SpeechBubbleFit {
+    const fixedPaddingX = baseConfig.paddingX;
+    const usableContentWidth = Math.max(56, maxContentWidth - TEXT_MEASURE_SAFETY_PX);
+    const preferredMaxLines = baseConfig.isMobile ? Number.POSITIVE_INFINITY : 1;
+    let best: SpeechBubbleFit | null = null;
+
+    for (let fontSize = baseConfig.fontSize; fontSize >= baseConfig.minFontSize; fontSize -= 0.5) {
+      const roundedFontSize = Math.round(fontSize * 10) / 10;
+      const config: SpeechBubbleTypographyConfig = {
+        ...baseConfig,
+        fontSize: roundedFontSize,
+        font: `400 ${roundedFontSize}px Satoshi`,
+        lineHeight: roundedFontSize * (baseConfig.isMobile ? 1.42 : 1.45),
+        paddingX: fixedPaddingX,
+        paddingY: baseConfig.isMobile && roundedFontSize < baseConfig.fontSize ? 6 : baseConfig.paddingY,
+      };
+      const prepared = getPreparedText(phrase, config.font);
+      const natural = measureNaturalWidth(prepared);
+      const stats = measureLineStats(prepared, usableContentWidth);
+      const layout = layoutWithLines(prepared, usableContentWidth, config.lineHeight);
+      const lineTexts = layout.lines.length ? layout.lines.map((line) => line.text) : [phrase];
+      const lineWidth = Math.max(...layout.lines.map((line) => line.width), Math.min(natural, usableContentWidth));
+      const fit: SpeechBubbleFit = {
+        ...config,
+        prepared,
+        lineTexts,
+        lineWidth,
+      };
+
+      best = fit;
+      if (stats.lineCount <= preferredMaxLines) return fit;
     }
 
-    const availableNextToAvatar = viewportRight - rect.right - margin;
-    return Math.max(100, Math.min(viewportBudget, availableNextToAvatar));
+    return best!;
   }
 
   private renderPhraseLayout(phrase: string, anchor: HTMLElement): {
@@ -501,12 +516,10 @@ export class SpeechBubble {
     totalChars: number;
     applyVisibleCharacters: (count: number) => void;
   } {
-    const config = this.getTypographyConfig();
-    const prepared = getPreparedText(phrase, config.font);
-
-    const maxOuterWidth = this.getMaxOuterWidth(anchor, config);
-    const maxContentWidth = Math.max(56, maxOuterWidth - config.paddingX * 2);
-    const natural = measureNaturalWidth(prepared);
+    const baseConfig = this.getTypographyConfig();
+    const maxOuterWidth = this.getMaxOuterWidth(anchor, baseConfig);
+    const maxContentWidth = Math.max(56, maxOuterWidth - baseConfig.paddingX * 2);
+    const fit = this.getFitForPhrase(phrase, baseConfig, maxContentWidth);
     /* Skewed ::before extends past the text box slightly; keep in sync with bubble CSS insets. */
     const outerSkewFudgePx = 8;
 
@@ -515,56 +528,31 @@ export class SpeechBubble {
     this.inner.style.minHeight = '';
     this.inner.style.maxWidth = `${Math.ceil(maxOuterWidth)}px`;
     this.inner.style.width = 'max-content';
+    this.inner.style.fontSize = `${fit.fontSize}px`;
+    this.inner.style.lineHeight = `${fit.lineHeight}px`;
+    this.inner.style.padding = `${fit.paddingY}px ${fit.paddingX}px`;
+    this.inner.dataset.compact = 'true';
 
-    const renderLines = (texts: string[]) => {
-      this.inner.innerHTML = '';
+    const lineElements = fit.lineTexts.map((lineText) => {
+      const lineElement = document.createElement('div');
+      lineElement.className = 'avatar-speech-bubble__line';
+      lineElement.textContent = lineText;
+      this.inner.appendChild(lineElement);
+      return lineElement;
+    });
 
-      return texts.map((lineText) => {
-        const lineEl = document.createElement('div');
-        lineEl.className = 'avatar-speech-bubble__line';
-        lineEl.textContent = lineText;
-        this.inner.appendChild(lineEl);
-        return lineEl;
-      });
-    };
-
-    let wrapContentWidth: number;
-    if (natural <= maxContentWidth) {
-      wrapContentWidth = natural;
-    } else {
-      const statsAtMax = measureLineStats(prepared, maxContentWidth);
-      if (statsAtMax.lineCount <= config.preferredMaxLines) {
-        wrapContentWidth = findTightContentWidthForBudget(prepared, maxContentWidth);
-      } else {
-        wrapContentWidth = maxContentWidth;
-      }
-    }
-
-    const layout = layoutWithLines(prepared, wrapContentWidth, config.lineHeight);
-    const lineTexts = (layout.lines.length ? layout.lines : [{ text: '' }]).map((line) => line.text);
-    const lineElements = renderLines(lineTexts);
-    const isSingleLine = lineTexts.length <= 1;
-
-    this.inner.dataset.compact = isSingleLine ? 'true' : 'false';
-
-    const compactPaddingX = isSingleLine ? (config.isMobile ? 12 : 14) : config.paddingX;
-    const compactPaddingY = isSingleLine ? (config.isMobile ? 7 : 8) : config.paddingY;
-
-    const maxLineW = layout.lines.reduce((m, line) => Math.max(m, line.width), 0);
     const width = Math.ceil(
-      Math.min(maxOuterWidth, maxLineW + compactPaddingX * 2 + outerSkewFudgePx),
+      Math.min(maxOuterWidth, fit.lineWidth + fit.paddingX * 2 + outerSkewFudgePx + TEXT_MEASURE_SAFETY_PX),
     );
     this.inner.style.width = `${width}px`;
 
+    const minInnerHeight = Math.ceil(fit.paddingY * 2 + fit.lineHeight * fit.lineTexts.length) + 2;
     const measuredInner = Math.ceil(this.inner.scrollHeight + 2);
-    const minInnerHeight = isSingleLine
-      ? Math.ceil(compactPaddingY * 2 + config.lineHeight) + 2
-      : Math.ceil(config.paddingY * 2 + config.lineHeight * 2) + 2;
     const height = Math.max(measuredInner, minInnerHeight);
     this.inner.style.height = '';
     this.inner.style.minHeight = `${height}px`;
 
-    const lineGraphemes = lineTexts.map((line) => [...line]);
+    const lineGraphemes = fit.lineTexts.map((line) => [...line]);
     const lineLengths = lineGraphemes.map((line) => line.length);
     const totalChars = lineLengths.reduce((sum, length) => sum + length, 0);
 
@@ -572,10 +560,9 @@ export class SpeechBubble {
       let remaining = Math.max(0, count);
 
       lineGraphemes.forEach((graphemes, index) => {
-        const lineLength = lineLengths[index];
-        const visibleInLine = Math.max(0, Math.min(lineLength, remaining));
-        lineElements[index].textContent = graphemes.slice(0, visibleInLine).join('');
-        remaining -= lineLength;
+        const visible = Math.max(0, Math.min(graphemes.length, remaining));
+        lineElements[index].textContent = graphemes.slice(0, visible).join('');
+        remaining -= graphemes.length;
       });
     };
 
@@ -614,14 +601,11 @@ export class SpeechBubble {
     const main = anchor.closest('#main-content');
     if (main) {
       const mainRect = main.getBoundingClientRect();
-      let left = rect.right - mainRect.left + margin;
-      let centerY = (rect.top + rect.bottom) / 2 - mainRect.top;
-      const minL = -mainRect.left + gutterX;
-      const maxL = window.innerWidth - mainRect.left - gutterX - size.width;
       const minCy = -mainRect.top + gutterY + halfH;
       const maxCy = window.innerHeight - mainRect.top - gutterY - halfH;
-      left = clamp(left, minL, maxL);
-      centerY = clamp(centerY, minCy, maxCy);
+      const left = rect.right - mainRect.left + margin;
+      const centerY = clamp((rect.top + rect.bottom) / 2 - mainRect.top, minCy, maxCy);
+
       this.container.dataset.side = 'right';
       this.container.style.left = `${left}px`;
       this.container.style.top = `${centerY}px`;
@@ -638,10 +622,8 @@ export class SpeechBubble {
     const viewRight = sx + vw;
     const viewTop = sy;
     const viewBottom = sy + vh;
-    let left = docRight + margin;
-    let centerY = docCenterY;
-    left = clamp(left, viewLeft + gutterX, viewRight - gutterX - size.width);
-    centerY = clamp(centerY, viewTop + gutterY + halfH, viewBottom - gutterY - halfH);
+    const left = docRight + margin;
+    const centerY = clamp(docCenterY, viewTop + gutterY + halfH, viewBottom - gutterY - halfH);
     this.container.dataset.side = 'right';
     this.container.style.left = `${left}px`;
     this.container.style.top = `${centerY}px`;
@@ -783,9 +765,9 @@ export class SpeechBubble {
       font-family: var(--font-sans, Satoshi), ui-sans-serif, system-ui, sans-serif;
       font-size: 16px;
       line-height: 1.45;
-      white-space: normal;
-      text-wrap: wrap;
-      overflow-wrap: break-word;
+      white-space: nowrap;
+      text-wrap: nowrap;
+      overflow-wrap: normal;
       text-align: left;
       isolation: isolate;
       z-index: 0;
@@ -808,8 +790,8 @@ export class SpeechBubble {
 
     .avatar-speech-bubble__line {
       display: block;
-      white-space: normal;
-      overflow-wrap: anywhere;
+      white-space: nowrap;
+      overflow-wrap: normal;
       line-height: inherit;
       width: 100%;
     }
