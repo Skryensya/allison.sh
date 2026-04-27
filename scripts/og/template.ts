@@ -144,16 +144,17 @@ export async function renderSocialSvg(
   };
   const folderPath = createFolderPath(folderGeometry);
   const accent = PROJECT_OG_ACCENTS[slug] ?? PROJECT_OG_ACCENTS.index;
-  const folderTop = mixHex(accent.base, COLORS.background, 0.24);
-  const folderMid = mixHex(accent.base, COLORS.background, 0.17);
-  const folderBottom = mixHex(accent.base, COLORS.background, 0.1);
-  const folderEdge = mixHex(accent.base, COLORS.background, 0.34);
-  const folderShadow = mixHex(accent.base, COLORS.background, 0.22);
+  const useNeutralHomeFolder = isHome && variant === 'og';
+  const folderTop = useNeutralHomeFolder ? COLORS.background : mixHex(accent.base, COLORS.background, 0.24);
+  const folderMid = useNeutralHomeFolder ? COLORS.background : mixHex(accent.base, COLORS.background, 0.17);
+  const folderBottom = useNeutralHomeFolder ? COLORS.background : mixHex(accent.base, COLORS.background, 0.1);
+  const folderEdge = useNeutralHomeFolder ? COLORS.border : mixHex(accent.base, COLORS.background, 0.34);
+  const folderShadow = useNeutralHomeFolder ? 'rgba(0, 0, 0, 0.28)' : mixHex(accent.base, COLORS.background, 0.22);
   const backFolders = [
     {
       x: 42,
       y: -68,
-      fill: mixHex(accent.base, COLORS.background, 0.06),
+      fill: useNeutralHomeFolder ? COLORS.background : mixHex(accent.base, COLORS.background, 0.06),
       sheenOpacity: 0.04,
       shadowOpacity: 0.12,
       scaleX: 0.97,
@@ -162,7 +163,7 @@ export async function renderSocialSvg(
     {
       x: 20,
       y: -38,
-      fill: mixHex(accent.base, COLORS.background, 0.1),
+      fill: useNeutralHomeFolder ? COLORS.background : mixHex(accent.base, COLORS.background, 0.1),
       sheenOpacity: 0.06,
       shadowOpacity: 0.15,
       scaleX: 0.982,
