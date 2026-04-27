@@ -8,6 +8,7 @@ declare global {
     __projectFolderStackLoaded?: boolean;
     __projectFolderStackCleanupBound?: boolean;
     __projectFolderStackState?: ProjectFolderStackRuntime;
+    posthog?: { capture: (event: string, properties?: Record<string, unknown>) => void };
   }
 }
 
@@ -308,6 +309,17 @@ function setupProjectFolderStacks() {
 
         const link = item.querySelector('.project-folder-card__link');
         if (!(link instanceof HTMLElement)) return;
+
+        link.addEventListener('click', () => {
+          const href = link.getAttribute('href') || '';
+          const projectSlug = href.replace('/proyectos/', '').replace(/\/$/, '');
+          const isNextProject = Boolean(stack.closest('.next-folder-stack'));
+          if (isNextProject) {
+            window.posthog?.capture('next_project_clicked', { project_slug: projectSlug });
+          } else {
+            window.posthog?.capture('project_clicked', { project_slug: projectSlug });
+          }
+        }, { signal: ac.signal });
 
         if (!mobileMql.matches) {
           link.addEventListener('pointerenter', () => openPreview(item), { signal: ac.signal });

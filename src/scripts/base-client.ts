@@ -2,6 +2,7 @@ type GlobalWindow = Window & typeof globalThis & {
   __baseClientInit?: boolean;
   __baseClientCleanup?: () => void;
   __glitchReducedMotionHandler?: (event: MediaQueryListEvent) => void;
+  posthog?: { capture: (event: string, properties?: Record<string, unknown>) => void };
 };
 
 const win = window as GlobalWindow;
@@ -259,7 +260,23 @@ function setupBaseClient() {
         const isDark = document.documentElement.classList.toggle('dark');
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
         updateToggleIcons();
+        win.posthog?.capture('theme_toggled', { theme: isDark ? 'dark' : 'light' });
       });
+    });
+  }
+
+  let contactLinksBound = false;
+
+  function bindContactLinks() {
+    if (contactLinksBound) return;
+    contactLinksBound = true;
+
+    document.addEventListener('click', (event) => {
+      const link = (event.target as Element).closest<HTMLAnchorElement>('.footer-contact-link');
+      if (!link) return;
+      const href = link.getAttribute('href') || '';
+      const platform = href.startsWith('mailto:') ? 'email' : href.includes('linkedin') ? 'linkedin' : href.includes('github') ? 'github' : 'unknown';
+      win.posthog?.capture('contact_link_clicked', { platform, href });
     });
   }
 
@@ -269,6 +286,7 @@ function setupBaseClient() {
     initNavbarScroll();
     initGlitch();
     bindThemeToggle();
+    bindContactLinks();
   }
 
   init();

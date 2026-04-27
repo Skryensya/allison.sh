@@ -3,6 +3,7 @@ declare global {
     __projectLightboxLoaded?: boolean;
     __projectLightboxLifecycleBound?: boolean;
     __setupProjectLightbox?: () => void;
+    posthog?: { capture: (event: string, properties?: Record<string, unknown>) => void };
   }
 }
 
@@ -260,6 +261,10 @@ function setupProjectLightbox() {
     };
     active = state;
 
+    const projectSlug = window.location.pathname.replace('/proyectos/', '').replace(/\/$/, '');
+    const imageIndex = frames.indexOf(frame);
+    window.posthog?.capture('project_image_expanded', { project_slug: projectSlug, image_index: imageIndex });
+
     const overlayElement = getOverlay();
     getCloseButton();
     ensureNavigationButtons();
@@ -362,6 +367,8 @@ function setupProjectLightbox() {
     const currentIndex = frames.indexOf(active.frame);
     const nextIndex = (currentIndex + direction + frames.length) % frames.length;
     const nextFrame = frames[nextIndex];
+    const projectSlug = window.location.pathname.replace('/proyectos/', '').replace(/\/$/, '');
+    window.posthog?.capture('project_image_navigated', { project_slug: projectSlug, direction: direction > 0 ? 'next' : 'prev', from_index: currentIndex, to_index: nextIndex });
     if (isMobileViewport()) {
       switchFrameAsCarousel(direction, nextFrame);
       return;
