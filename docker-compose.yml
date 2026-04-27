@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
       args:
         PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-https://allison.sh}
+        PUBLIC_POSTHOG_TOKEN: ${PUBLIC_POSTHOG_TOKEN:-}
+        PUBLIC_POSTHOG_HOST: ${PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
     ports:
       - "3000:3000"
     restart: unless-stopped
