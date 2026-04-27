@@ -64,9 +64,6 @@ const robotsContent = noindex
   ? 'noindex, nofollow'
   : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
 const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData : [structuredData]) : [];
-const posthogToken = import.meta.env.PUBLIC_POSTHOG_TOKEN;
-const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com';
-const enablePosthog = import.meta.env.PROD && Boolean(posthogToken);
 ---
 
 <!doctype html>
@@ -127,8 +124,15 @@ const enablePosthog = import.meta.env.PROD && Boolean(posthogToken);
     {schemas.map((schema) => (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)}></script>
     ))}
-    {enablePosthog && (
-      <script is:inline define:vars={{ posthogToken, posthogHost }}>
+    <script is:inline src="/posthog-env.js"></script>
+    <script is:inline>
+      (function() {
+        var config = window.__POSTHOG_ENV__ || {};
+        var posthogToken = config.token;
+        var posthogHost = config.host || 'https://us.i.posthog.com';
+
+        if (!posthogToken) return;
+
         !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split('.');2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement('script')).type='text/javascript',p.crossOrigin='anonymous',p.async=!0,p.src=s.api_host.replace('.i.posthog.com','-assets.i.posthog.com')+'/static/array.js',(r=t.getElementsByTagName('script')[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a='posthog',u.people=u.people||[],u.toString=function(t){var e='posthog';return'posthog'!==a&&(e+='.'+a),t||(e+=' (stub)'),e},u.people.toString=function(){return u.toString(1)+'.people (stub)'},o='init capture identify reset register register_once unregister get_distinct_id opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug'.split(' '),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
 
         posthog.init(posthogToken, {
@@ -141,8 +145,8 @@ const enablePosthog = import.meta.env.PROD && Boolean(posthogToken);
         document.addEventListener('astro:page-load', function() {
           posthog.capture('$pageview');
         });
-      </script>
-    )}
+      })();
+    </script>
     <!-- Prevent FOUC: apply theme before render -->
     <script is:inline>
       (function() {
