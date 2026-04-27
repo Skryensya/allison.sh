@@ -63,7 +63,7 @@
   /* Component aliases */
   --theme-colorful: var(--flexoki-paper);
   --theme-contrasty: var(--flexoki-950);
-  --overlay-glow: color-mix(in srgb, var(--color-bg) 78%, var(--color-link) 22%);
+  --overlay-glow: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
   --lightbox-ink-1: var(--flexoki-purple-600, #5E409D);
   --lightbox-ink-2: var(--flexoki-blue-600);
   --lightbox-ink-3: var(--flexoki-orange-600, #BC5215);
@@ -85,7 +85,7 @@
   --color-link: var(--flexoki-cyan-400);
   --color-link-hover: var(--flexoki-blue-400);
   --color-selection: color-mix(in srgb, var(--flexoki-cyan-600) 28%, transparent);
-  --overlay-glow: color-mix(in srgb, var(--color-bg) 72%, var(--color-link) 28%);
+  --overlay-glow: color-mix(in srgb, var(--color-home-text) 42%, var(--color-bg));
   --lightbox-ink-1: var(--flexoki-purple-400, #8B7EC8);
   --lightbox-ink-2: var(--flexoki-blue-400);
   --lightbox-ink-3: var(--flexoki-orange-400, #DA702C);

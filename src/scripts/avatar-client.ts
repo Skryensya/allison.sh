@@ -114,6 +114,16 @@ type AvatarDirection =
 
 type SpeechBubbleModule = typeof import('./speech-bubble');
 
+type PostHogWindow = Window & typeof globalThis & {
+  posthog?: { capture: (event: string, properties?: Record<string, unknown>) => void };
+};
+
+const analyticsWindow = window as PostHogWindow;
+
+function captureAvatarEvent(event: string, properties?: Record<string, unknown>) {
+  analyticsWindow.posthog?.capture(event, properties);
+}
+
 type AvatarRoot = HTMLElement & {
   __avatarCleanup?: () => void;
   __avatarObserved?: boolean;
@@ -414,6 +424,7 @@ function initAvatar(root: AvatarRoot) {
   let loopPhraseIndex = 0;
   let lastPhraseCameFromLoop = false;
   let justFinishedLoopCycle = false;
+  let avatarHoverTracked = false;
 
   const resetAvatarPhrases = () => {
     introPhraseQueue = buildIntroPhraseQueue();
@@ -731,11 +742,15 @@ function initAvatar(root: AvatarRoot) {
     }
 
     const now = performance.now();
-    if (now < nextAvatarSpeakAllowedAt) return;
+    if (now < nextAvatarSpeakAllowedAt) {
+      captureAvatarEvent('avatar_speech_throttled', { avatar_id: root.dataset.avatarId || 'unknown' });
+      return;
+    }
 
     const currentBubble = root.__avatarSpeechBubble;
     if (currentBubble?.isActive()) {
       if (!currentBubble.skipReadingPause()) return;
+      captureAvatarEvent('speech_bubble_skipped', { avatar_id: root.dataset.avatarId || 'unknown' });
     }
 
     const phrase = peekNextAvatarPhrase();
@@ -744,6 +759,9 @@ function initAvatar(root: AvatarRoot) {
       nextAvatarSpeakAllowedAt = now + MIN_MS_BETWEEN_PHRASES;
       return;
     }
+
+    const phraseSource = lastPhraseCameFromLoop ? 'loop' : 'intro';
+    const completesLoopCycle = lastPhraseCameFromLoop && justFinishedLoopCycle;
 
     advanceAvatarPhraseQueue();
 
@@ -754,7 +772,15 @@ function initAvatar(root: AvatarRoot) {
       displayDuration: getPhraseDisplayDuration(phrase),
       phrases: [phrase.text],
       onAfterHide: () => {
-        if (lastPhraseCameFromLoop && justFinishedLoopCycle) {
+        captureAvatarEvent('speech_bubble_completed', {
+          avatar_id: root.dataset.avatarId || 'unknown',
+          phrase_category: phrase.category,
+          phrase_source: phraseSource,
+          phrase_length: phrase.text.length,
+          completed_loop_cycle: completesLoopCycle,
+        });
+        if (completesLoopCycle) {
+          captureAvatarEvent('avatar_phrase_loop_completed', { avatar_id: root.dataset.avatarId || 'unknown' });
           celebrateAvatarClick();
         }
         nextAvatarSpeakAllowedAt = performance.now() + MIN_MS_BETWEEN_PHRASES;
@@ -762,10 +788,18 @@ function initAvatar(root: AvatarRoot) {
     });
 
     root.__avatarSpeechBubble = bubble;
+    captureAvatarEvent('speech_bubble_shown', {
+      avatar_id: root.dataset.avatarId || 'unknown',
+      phrase_category: phrase.category,
+      phrase_source: phraseSource,
+      phrase_length: phrase.text.length,
+      completed_loop_cycle: completesLoopCycle,
+    });
     bubble.next(root, root);
   };
 
   const handleAvatarSpeak = () => {
+    captureAvatarEvent('avatar_clicked', { avatar_id: root.dataset.avatarId || 'unknown' });
     startInteractions();
     void runAvatarSpeak();
   };
@@ -774,6 +808,10 @@ function initAvatar(root: AvatarRoot) {
     if (!supportsFinePointer || event.pointerType === 'touch') return;
 
     startInteractions();
+    if (!avatarHoverTracked) {
+      avatarHoverTracked = true;
+      captureAvatarEvent('avatar_hovered', { avatar_id: root.dataset.avatarId || 'unknown' });
+    }
     isAvatarHovered = true;
     pointerX = event.clientX;
     pointerY = event.clientY;

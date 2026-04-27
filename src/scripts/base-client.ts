@@ -138,6 +138,7 @@ function setupBaseClient() {
   function initGlitch() {
     const sequence = ['/', '-', '\\', '|', '/'];
     let tid: number | null = null;
+    let hoverStartTimer: number | null = null;
     let resetTimer: number | null = null;
     let anim = false;
     const reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -157,8 +158,10 @@ function setupBaseClient() {
 
     const resetVisualState = () => {
       if (tid) window.clearTimeout(tid);
+      if (hoverStartTimer) window.clearTimeout(hoverStartTimer);
       if (resetTimer) window.clearTimeout(resetTimer);
       tid = null;
+      hoverStartTimer = null;
       resetTimer = null;
       anim = false;
       resetChars(glitchChars);
@@ -167,7 +170,7 @@ function setupBaseClient() {
       mobileNameHover?.classList.remove('is-glitching');
     };
 
-    const cycle = (chars: NodeListOf<HTMLElement>) => {
+    const cycle = (chars: NodeListOf<HTMLElement>, source: 'desktop_hover' | 'mobile_click') => {
       if (anim || reducedMotionMql.matches) return;
       anim = true;
       let i = 0;
@@ -187,6 +190,7 @@ function setupBaseClient() {
         if (i === 0) {
           c++;
           if (c >= 5) {
+            win.posthog?.capture('navbar_name_glitch_completed', { source });
             resetVisualState();
             return;
           }
@@ -213,8 +217,12 @@ function setupBaseClient() {
       wrapper.addEventListener('mouseenter', () => {
         if (reducedMotionMql.matches) return;
         if (tid) window.clearTimeout(tid);
+        if (hoverStartTimer) window.clearTimeout(hoverStartTimer);
         anim = false;
-        window.setTimeout(() => cycle(glitchChars), 250);
+        hoverStartTimer = window.setTimeout(() => {
+          hoverStartTimer = null;
+          cycle(glitchChars, 'desktop_hover');
+        }, 250);
       });
 
       wrapper.addEventListener('mouseleave', resetVisualState);
@@ -231,7 +239,7 @@ function setupBaseClient() {
 
           mobileNameNormal?.classList.add('is-glitching');
           mobileNameHover?.classList.add('is-glitching');
-          cycle(mobileGlitchChars);
+          cycle(mobileGlitchChars, 'mobile_click');
 
           resetTimer = window.setTimeout(() => {
             if (reducedMotionMql.matches) {
