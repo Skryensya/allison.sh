@@ -1,0 +1,288 @@
+---
+import clientModules from '@/generated/client-modules.json';
+import {
+  avatarGrid,
+  avatarGridSize,
+  avatarHatIndices,
+  avatarOutfitIndices,
+} from '@/data/avatarSprite';
+import {
+  LEFT_EYE_TILES,
+  MOUTH_LEFT_TILES,
+  MOUTH_RIGHT_TILES,
+  RIGHT_EYE_TILES,
+} from '@/scripts/avatar/sprite';
+import spriteSheetUrl from '../assets/avatar/tileset.svg?url';
+
+const avatarHatIndexSet = new Set<number>(avatarHatIndices as readonly number[]);
+const avatarOutfitIndexSet = new Set<number>(avatarOutfitIndices as readonly number[]);
+const leftEyeEntries = Object.entries(LEFT_EYE_TILES);
+const rightEyeEntries = Object.entries(RIGHT_EYE_TILES);
+const mouthLeftEntries = Object.entries(MOUTH_LEFT_TILES);
+const mouthRightEntries = Object.entries(MOUTH_RIGHT_TILES);
+const dynamicTileNames = Array.from(new Set([
+  ...Object.values(LEFT_EYE_TILES),
+  ...Object.values(RIGHT_EYE_TILES),
+  ...Object.values(MOUTH_LEFT_TILES),
+  ...Object.values(MOUTH_RIGHT_TILES),
+]));
+
+interface Props {
+  alt?: string;
+  className?: string;
+  id?: string;
+}
+
+const {
+  alt = 'Pixel avatar portrait',
+  className = '',
+  id = 'avatar',
+} = Astro.props;
+---
+
+<div
+  class={`avatar relative size-full ${className}`}
+  data-avatar-id={id}
+  data-avatar-sprite-url={spriteSheetUrl}
+>
+  <button
+    type="button"
+    class="avatar__button relative block size-full cursor-pointer overflow-hidden text-left focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-main focus-visible:outline-offset-4"
+    aria-label={alt}
+    data-haptic="confirm"
+  >
+    <div
+      class="avatar__grid"
+      style={`grid-template-columns: repeat(${avatarGridSize}, 32px); grid-template-rows: repeat(${avatarGridSize}, 32px);`}
+      aria-hidden="true"
+    >
+      {avatarGrid.flat().map((name, i) => {
+        const partClass =
+          name === 'left-eye-base'
+            ? ' avatar__part--left-eye'
+            : name === 'right-eye-base'
+              ? ' avatar__part--right-eye'
+              : name === 'mouth-rest-left'
+                ? ' avatar__part--mouth-left'
+                : name === 'mouth-rest-right'
+                  ? ' avatar__part--mouth-right'
+                  : '';
+
+        const hatClass = avatarHatIndexSet.has(i) ? ' avatar__part--hat' : '';
+        const outfitClass = avatarOutfitIndexSet.has(i) ? ' avatar__part--outfit' : '';
+
+        if (name === 'left-eye-base' || name === 'right-eye-base') {
+          const side = name === 'left-eye-base' ? 'left' : 'right';
+          const entries = side === 'left' ? leftEyeEntries : rightEyeEntries;
+
+          return (
+            <svg class="avatar__tile" viewBox="0 0 25 25" aria-hidden="true" focusable="false">
+              {entries.map(([state, tileName]) => (
+                <use
+                  class={`avatar__part avatar__eye-state avatar__part--${side}-eye`}
+                  data-eye-side={side}
+                  data-eye-state={state}
+                  data-active={state === 'base' ? 'true' : 'false'}
+                  href={`${spriteSheetUrl}#avatar-sprite-${tileName}`}
+                ></use>
+              ))}
+            </svg>
+          );
+        }
+
+        if (name === 'mouth-rest-left' || name === 'mouth-rest-right') {
+          const side = name === 'mouth-rest-left' ? 'left' : 'right';
+          const entries = side === 'left' ? mouthLeftEntries : mouthRightEntries;
+
+          return (
+            <svg class="avatar__tile" viewBox="0 0 25 25" aria-hidden="true" focusable="false">
+              {entries.map(([state, tileName]) => (
+                <use
+                  class={`avatar__part avatar__mouth-state avatar__part--mouth-${side}`}
+                  data-mouth-side={side}
+                  data-mouth-state={state}
+                  data-active={state === 'default' ? 'true' : 'false'}
+                  href={`${spriteSheetUrl}#avatar-sprite-${tileName}`}
+                ></use>
+              ))}
+            </svg>
+          );
+        }
+
+        return (
+          <svg class="avatar__tile" viewBox="0 0 25 25" aria-hidden="true" focusable="false">
+            <use class={`avatar__part${partClass}${outfitClass}`} href={`${spriteSheetUrl}#avatar-sprite-${name}`}></use>
+            {hatClass && <use class={`avatar__part${hatClass}`} href={`${spriteSheetUrl}#avatar-sprite-hat-empty`}></use>}
+          </svg>
+        );
+      })}
+    </div>
+  </button>
+  <div class="avatar__sprite-preload" aria-hidden="true">
+    {dynamicTileNames.map((name) => (
+      <svg viewBox="0 0 25 25" focusable="false">
+        <use href={`${spriteSheetUrl}#avatar-sprite-${name}`}></use>
+      </svg>
+    ))}
+  </div>
+</div>
+
+<script is:inline define:vars={{ avatarClientUrl: clientModules['avatar-client'] }}>
+
+  let avatarModulePromise;
+
+  function loadAvatarModule() {
+    avatarModulePromise ??= import(avatarClientUrl).then((module) => {
+      module.setupAvatars();
+      document.querySelectorAll('.avatar[data-avatar-id] .avatar__button').forEach((button) => {
+        button.dataset.avatarReady = 'true';
+      });
+      return module;
+    });
+
+    return avatarModulePromise;
+  }
+
+  function observeAvatarBoot() {
+    bindAvatarBootstrapClicks();
+    const avatars = document.querySelectorAll('.avatar[data-avatar-id]');
+    if (!avatars.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      void loadAvatarModule();
+      return;
+    }
+
+    const preload = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        preload.disconnect();
+        void loadAvatarModule();
+      },
+      {
+        rootMargin: '420px 0px',
+        threshold: 0.01,
+      }
+    );
+
+    avatars.forEach((avatar) => preload.observe(avatar));
+  }
+
+  function bindAvatarBootstrapClicks() {
+    const buttons = document.querySelectorAll('.avatar[data-avatar-id] .avatar__button');
+
+    buttons.forEach((button) => {
+      if (button.dataset.avatarBootstrapBound === 'true') return;
+      button.dataset.avatarBootstrapBound = 'true';
+
+      const prime = (event) => {
+        if (button.dataset.avatarReady === 'true') return;
+
+        const shouldReplayClick = event.type === 'click';
+        if (shouldReplayClick) event.preventDefault();
+
+        void loadAvatarModule().then(() => {
+          if (shouldReplayClick && button.isConnected) {
+            button.click();
+          }
+        });
+      };
+
+      button.addEventListener('pointerenter', prime, { passive: true });
+      button.addEventListener('pointerdown', prime, { passive: true });
+      button.addEventListener('focus', prime, { passive: true });
+      button.addEventListener('click', prime);
+
+    });
+  }
+
+  observeAvatarBoot();
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      observeAvatarBoot();
+    }, { once: true });
+  }
+
+  document.addEventListener('astro:page-load', () => {
+    observeAvatarBoot();
+  });
+</script>
+
+<style>
+  .avatar {
+    --avatar-black: var(--theme-contrasty);
+    --avatar-white: var(--theme-colorful);
+    --avatar-gray: color-mix(in srgb, var(--theme-colorful) 82%, var(--theme-contrasty) 18%);
+    contain: layout paint style;
+  }
+
+  .avatar,
+  .avatar__button,
+  .avatar__grid,
+  .avatar__tile {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  .avatar__button {
+    border: 0;
+    padding: 0;
+    background: var(--theme-colorful);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    -webkit-clip-path: circle(50% at 50% 50%);
+    clip-path: circle(50% at 50% 50%);
+  }
+
+  .avatar__grid {
+    position: absolute;
+    display: grid;
+    gap: 0;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .avatar__tile {
+    width: 32px;
+    height: 32px;
+    display: block;
+    user-select: none;
+    pointer-events: none;
+    shape-rendering: crispEdges;
+  }
+
+  .avatar__eye-state,
+  .avatar__mouth-state {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .avatar__eye-state[data-active='true'],
+  .avatar__mouth-state[data-active='true'] {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .avatar__sprite-preload {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .avatar__sprite-preload svg {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+  }
+</style>
+

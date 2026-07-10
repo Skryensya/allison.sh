@@ -1,0 +1,110 @@
+@theme {
+  /* Floor: smallest scale step is 14px; `text-sm` stays one step up. */
+  --text-xs: 0.875rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.1875rem;
+  --text-4xl: 2.75rem;
+  --text-5xl: 3.4375rem;
+  --text-6xl: 4.25rem;
+  --text-7xl: 5.5rem;
+
+  /* Flexoki base palette */
+  --flexoki-paper: #FFFCF0;
+  --flexoki-black: #100F0F;
+  --flexoki-50: #F2F0E5;
+  --flexoki-100: #E6E4D9;
+  --flexoki-150: #DAD8CE;
+  --flexoki-200: #CECDC3;
+  --flexoki-300: #B7B5AC;
+  --flexoki-400: #9F9D96;
+  --flexoki-500: #878580;
+  --flexoki-600: #6F6E69;
+  --flexoki-700: #575653;
+  --flexoki-800: #403E3C;
+  --flexoki-850: #343331;
+  --flexoki-900: #282726;
+  --flexoki-950: #1C1B1A;
+
+  /* Flexoki accents used by the site */
+  --flexoki-cyan-400: #3AA99F;
+  --flexoki-cyan-600: #24837B;
+  --flexoki-blue-400: #4385BE;
+  --flexoki-blue-600: #205EA6;
+  --flexoki-purple-400: #8B7EC8;
+  --flexoki-purple-600: #5E409D;
+  --flexoki-orange-400: #DA702C;
+  --flexoki-orange-600: #BC5215;
+  --flexoki-green-400: #879A39;
+  --flexoki-green-600: #66800B;
+  --flexoki-red-400: #D14D41;
+  --flexoki-red-600: #AF3029;
+  --flexoki-magenta-400: #CE5D97;
+  --flexoki-magenta-600: #A02F6F;
+  --flexoki-yellow-400: #D0A215;
+  --flexoki-yellow-600: #AD8301;
+
+  --project-accent-agenda: var(--flexoki-blue-400);
+  --project-accent-barrancas: var(--flexoki-orange-400);
+  --project-accent-kit: var(--flexoki-purple-400);
+  --project-accent-nike: var(--flexoki-cyan-400);
+  --project-accent-portal: var(--flexoki-green-400);
+  --project-accent-wada: var(--flexoki-red-400);
+  --project-accent-radio: var(--flexoki-magenta-400);
+  --project-accent-printer: var(--flexoki-yellow-400);
+
+  /* Semantic site tokens mapped to Flexoki */
+  --color-bg: var(--flexoki-paper);
+  --color-surface: var(--flexoki-50);
+  --color-text: var(--flexoki-black);
+  --color-home-text: var(--color-text);
+  --color-muted: var(--flexoki-600);
+  --color-subtle: var(--flexoki-700);
+  --color-border: var(--flexoki-150);
+  --color-border-strong: var(--flexoki-200);
+  --color-link: var(--flexoki-blue-600);
+  --color-link-hover: var(--flexoki-cyan-600);
+  --color-selection: color-mix(in srgb, var(--flexoki-cyan-400) 22%, var(--color-bg));
+
+  /* Component aliases */
+  --theme-colorful: var(--flexoki-paper);
+  --theme-contrasty: var(--flexoki-950);
+  --overlay-glow: color-mix(in srgb, var(--color-text) 6%, var(--color-bg));
+  --lightbox-ink-1: var(--flexoki-purple-600, #5E409D);
+  --lightbox-ink-2: var(--flexoki-blue-600);
+  --lightbox-ink-3: var(--flexoki-orange-600, #BC5215);
+  --lightbox-core: color-mix(in srgb, var(--flexoki-black) 36%, transparent);
+  --lightbox-vignette: color-mix(in srgb, var(--flexoki-black) 18%, transparent);
+  --lightbox-shade-core: color-mix(in srgb, var(--flexoki-black) 14%, transparent);
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-bg: var(--flexoki-black);
+  --color-surface: var(--flexoki-950);
+  --color-text: var(--flexoki-200);
+  --color-home-text: var(--flexoki-50);
+  --color-muted: var(--flexoki-500);
+  --color-subtle: var(--flexoki-700);
+  --color-border: var(--flexoki-850);
+  --color-border-strong: var(--flexoki-800);
+  --color-link: var(--flexoki-cyan-400);
+  --color-link-hover: var(--flexoki-blue-400);
+  --color-selection: color-mix(in srgb, var(--flexoki-cyan-600) 28%, transparent);
+  --overlay-glow: color-mix(in srgb, var(--color-home-text) 42%, var(--color-bg));
+  --lightbox-ink-1: var(--flexoki-purple-400, #8B7EC8);
+  --lightbox-ink-2: var(--flexoki-blue-400);
+  --lightbox-ink-3: var(--flexoki-orange-400, #DA702C);
+  --lightbox-core: color-mix(in srgb, var(--flexoki-black) 42%, transparent);
+  --lightbox-vignette: color-mix(in srgb, var(--flexoki-black) 26%, transparent);
+  --lightbox-shade-core: color-mix(in srgb, var(--flexoki-black) 24%, transparent);
+
+  --project-accent-agenda: var(--flexoki-blue-600);
+  --project-accent-barrancas: var(--flexoki-orange-600);
+  --project-accent-kit: var(--flexoki-purple-600);
+  --project-accent-nike: var(--flexoki-cyan-600);
+  --project-accent-portal: var(--flexoki-green-600);
+}

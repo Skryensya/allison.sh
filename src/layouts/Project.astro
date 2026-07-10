@@ -1,0 +1,813 @@
+---
+import Base from './Base.astro';
+import Navbar from '@/components/Navbar.astro';
+import Footer from '@/components/Footer.astro';
+import { getOgImagePath, getTwitterImagePath } from '@/lib/seo';
+
+interface StructuredData {
+  [key: string]: unknown;
+}
+
+interface ProjectLink {
+  label: string;
+  url: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  slug: string;
+  year?: string;
+  links?: ProjectLink[];
+  employer?: string;
+  accent?: string;
+  structuredData?: StructuredData | StructuredData[];
+}
+
+const { title, description, slug, year, links, employer, accent = 'var(--color-link)', structuredData } = Astro.props;
+const originLabel = employer || 'Proyecto personal';
+const publishedTime = year ? `${year}-01-01` : undefined;
+const mainStyle = `--project-page-accent:${accent}`;
+---
+
+<Base
+  title={`${title} | Allison Peña`}
+  description={description}
+  image={getOgImagePath(slug)}
+  imageAlt={`Vista previa del proyecto ${title}`}
+  twitterImage={getTwitterImagePath(slug)}
+  twitterImageAlt={`Vista previa en X del proyecto ${title}`}
+  canonical={`/proyectos/${slug}`}
+  type="article"
+  publishedTime={publishedTime}
+  structuredData={structuredData}
+>
+  <Navbar />
+  <div class="project-page-frame relative">
+    <main
+      id="main-content"
+      class="project-page-shell relative pb-0"
+      style={mainStyle}
+      data-project-page-shell
+    >
+      <div class="project-page-glow" data-project-page-glow aria-hidden="true">
+        <span class="project-page-glow__lick project-page-glow__lick--a"></span>
+        <span class="project-page-glow__lick project-page-glow__lick--b"></span>
+        <span class="project-page-glow__lick project-page-glow__lick--c"></span>
+      </div>
+
+      <div class="project-page-intro relative z-30 max-w-[42rem] mx-auto px-3 md:px-8">
+        <a href="/" class="project-home-button" aria-label="Volver al inicio" title="Volver al inicio">
+          <span class="project-home-button__icon-wrap" aria-hidden="true">
+            <svg class="project-home-button__icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M236,144a68.07,68.07,0,0,1-68,68H80a12,12,0,0,1,0-24h88a44,44,0,0,0,0-88H61l27.52,27.51a12,12,0,0,1-17,17l-48-48a12,12,0,0,1,0-17l48-48a12,12,0,1,1,17,17L61,76H168A68.08,68.08,0,0,1,236,144Z"/>
+            </svg>
+          </span>
+          <span class="project-home-button__label">volver</span>
+        </a>
+
+        <header class="project-header relative">
+          <p class="project-meta tabular-nums" aria-label={`${originLabel}${year ? `, ${year}` : ''}`}>
+            <span class="project-meta__origin">{originLabel}</span>
+            {year && <span class="project-meta__year">{year}</span>}
+          </p>
+          <h1 class="project-title">
+            {title}
+          </h1>
+          {links && links.length > 0 && (
+            <ul class="project-links">
+              {links.map((link) => (
+                <li class="project-links__item">
+                  <a href={link.url} class="project-links__link" target="_blank" rel="noopener noreferrer">
+                    {link.label}
+                    <svg class="project-links__arrow" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor">
+                      <path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" />
+                    </svg>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </header>
+      </div>
+
+      <div class="max-w-[42rem] mx-auto px-3 md:px-8 relative">
+        <article class="project-article relative z-30 font-sans text-[16px] leading-[1.6] text-text tracking-[-0.01em] select-none">
+          <div class="select-text">
+          <slot />
+          </div>
+        </article>
+
+        <div data-after-article class="relative z-10 select-none">
+          <slot name="after-article" />
+        </div>
+
+        <div class="relative z-30">
+          <Footer />
+        </div>
+      </div>
+    </main>
+
+    <style>
+      .project-page-intro {
+        padding-top: clamp(4.25rem, 8vw, 6.25rem);
+        padding-bottom: clamp(2rem, 5vw, 3.5rem);
+      }
+
+      .project-home-button {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        min-height: 32px;
+        margin-left: -8px;
+        padding: 5px 8px;
+        border-radius: 999px;
+        color: var(--color-muted);
+        font-family: var(--font-sans);
+        font-size: 0.88rem;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        line-height: 1;
+        text-decoration: none;
+        pointer-events: auto;
+        isolation: isolate;
+        --project-home-highlight-skew: -12deg;
+        --project-home-highlight-lift: 5px;
+        --project-home-highlight-scale: 0.94;
+        --project-home-highlight-shine: color-mix(in srgb, var(--color-bg) 28%, transparent);
+        transition:
+          color 180ms ease,
+          transform 240ms cubic-bezier(0.2, 0, 0, 1);
+      }
+
+      .project-home-button::before {
+        content: '';
+        position: absolute;
+        inset: -5px -6px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--color-text) 96%, var(--color-bg));
+        box-shadow: 0 10px 26px color-mix(in srgb, var(--color-text) 10%, transparent);
+        opacity: 0;
+        transform: translateY(var(--project-home-highlight-lift)) scale(var(--project-home-highlight-scale)) skewX(var(--project-home-highlight-skew));
+        transform-origin: center;
+        transition:
+          opacity 170ms ease,
+          transform 260ms cubic-bezier(0.2, 0, 0, 1);
+        z-index: -1;
+      }
+
+      .project-home-button::after {
+        content: '';
+        position: absolute;
+        inset: -5px -6px;
+        border-radius: 999px;
+        background: linear-gradient(
+          105deg,
+          transparent 24%,
+          var(--project-home-highlight-shine) 46%,
+          transparent 68%
+        );
+        opacity: 0;
+        transform: translateX(-42%) scaleX(0.62) skewX(var(--project-home-highlight-skew));
+        transform-origin: center;
+        z-index: -1;
+      }
+
+      .project-home-button__icon-wrap,
+      .project-home-button__label {
+        position: relative;
+        z-index: 1;
+      }
+
+      .project-home-button__icon-wrap {
+        display: inline-flex;
+        transform: translateX(-0.5px);
+      }
+
+      .project-home-button__icon {
+        width: 0.98rem;
+        height: 0.98rem;
+        transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+      }
+
+      .project-home-button:focus-visible {
+        color: var(--color-bg);
+        outline: none;
+        transform: translateY(-1px);
+      }
+
+      .project-home-button:focus-visible::before {
+        opacity: 1;
+        transform: translateY(0) scale(1) skewX(var(--project-home-highlight-skew));
+      }
+
+      .project-home-button:active {
+        transform: translateY(0) scale(0.96);
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .project-home-button:hover {
+          color: var(--color-bg);
+          transform: translateY(-1px);
+        }
+
+        .project-home-button:hover::before {
+          opacity: 1;
+          transform: translateY(0) scale(1) skewX(var(--project-home-highlight-skew));
+          transition:
+            opacity 150ms ease-out,
+            transform 280ms cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .project-home-button:hover::after {
+          animation: projectHomeHighlightGlint 560ms cubic-bezier(0.19, 1, 0.22, 1) both;
+        }
+
+        .project-home-button:hover .project-home-button__icon,
+        .project-home-button:focus-visible .project-home-button__icon {
+          transform: translateX(-1px);
+        }
+      }
+
+      @keyframes projectHomeHighlightGlint {
+        0% {
+          opacity: 0;
+          transform: translateX(-42%) scaleX(0.62) skewX(var(--project-home-highlight-skew));
+        }
+
+        32% {
+          opacity: 0.22;
+        }
+
+        100% {
+          opacity: 0;
+          transform: translateX(42%) scaleX(0.86) skewX(var(--project-home-highlight-skew));
+        }
+      }
+
+      .project-header {
+        margin-top: clamp(1.75rem, 4.5vw, 3rem);
+      }
+
+      .project-title {
+        max-width: 12.5ch;
+        margin-left: -0.07em;
+        padding-bottom: clamp(0.5rem, 1.4vw, 0.9rem);
+        color: var(--color-text);
+        font-family: var(--font-sans);
+        font-size: clamp(2.55rem, 7.2vw, 4.6rem);
+        font-weight: 400;
+        letter-spacing: -0.055em;
+        line-height: 0.92;
+        text-wrap: balance;
+      }
+
+      .project-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 0 0 clamp(1.1rem, 2.6vw, 1.6rem);
+        color: var(--color-muted);
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        letter-spacing: 0.04em;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .project-meta__origin {
+        color: var(--color-text);
+      }
+
+      .project-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        margin: clamp(2.5rem, 5.5vw, 3.5rem) 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .project-links__link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--color-text);
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        letter-spacing: -0.01em;
+        text-underline-offset: 0.22em;
+        text-decoration: underline;
+        text-decoration-color: color-mix(in srgb, currentColor 34%, transparent);
+        transition:
+          gap 160ms cubic-bezier(0.2, 0, 0, 1),
+          color 160ms ease,
+          text-decoration-color 150ms ease;
+      }
+
+      .project-links__arrow {
+        flex-shrink: 0;
+        width: 0.85em;
+        height: 0.85em;
+        color: var(--color-muted);
+        transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), color 160ms ease;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .project-links__link:hover {
+          gap: 0.75rem;
+          text-decoration-color: currentColor;
+        }
+
+        .project-links__link:hover .project-links__arrow {
+          transform: translate(2px, -2px);
+          color: var(--color-text);
+        }
+      }
+
+      .project-page-shell {
+        isolation: isolate;
+        --project-page-glow-opacity: 0.16;
+        --project-page-glow-scale: 0.98;
+        --project-page-glow-rise: 0vh;
+        --project-page-glow-rise-soft: 0vh;
+        --project-page-glow-drift: 0px;
+        --project-page-glow-core-opacity: 0.46;
+        --project-page-glow-veil-opacity: 0.25;
+        --project-page-glow-lick-opacity: 0.22;
+      }
+
+      .project-page-glow {
+        position: fixed;
+        left: 50%;
+        bottom: -14vh;
+        z-index: 20;
+        width: 100vw;
+        height: min(88vh, 860px);
+        opacity: var(--project-page-glow-opacity);
+        pointer-events: none;
+        transform: translate3d(-50%, 0, 0) scale(var(--project-page-glow-scale));
+        transform-origin: 50% 100%;
+        mask-image: linear-gradient(to top, black 0%, black 40%, transparent 92%);
+        -webkit-mask-image: linear-gradient(to top, black 0%, black 40%, transparent 92%);
+        transition:
+          opacity 160ms ease,
+          transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+      }
+
+      .project-page-glow::before,
+      .project-page-glow::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        pointer-events: none;
+      }
+
+      .project-page-glow::before {
+        width: min(220vw, 2200px);
+        height: 100%;
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 65%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 38%, transparent) 22%,
+            color-mix(in srgb, var(--project-page-accent) 16%, transparent) 56%,
+            transparent 84%
+          ),
+          radial-gradient(
+            ellipse at 4% 100%,
+            color-mix(in srgb, var(--project-page-accent) 25%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 44%,
+            transparent 74%
+          ),
+          radial-gradient(
+            ellipse at 96% 100%,
+            color-mix(in srgb, var(--project-page-accent) 25%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 12%, transparent) 44%,
+            transparent 74%
+          ),
+          linear-gradient(
+            to top,
+            color-mix(in srgb, var(--project-page-accent) 22%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 38%,
+            transparent 72%
+          );
+        filter: blur(18px);
+        opacity: var(--project-page-glow-core-opacity);
+        animation: projectPageGlowFireCore 4.9s ease-in-out infinite;
+      }
+
+      .project-page-glow::after {
+        bottom: -2vh;
+        width: min(176vw, 1760px);
+        height: 78%;
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 46%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 24%, transparent) 30%,
+            transparent 72%
+          ),
+          radial-gradient(
+            ellipse at 0% 100%,
+            color-mix(in srgb, var(--project-page-accent) 18%, transparent) 0%,
+            transparent 64%
+          ),
+          radial-gradient(
+            ellipse at 100% 100%,
+            color-mix(in srgb, var(--project-page-accent) 18%, transparent) 0%,
+            transparent 64%
+          );
+        filter: blur(10px);
+        opacity: var(--project-page-glow-veil-opacity);
+        animation: projectPageGlowFireVeil 6.7s ease-in-out infinite;
+      }
+
+      :global(html.dark) .project-page-glow::before {
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 38%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 22%, transparent) 24%,
+            color-mix(in srgb, var(--project-page-accent) 9%, transparent) 57%,
+            transparent 85%
+          ),
+          radial-gradient(
+            ellipse at 4% 100%,
+            color-mix(in srgb, var(--project-page-accent) 17%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 44%,
+            transparent 76%
+          ),
+          radial-gradient(
+            ellipse at 96% 100%,
+            color-mix(in srgb, var(--project-page-accent) 17%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 44%,
+            transparent 76%
+          ),
+          linear-gradient(
+            to top,
+            color-mix(in srgb, var(--project-page-accent) 8%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 3.1%, transparent) 40%,
+            transparent 74%
+          );
+        filter: blur(16px);
+      }
+
+      :global(html.dark) .project-page-glow::after {
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 26%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 14%, transparent) 34%,
+            transparent 75%
+          ),
+          radial-gradient(
+            ellipse at 0% 100%,
+            color-mix(in srgb, var(--project-page-accent) 10%, transparent) 0%,
+            transparent 66%
+          ),
+          radial-gradient(
+            ellipse at 100% 100%,
+            color-mix(in srgb, var(--project-page-accent) 10%, transparent) 0%,
+            transparent 66%
+          );
+      }
+
+      .project-page-glow__lick {
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        width: min(42vw, 460px);
+        height: 62%;
+        border-radius: 999px;
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 42%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 19%, transparent) 34%,
+            transparent 72%
+          );
+        filter: blur(12px);
+        opacity: 0;
+        pointer-events: none;
+        transform-origin: 50% 100%;
+      }
+
+      .project-page-glow__lick--a {
+        animation: projectPageGlowLickA 3.35s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+      }
+
+      .project-page-glow__lick--b {
+        width: min(36vw, 380px);
+        height: 54%;
+        animation: projectPageGlowLickB 4.25s cubic-bezier(0.5, 0, 0.45, 1) -1.1s infinite;
+      }
+
+      .project-page-glow__lick--c {
+        width: min(34vw, 360px);
+        height: 50%;
+        animation: projectPageGlowLickC 5.1s cubic-bezier(0.42, 0, 0.58, 1) -2.3s infinite;
+      }
+
+      :global(html.dark) .project-page-glow__lick {
+        background:
+          radial-gradient(
+            ellipse at 50% 100%,
+            color-mix(in srgb, var(--project-page-accent) 27%, transparent) 0%,
+            color-mix(in srgb, var(--project-page-accent) 13%, transparent) 36%,
+            transparent 74%
+          );
+      }
+
+      @keyframes projectPageGlowFireCore {
+        0%,
+        100% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 0.9);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 3px), var(--project-page-glow-rise), 0) scaleX(0.99) scaleY(0.98);
+        }
+
+        9% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 1.04);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 2px), calc(var(--project-page-glow-rise) - 0.5vh), 0) scaleX(1.012) scaleY(1.035);
+        }
+
+        18% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 0.95);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 1px), calc(var(--project-page-glow-rise) - 0.18vh), 0) scaleX(0.998) scaleY(1.005);
+        }
+
+        31% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 1.02);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 4px), calc(var(--project-page-glow-rise) - 0.9vh), 0) scaleX(1.02) scaleY(1.048);
+        }
+
+        47% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 0.93);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 5px), calc(var(--project-page-glow-rise) - 0.32vh), 0) scaleX(0.992) scaleY(1.012);
+        }
+
+        64% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 1.06);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 1px), calc(var(--project-page-glow-rise) - 0.72vh), 0) scaleX(1.017) scaleY(1.04);
+        }
+
+        81% {
+          opacity: calc(var(--project-page-glow-core-opacity) * 0.97);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 2px), calc(var(--project-page-glow-rise) - 0.24vh), 0) scaleX(1.003) scaleY(1.018);
+        }
+      }
+
+      @keyframes projectPageGlowFireVeil {
+        0%,
+        100% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 0.78);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 14px), var(--project-page-glow-rise-soft), 0) scaleX(0.94) scaleY(0.985);
+        }
+
+        13% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 1.05);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 8px), calc(var(--project-page-glow-rise) - 1vh), 0) scaleX(1.025) scaleY(1.055);
+        }
+
+        29% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 0.86);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 7px), calc(var(--project-page-glow-rise-soft) - 0.16vh), 0) scaleX(0.98) scaleY(1.005);
+        }
+
+        46% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 1.01);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 13px), calc(var(--project-page-glow-rise) - 0.7vh), 0) scaleX(1.014) scaleY(1.035);
+        }
+
+        70% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 0.9);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 4px), calc(var(--project-page-glow-rise-soft) - 0.35vh), 0) scaleX(0.99) scaleY(1.018);
+        }
+
+        88% {
+          opacity: calc(var(--project-page-glow-veil-opacity) * 1.04);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 6px), calc(var(--project-page-glow-rise) - 0.8vh), 0) scaleX(1.02) scaleY(1.045);
+        }
+      }
+
+      @keyframes projectPageGlowLickA {
+        0%,
+        100% {
+          opacity: 0;
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 4px), calc(var(--project-page-glow-rise-soft) + 1vh), 0) scaleX(0.6) scaleY(0.72);
+        }
+
+        17% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.56);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 5px), calc(var(--project-page-glow-rise) - 1.6vh), 0) scaleX(0.86) scaleY(1.05);
+        }
+
+        36% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.28);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 8px), calc(var(--project-page-glow-rise) - 0.7vh), 0) scaleX(0.78) scaleY(0.9);
+        }
+
+        62% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.62);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 2px), calc(var(--project-page-glow-rise) - 2.2vh), 0) scaleX(0.92) scaleY(1.16);
+        }
+
+        82% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.16);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 3px), calc(var(--project-page-glow-rise) - 0.9vh), 0) scaleX(0.7) scaleY(0.82);
+        }
+      }
+
+      @keyframes projectPageGlowLickB {
+        0%,
+        100% {
+          opacity: 0;
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 34px), var(--project-page-glow-rise-soft), 0) scaleX(0.58) scaleY(0.7);
+        }
+
+        23% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.42);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 52px), calc(var(--project-page-glow-rise) - 1.2vh), 0) scaleX(0.82) scaleY(1.02);
+        }
+
+        49% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.18);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 26px), calc(var(--project-page-glow-rise) - 0.45vh), 0) scaleX(0.66) scaleY(0.88);
+        }
+
+        71% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.5);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) - 42px), calc(var(--project-page-glow-rise) - 1.9vh), 0) scaleX(0.88) scaleY(1.14);
+        }
+      }
+
+      @keyframes projectPageGlowLickC {
+        0%,
+        100% {
+          opacity: 0;
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 36px), var(--project-page-glow-rise-soft), 0) scaleX(0.58) scaleY(0.72);
+        }
+
+        14% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.36);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 54px), calc(var(--project-page-glow-rise) - 0.95vh), 0) scaleX(0.78) scaleY(0.98);
+        }
+
+        39% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.14);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 24px), calc(var(--project-page-glow-rise) - 0.3vh), 0) scaleX(0.64) scaleY(0.84);
+        }
+
+        58% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.52);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 44px), calc(var(--project-page-glow-rise) - 1.7vh), 0) scaleX(0.86) scaleY(1.1);
+        }
+
+        79% {
+          opacity: calc(var(--project-page-glow-lick-opacity) * 0.22);
+          transform: translate3d(calc(-50% + var(--project-page-glow-drift) + 31px), calc(var(--project-page-glow-rise) - 0.75vh), 0) scaleX(0.72) scaleY(0.9);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .project-page-intro {
+          padding-top: 3.5rem;
+          padding-bottom: 2.25rem;
+        }
+
+        .project-title {
+          max-width: 10.5ch;
+        }
+
+        .project-page-glow {
+          bottom: -10vh;
+          height: 62vh;
+        }
+
+        .project-page-glow::before {
+          width: 210vw;
+          filter: blur(16px);
+        }
+
+        .project-page-glow::after {
+          width: 166vw;
+          filter: blur(9px);
+        }
+      }
+
+      @media (min-width: 768px) {
+        .project-page-intro {
+          padding-top: clamp(4.75rem, 7vw, 6.25rem);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .project-home-button,
+        .project-home-button::before,
+        .project-home-button::after,
+        .project-home-button__icon {
+          animation: none;
+          transition: none;
+        }
+
+        .project-page-glow {
+          opacity: 0;
+          transition: none;
+        }
+
+        .project-page-glow::before,
+        .project-page-glow::after,
+        .project-page-glow__lick {
+          animation: none;
+        }
+      }
+
+      /* Prevent image selection in after-article slot */
+      [data-after-article] img,
+      [data-after-article] figcaption,
+      [data-after-article] figure {
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .project-article :global(h2) {
+        font-family: var(--font-sans);
+        font-size: 1.02rem;
+        font-weight: 500;
+        letter-spacing: -0.015em;
+        line-height: 1.35;
+        color: var(--color-text);
+        margin-top: 4rem;
+        margin-bottom: 1.2rem;
+      }
+
+      .project-article :global(h2:first-child) {
+        margin-top: 0;
+      }
+
+      .project-article :global(p) {
+        color: var(--color-text);
+        line-height: 1.82;
+        text-wrap: pretty;
+      }
+
+      .project-article :global(p + p) {
+        margin-top: 1.45rem;
+      }
+
+      /* Exclude folder stack: same ul.project-folder-stack as home — prose ul rules would indent/bleed it wrong */
+      .project-article :global(ul:not(.project-folder-stack)) {
+        margin-top: 1.25rem;
+        margin-bottom: 1.4rem;
+        list-style-type: disc;
+        padding-left: 1.4rem;
+      }
+
+      .project-article :global(ul:not(.project-folder-stack) li) {
+        color: var(--color-text);
+        line-height: 1.78;
+        margin-top: 0.48rem;
+        padding-left: 0.1rem;
+      }
+
+      .project-article :global(ul:not(.project-folder-stack) li:first-child) {
+        margin-top: 0;
+      }
+
+      .project-article :global(blockquote) {
+        border-left: 1px solid var(--color-border);
+        padding-left: 1.1rem;
+        margin: 2rem 0;
+        color: var(--color-muted);
+        font-style: italic;
+        line-height: 1.8;
+      }
+
+      .project-article :global(strong) {
+        font-weight: 600;
+        color: var(--color-text);
+      }
+
+      .project-article :global(p a),
+      .project-article :global(li a) {
+        color: inherit;
+        text-underline-offset: 0.22em;
+        text-decoration: underline;
+        text-decoration-color: color-mix(in srgb, currentColor 34%, transparent);
+        transition:
+          text-decoration-color 150ms ease;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .project-article :global(p a:hover),
+        .project-article :global(li a:hover) {
+          color: inherit;
+          text-decoration-color: currentColor;
+        }
+      }
+
+    </style>
+
+  </main>
+</Base>

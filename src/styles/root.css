@@ -1,0 +1,16 @@
+/*
+  Shared horizontal gutter used by "bleed" components.
+  Matches the main container padding: `px-3 md:px-8`.
+*/
+:root {
+  --font-display: "Clash Grotesk";
+  --font-sans: "Satoshi";
+  --font-mono: "Spline Sans Mono";
+  --folder-pad-x: 12px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --folder-pad-x: 32px;
+  }
+}

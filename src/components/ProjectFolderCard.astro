@@ -1,0 +1,79 @@
+---
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import FolderSurface from '@/components/FolderSurface.astro';
+
+interface Props {
+  href: string;
+  title: string;
+  description?: string;
+  className?: string;
+  previewSrcs?: ImageMetadata[];
+  previewAlt?: string;
+  accent?: string;
+}
+
+const {
+  href,
+  title,
+  description,
+  className = '',
+  previewSrcs = [],
+  previewAlt = '',
+  accent,
+} = Astro.props;
+
+const previewEntries = await Promise.all(
+  previewSrcs.slice(0, 3).map(async (src) => {
+    const image = await getImage({ src, widths: [240, 360, 480], format: 'webp' });
+
+    return {
+      src: image.src,
+      srcSet: image.srcSet.attribute,
+      width: image.attributes.width,
+      height: image.attributes.height,
+    };
+  })
+);
+
+const previewCount = previewEntries.length;
+const style = [`list-style: none;`, accent ? `--folder-accent:${accent};` : ''].filter(Boolean).join(' ');
+---
+
+<li class={`project-folder-card ${className}`} data-project-folder-card data-preview-count={previewCount} style={style}>
+  {previewCount > 0 && (
+    <div class="project-folder-card__previews" aria-hidden="true">
+      {previewEntries.map((preview, index) => {
+        return (
+          <span class="project-folder-card__preview" data-preview-index={index}>
+            <span class="project-folder-card__preview-frame">
+              <span class="project-folder-card__preview-media">
+                <img
+                  class="project-folder-card__preview-img"
+                  data-folder-preview-img
+                  data-src={preview.src}
+                  data-srcset={preview.srcSet}
+                  data-sizes="(max-width: 768px) 46vw, 240px"
+                  alt={previewAlt}
+                  loading="lazy"
+                  decoding="async"
+                  width={preview.width}
+                  height={preview.height}
+                />
+              </span>
+            </span>
+          </span>
+        );
+      })}
+    </div>
+  )}
+
+  <a href={href} class="project-folder-card__link">
+    <FolderSurface
+      title={title}
+      description={description}
+      rootClassName="project-folder-card__folder"
+    />
+    <div class="project-folder-card__gradient" aria-hidden="true"></div>
+  </a>
+</li>
