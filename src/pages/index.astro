@@ -109,7 +109,7 @@ const homeStructuredData = [
           </p>
           <p class="font-sans text-base leading-[1.9] text-muted text-pretty">
             Fuera del trabajo paso tiempo aprendiendo noruego, jugando ajedrez y explorando música. También construyo proyectos personales de forma constante, más por curiosidad que por necesidad.{' '}
-            <a href="https://fun.allison.sh" class="editorial-link" target="_blank" rel="noopener noreferrer">Este sitio</a>{' '}
+            <a href="https://fun.allison.sh" class="editorial-link" target="_blank" rel="noopener noreferrer">Este sitio<svg class="editorial-link__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" /></svg></a>{' '}
             es una extensión de eso.
           </p>
         </div>
@@ -140,12 +140,14 @@ const homeStructuredData = [
       bottom: 0;
       z-index: -1;
       width: 100vw;
-      height: min(70vh, 680px);
+      height: min(84vh, 840px);
       opacity: var(--home-footer-glow-opacity);
       pointer-events: none;
       transform: translate3d(-50%, 0, 0);
       transform-origin: 50% 100%;
       overflow: hidden;
+      mask-image: linear-gradient(to top, black 0%, black 42%, transparent 92%);
+      -webkit-mask-image: linear-gradient(to top, black 0%, black 42%, transparent 92%);
     }
 
     .home-footer-glow::before,

@@ -63,6 +63,23 @@ a.editorial-link:hover {
   text-decoration-color: currentColor;
 }
 
+.editorial-link__icon {
+  display: inline-block;
+  width: 0.72em;
+  height: 0.72em;
+  margin-left: 0.18em;
+  vertical-align: -0.05em;
+  color: color-mix(in srgb, currentColor 65%, transparent);
+  text-decoration: none;
+  transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), color 160ms ease;
+}
+
+.editorial-link:hover .editorial-link__icon,
+a.editorial-link:hover .editorial-link__icon {
+  transform: translate(1px, -1px);
+  color: currentColor;
+}
+
 .footer-contact-link {
   display: inline-block;
   color: inherit;

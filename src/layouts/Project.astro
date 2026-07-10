@@ -8,16 +8,24 @@ interface StructuredData {
   [key: string]: unknown;
 }
 
+interface ProjectLink {
+  label: string;
+  url: string;
+}
+
 interface Props {
   title: string;
   description: string;
   slug: string;
   year?: string;
+  links?: ProjectLink[];
+  employer?: string;
   accent?: string;
   structuredData?: StructuredData | StructuredData[];
 }
 
-const { title, description, slug, year, accent = 'var(--color-link)', structuredData } = Astro.props;
+const { title, description, slug, year, links, employer, accent = 'var(--color-link)', structuredData } = Astro.props;
+const originLabel = employer || 'Personal';
 const publishedTime = year ? `${year}-01-01` : undefined;
 const mainStyle = `--project-page-accent:${accent}`;
 ---
@@ -59,13 +67,26 @@ const mainStyle = `--project-page-accent:${accent}`;
         </a>
 
         <header class="project-header relative">
+          <p class="project-meta tabular-nums" aria-label={`${originLabel}${year ? `, ${year}` : ''}`}>
+            <span class="project-meta__origin">{originLabel}</span>
+            {year && <span class="project-meta__year">{year}</span>}
+          </p>
           <h1 class="project-title">
             {title}
           </h1>
-          {year && (
-            <p class="project-meta tabular-nums" aria-label={`Periodo del proyecto: ${year}`}>
-              {year}
-            </p>
+          {links && links.length > 0 && (
+            <ul class="project-links">
+              {links.map((link) => (
+                <li class="project-links__item">
+                  <a href={link.url} class="project-links__link" target="_blank" rel="noopener noreferrer">
+                    {link.label}
+                    <svg class="project-links__arrow" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor">
+                      <path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" />
+                    </svg>
+                  </a>
+                </li>
+              ))}
+            </ul>
           )}
         </header>
       </div>
@@ -231,6 +252,8 @@ const mainStyle = `--project-page-accent:${accent}`;
 
       .project-title {
         max-width: 12.5ch;
+        margin-left: -0.07em;
+        padding-bottom: clamp(0.5rem, 1.4vw, 0.9rem);
         color: var(--color-text);
         font-family: var(--font-sans);
         font-size: clamp(2.55rem, 7.2vw, 4.6rem);
@@ -242,13 +265,64 @@ const mainStyle = `--project-page-accent:${accent}`;
 
       .project-meta {
         display: flex;
-        justify-content: flex-end;
-        margin: clamp(1.25rem, 3vw, 1.9rem) 0 0;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 0 0 clamp(1.1rem, 2.6vw, 1.6rem);
         color: var(--color-muted);
         font-family: var(--font-mono);
         font-size: 0.82rem;
         letter-spacing: 0.04em;
         font-variant-numeric: tabular-nums;
+      }
+
+      .project-meta__origin {
+        color: var(--color-text);
+      }
+
+      .project-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        margin: clamp(2.5rem, 5.5vw, 3.5rem) 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .project-links__link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--color-text);
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        letter-spacing: -0.01em;
+        text-underline-offset: 0.22em;
+        text-decoration: underline;
+        text-decoration-color: color-mix(in srgb, currentColor 34%, transparent);
+        transition:
+          gap 160ms cubic-bezier(0.2, 0, 0, 1),
+          color 160ms ease,
+          text-decoration-color 150ms ease;
+      }
+
+      .project-links__arrow {
+        flex-shrink: 0;
+        width: 0.85em;
+        height: 0.85em;
+        color: var(--color-muted);
+        transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), color 160ms ease;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .project-links__link:hover {
+          gap: 0.75rem;
+          text-decoration-color: currentColor;
+        }
+
+        .project-links__link:hover .project-links__arrow {
+          transform: translate(2px, -2px);
+          color: var(--color-text);
+        }
       }
 
       .project-page-shell {
@@ -269,11 +343,13 @@ const mainStyle = `--project-page-accent:${accent}`;
         bottom: -14vh;
         z-index: 20;
         width: 100vw;
-        height: min(74vh, 720px);
+        height: min(88vh, 860px);
         opacity: var(--project-page-glow-opacity);
         pointer-events: none;
         transform: translate3d(-50%, 0, 0) scale(var(--project-page-glow-scale));
         transform-origin: 50% 100%;
+        mask-image: linear-gradient(to top, black 0%, black 40%, transparent 92%);
+        -webkit-mask-image: linear-gradient(to top, black 0%, black 40%, transparent 92%);
         transition:
           opacity 160ms ease,
           transform 220ms cubic-bezier(0.23, 1, 0.32, 1);

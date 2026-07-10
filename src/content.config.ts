@@ -7,11 +7,13 @@ const proyectos = defineCollection({
   schema: ({ image }) => z.object({
     title: z.string(),
     description: z.string(),
-    cover: image(),
-    previewImages: z.array(image()).min(1).max(3),
+    cover: image().optional(),
+    previewImages: z.array(image()).max(3).optional(),
     year: z.string().min(1),
     order: z.number().optional(),
     tech: z.array(z.string()).optional(),
+    links: z.array(z.object({ label: z.string(), url: z.string().url() })).optional(),
+    employer: z.string().optional(),
   }),
 });
 
