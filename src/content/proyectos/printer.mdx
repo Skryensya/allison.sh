@@ -1,0 +1,29 @@
+---
+title: "Printer"
+description: "Printer es un sitio donde cualquiera puede mandarme un mensaje corto que sale impreso al instante en la impresora térmica de mi escritorio. Nació de una pregunta que no me dejaba en paz. ¿Y si cualquier cosa en internet pudiera imprimir en ella?"
+year: "2026 – presente"
+order: 4
+links:
+  - label: "https://ping.allison.sh"
+    url: "https://ping.allison.sh"
+---
+
+## El problema
+
+Tenía una impresora térmica de recibos, de esas baratas, juntando polvo en el escritorio. Se me ocurrió que sería divertido conectarla a internet, sin ninguna razón práctica. Que un build que termina te tire un recibo, que la lista del súper salga en papel antes de salir de casa, que un amigo me escriba algo y aparezca, físico, sobre mi escritorio, sin que yo mueva un dedo. De esa idea salió este proyecto.
+
+## La solución
+
+Lo que construí en el fondo es una API. Le mandas un POST con lo que quieras imprimir (texto, una tarjeta, una lista, un QR, una imagen) y queda en una cola. Un agente chiquito, corriendo en la máquina conectada a la impresora, escucha esa cola por WebSocket y maneja la impresora vía USB usando el protocolo ESC/POS. Arriba de eso hay un panel para ver la cola en vivo, componer impresiones a mano y repartir llaves de acceso.
+
+El primer consumidor de esa API es Ping, la parte pública del proyecto. Vive en <a href="https://ping.allison.sh" class="editorial-link" target="_blank" rel="noopener noreferrer">ping.allison.sh<svg class="editorial-link__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" /></svg></a>, no pide cuenta ni llave, y por dentro llama al mismo endpoint que cualquier otro consumidor. Tiene su propia llave, su propio límite de uso, reCAPTCHA y un cooldown por IP para frenar bots. La API no sabe que Ping existe. Para ella es un consumidor más.
+
+## Decisiones técnicas
+
+Lo más entretenido fueron los momentos raros entre las piezas. Una impresora no tiene deshacer. Una vez que el papel salió, salió. Casi todo el diseño se fue en los edge cases, como qué pasa si desconecto la impresora a mitad de un job (vuelve a la cola, sin penalización) o si dos agentes pelean por el mismo cable (toman turnos con un lock del kernel, nadie corta un recibo a la mitad).
+
+Cada una de esas preguntas era un rompecabezas con una recompensa física. Si lo resolvía bien, sonaba la impresora. Es de los pocos proyectos donde el bug se ve en papel, y el éxito también. Corre todo sobre Bun y Postgres.
+
+## Mándame algo
+
+Esto es lo mejor de todo. Puedes probarlo ahora mismo, sin cuenta ni nada que instalar. Entra a Ping, donde cada tap y cada envío tiene su propio sonido, más parecido a un juego que a un formulario, escribe algo, y en segundos lo tienes en papel, sobre mi escritorio. Es la forma más directa de saludarme. Apenas sale impreso, lo leo.

@@ -25,7 +25,7 @@ interface Props {
 }
 
 const { title, description, slug, year, links, employer, accent = 'var(--color-link)', structuredData } = Astro.props;
-const originLabel = employer || 'Personal';
+const originLabel = employer || 'Proyecto personal';
 const publishedTime = year ? `${year}-01-01` : undefined;
 const mainStyle = `--project-page-accent:${accent}`;
 ---
