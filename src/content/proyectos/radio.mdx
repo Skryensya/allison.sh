@@ -1,0 +1,47 @@
+---
+title: "Radio"
+description: "Quería una radio personal: estaciones curadas a mano, programación continua y la misma canción sonando para todos a la misma hora, sin skip y sin servidor coordinando nada."
+cover: ../../assets/projects/radio-1.png
+previewImages:
+  - ../../assets/previews/radio-1.png
+  - ../../assets/previews/radio-2.png
+  - ../../assets/previews/radio-3.png
+year: "2024 – presente"
+order: 1
+---
+
+import radio1 from '@/assets/projects/radio-1.png';
+import radio2 from '@/assets/projects/radio-2.png';
+import radio3 from '@/assets/projects/radio-3.png';
+
+## El problema
+
+Quería una radio. Encender algo, dejar que suene, sin botón de siguiente. El problema era que tenía que construirla.
+
+{/* <ImageFigure src={radio1} alt="Interfaz principal de Radio con fondo de shader generativo y controles de estación." priority /> */}
+
+## La solución
+
+Varias estaciones con playlists curados manualmente. Lo que las convierte en radio, y no en un reproductor con shuffle, es que la posición en el playlist es determinista: se calcula a partir del reloj.
+
+Todos los que escuchan en el mismo momento obtienen la misma canción en el mismo segundo, sin que ningún servidor coordine nada. El servidor entrega los metadatos del playlist una vez; el resto lo resuelve el cliente calculando contra su reloj local.
+
+El fondo es un shader GLSL animado con los colores extraídos del artwork de cada pista. No reacciona al audio en tiempo real. Es una animación parametrizada por paleta y por el mood de la estación, pero cambia de carácter con cada pista y se siente integrado a lo que suena.
+
+## Decisiones técnicas
+
+La sincronización: segundos desde medianoche más un offset por estación, módulo de la duración total del playlist. Eso da el índice de la pista y el segundo exacto dentro de ella. Cuando alguien abre la app a mitad de una canción, el reproductor busca el segundo correcto en cuanto el audio carga sus metadatos. Un loop corre cada 200ms y corrige si el drift supera 2.5 segundos.
+
+{/* <ImageFigure src={radio2} alt="Vista de estaciones y shader con paleta extraída del artwork." /> */}
+
+El audio usa dos elementos `<audio>` alternados. Las transiciones entre estaciones hacen crossfade con `requestAnimationFrame`: el saliente baja de volumen mientras el entrante sube, ambos apuntando al punto del playlist donde debería estar en ese momento. Los cortes entre pistas dentro de la misma estación son directos: el índice cambia, seek a 0, la siguiente empieza sin silencios.
+
+El stack es simple: Hono en Node.js, PostgreSQL con Drizzle ORM, React en el cliente. Audio y archivos en R2.
+
+## Lo difícil
+
+Tener clara la idea no simplificó la construcción. La radio tiene que funcionar exactamente como el concepto la describe: misma canción, mismo segundo, sin coordinación. Cada parte del flujo de audio tiene que comportarse de esa manera o la ilusión se rompe.
+
+{/* <ImageFigure src={radio3} alt="Vista mobile de Radio." /> */}
+
+Es un proyecto personal. No tiene usuarios, no tiene métricas. Existe porque quería ese objeto, y construirlo sin compromisos de producto fue parte del punto.
