@@ -64,7 +64,9 @@ function bindProjectLightboxTriggers() {
     const images = triggers.map(lightboxImageFromTrigger);
     window.__projectLightboxLastOpen = { count: images.length, index, first: images[0]?.src };
     controller.open({ images, index, returnFocus: trigger });
-  });
+    // Capture phase: Astro's ClientRouter listens on `document` too and, for a same-origin <a href>,
+    // calls preventDefault() and navigates to the image. It has to see our preventDefault() first.
+  }, true);
 }
 
 window.__setupProjectLightbox = setupProjectLightbox;
