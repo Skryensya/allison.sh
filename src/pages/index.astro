@@ -22,6 +22,7 @@ const proyectos = await getCollection('proyectos');
 const projects = proyectos.sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
 
 const projectAccents: Record<string, string> = {
+  'skryensya-ui': 'var(--flexoki-green-400)',
   'agenda-uc': 'var(--flexoki-blue-400)',
   'barrancas': 'var(--flexoki-orange-400)',
   'kit-digital-uc': 'var(--flexoki-purple-400)',
