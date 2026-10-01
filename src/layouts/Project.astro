@@ -3,6 +3,9 @@ import Base from './Base.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import { Lightbox } from '@skryensya/react/lightbox';
+// Only project pages open the lightbox; keep its CSS (and the Loader it uses) off every other page.
+import '@skryensya/core/components/loader.css';
+import '@skryensya/core/components/lightbox.css';
 import { getOgImagePath, getTwitterImagePath } from '@/lib/seo';
 
 interface StructuredData {
