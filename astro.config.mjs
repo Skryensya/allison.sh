@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeSlug from 'rehype-slug';
 import mdx from '@astrojs/mdx';
+import react from '@astrojs/react';
 
 // https://astro.build/config
 const siteUrl = (process.env.PUBLIC_SITE_URL || process.env.SITE_URL || 'https://allison.sh').replace(/\/$/, '');
@@ -18,6 +19,10 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    esbuild: {
+      jsx: 'automatic',
+      jsxImportSource: 'react',
+    },
     resolve: {
       alias: {
         '@': new URL('./src', import.meta.url).pathname,
@@ -36,5 +41,5 @@ export default defineConfig({
   markdown: {
     rehypePlugins: [rehypeSlug],
   },
-  integrations: [mdx()],
+  integrations: [mdx(), react()],
 });

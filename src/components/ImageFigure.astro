@@ -1,6 +1,9 @@
 ---
 import { getImage } from 'astro:assets';
+import { Lightbox } from '@skryensya/react/lightbox';
 import type { ImageMetadata } from 'astro';
+
+const LightboxTrigger = Lightbox.Trigger;
 
 interface Props {
   src: ImageMetadata;
@@ -35,7 +38,7 @@ const figureClass = [
 ].join(' ');
 
 const frameClass = [
-  'relative cursor-pointer is-flying:cursor-default bg-transparent p-0 shadow-none outline-none',
+  'relative cursor-pointer bg-transparent p-0 shadow-none outline-none',
   'transition-[opacity,transform] duration-[600ms] ease-out',
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-text focus-visible:outline-offset-[3px]',
   'xl:absolute xl:top-0 xl:w-[clamp(180px,17vw,260px)]',
@@ -47,12 +50,7 @@ const frameClass = [
   'xl:group-data-[side=left]/lightbox-fig:opacity-100',
   'xl:group-data-[side=right]/lightbox-fig:translate-y-0',
   'xl:group-data-[side=left]/lightbox-fig:translate-y-0',
-  'is-flying:overflow-visible is-flying:bg-transparent is-flying:p-0 is-flying:shadow-none',
-  'is-flying:[&_[data-figure-media]]:rounded-[3px]',
-  'is-flying:[&_[data-figure-media]]:shadow-[0_20px_80px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)]',
-  'is-flying:[&_[data-figure-caption]]:static is-flying:[&_[data-figure-caption]]:h-auto',
-  'is-flying:[&_[data-figure-caption]]:px-0.5 is-flying:[&_[data-figure-caption]]:pt-2.5',
-  'is-flying:[&_[data-figure-caption]]:font-medium is-flying:[&_[data-figure-caption]]:text-text',
+  'block text-inherit no-underline',
 ].join(' ');
 
 const mediaClass = [
@@ -76,12 +74,20 @@ const captionClass = [
   'static h-auto pt-[7px] font-mono text-sm leading-snug text-muted select-none',
   'xl:group-data-[side=right]/lightbox-fig:text-text',
   'xl:group-data-[side=left]/lightbox-fig:text-text',
-  'is-flying:opacity-100',
 ].join(' ');
 ---
 
 <figure data-figure-root class={figureClass}>
-  <div data-figure-frame class={frameClass}>
+  <LightboxTrigger
+    data-figure-frame
+    opens="project-lightbox"
+    src={image.src}
+    alt={alt}
+    title={captionText}
+    width={image.attributes.width}
+    height={image.attributes.height}
+    className={frameClass}
+  >
     <div data-figure-media data-blur-up class={mediaClass} style={mediaStyle}>
       <img
         class={imgClass}
@@ -99,5 +105,5 @@ const captionClass = [
     </div>
 
     <figcaption data-figure-caption class={captionClass} aria-hidden="true">{captionText}</figcaption>
-  </div>
+  </LightboxTrigger>
 </figure>

@@ -271,11 +271,13 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
   const injectedFolderShapesClientUrl = document.documentElement.dataset.folderShapesClientUrl;
   const injectedProjectPageClientUrl = document.documentElement.dataset.projectPageClientUrl;
   const injectedProjectFolderStackClientUrl = document.documentElement.dataset.projectFolderStackClientUrl;
+  const injectedProjectLightboxClientUrl = document.documentElement.dataset.projectLightboxClientUrl;
 
   let baseClientPromise;
   let folderShapesClientPromise;
   let projectPageClientPromise;
   let projectFolderStackClientPromise;
+  let projectLightboxClientPromise;
 
   const loadBaseClient = () => {
     if (!injectedBaseClientUrl) return baseClientPromise;
@@ -301,13 +303,21 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     return projectFolderStackClientPromise;
   };
 
+  const loadProjectLightboxClient = () => {
+    if (!injectedProjectLightboxClientUrl || !document.querySelector('[data-sk-lightbox-open]')) return projectLightboxClientPromise;
+    projectLightboxClientPromise ??= import(injectedProjectLightboxClientUrl);
+    return projectLightboxClientPromise;
+  };
+
   void loadFolderShapesClient();
   void loadProjectPageClient();
   void loadProjectFolderStackClient();
+  void loadProjectLightboxClient();
   document.addEventListener('astro:page-load', () => {
     void loadFolderShapesClient();
     void loadProjectPageClient();
     void loadProjectFolderStackClient();
+    void loadProjectLightboxClient();
   });
 
   const scheduleBaseClient = () => {

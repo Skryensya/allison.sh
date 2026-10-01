@@ -3,8 +3,8 @@
     scroll-behavior: auto !important;
   }
 
-  :where(#nav-links a, #theme-toggle, #contacto a),
-  :where(#nav-links a, #theme-toggle, #contacto a)::before,
+  :where(#contacto a),
+  :where(#contacto a)::before,
   #theme-toggle .theme-toggle__icon,
   .name-normal,
   .name-hover,
@@ -15,17 +15,16 @@
     transition: none !important;
   }
 
-  :where(#nav-links a, #theme-toggle, #contacto a):hover,
-  :where(#nav-links a, #theme-toggle, #contacto a):focus-visible,
+  :where(#contacto a):hover,
+  :where(#contacto a):focus-visible,
   a.group:hover .transition-transform,
-  a.group:focus-visible .transition-transform,
-  #theme-toggle:active {
+  a.group:focus-visible .transition-transform {
     transform: none !important;
   }
 
-  :where(#nav-links a, #theme-toggle, #contacto a)::before,
-  :where(#nav-links a, #theme-toggle, #contacto a):hover::before,
-  :where(#nav-links a, #theme-toggle, #contacto a):focus-visible::before {
+  :where(#contacto a)::before,
+  :where(#contacto a):hover::before,
+  :where(#contacto a):focus-visible::before {
     transform: none;
   }
 

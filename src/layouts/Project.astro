@@ -2,6 +2,7 @@
 import Base from './Base.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
+import { Lightbox } from '@skryensya/react/lightbox';
 import { getOgImagePath, getTwitterImagePath } from '@/lib/seo';
 
 interface StructuredData {
@@ -107,6 +108,21 @@ const mainStyle = `--project-page-accent:${accent}`;
         </div>
       </div>
     </main>
+
+    <Lightbox
+      id="project-lightbox"
+      label="Visor de imágenes"
+      closeLabel="Cerrar"
+      previousLabel="Imagen anterior"
+      nextLabel="Imagen siguiente"
+      zoomInLabel="Acercar"
+      zoomOutLabel="Alejar"
+      resetZoomLabel="Restablecer zoom"
+      errorLabel="No se pudo cargar."
+      counterLabel="Imagen {index} de {count}"
+      data-sk-lightbox=""
+      loop
+    />
 
     <style>
       .project-page-intro {

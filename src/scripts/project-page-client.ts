@@ -16,8 +16,6 @@ const runtime: ProjectPageRuntime = (window.__projectPageRuntime ||= {
   raf: 0,
 });
 
-let projectLightboxPromise: Promise<unknown> | undefined;
-
 function cleanup() {
   runtime.controller?.abort();
   runtime.controller = null;
@@ -26,13 +24,6 @@ function cleanup() {
     window.cancelAnimationFrame(runtime.raf);
     runtime.raf = 0;
   }
-}
-
-function loadProjectLightbox() {
-  const url = document.documentElement.dataset.projectLightboxClientUrl;
-  if (!url) return Promise.resolve();
-  projectLightboxPromise ??= import(url);
-  return projectLightboxPromise;
 }
 
 function initBlurUpImages(signal: AbortSignal) {
@@ -140,33 +131,14 @@ function prepareProjectFigures(signal: AbortSignal) {
 
     fig.dataset.side ||= i % 2 === 0 ? 'right' : 'left';
     frame.style.transitionDelay ||= `${i * 150}ms`;
+    if (frame instanceof HTMLAnchorElement) {
+      frame.setAttribute('aria-label', `Ampliar imagen: ${frame.getAttribute('data-lightbox-title') || 'imagen'}`);
+      return;
+    }
+
     frame.setAttribute('tabindex', '0');
     frame.setAttribute('role', 'button');
     frame.setAttribute('aria-label', 'Ampliar imagen');
-
-    if (frame.dataset.lightboxLoaderBound === 'true') return;
-    frame.dataset.lightboxLoaderBound = 'true';
-
-    const prime = (event: Event) => {
-      if (frame.dataset.lightboxReady === 'true') return;
-
-      let shouldReplay = event.type === 'click';
-      if (event instanceof KeyboardEvent) {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        shouldReplay = true;
-      }
-
-      if (shouldReplay) event.preventDefault();
-      void loadProjectLightbox().then(() => {
-        window.__setupProjectLightbox?.();
-        if (shouldReplay && frame.isConnected) frame.click();
-      });
-    };
-
-    frame.addEventListener('pointerenter', prime, { passive: true, signal });
-    frame.addEventListener('focus', prime, { passive: true, signal });
-    frame.addEventListener('click', prime, { signal });
-    frame.addEventListener('keydown', prime, { signal });
   });
 }
 

@@ -1,5 +1,5 @@
 /* Shared interaction highlight for nav, contact, and footer controls. */
-:where(#nav-links a, #contacto a) {
+:where(#contacto a) {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -24,33 +24,7 @@
   z-index: 0;
 }
 
-:where(#theme-toggle) {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40px;
-  min-height: 40px;
-  border-radius: 999px;
-  text-decoration: none;
-
-  --nav-highlight-skew: -12deg;
-  --nav-highlight-lift: 4px;
-  --nav-highlight-scale: 0.9;
-  --nav-highlight-radius: 999px;
-  --nav-highlight-bg: color-mix(in srgb, var(--color-text) 96%, var(--color-bg));
-  --nav-highlight-shine: color-mix(in srgb, var(--color-bg) 28%, transparent);
-  --nav-highlight-shadow: 0 10px 26px color-mix(in srgb, var(--color-text) 8%, transparent);
-
-  transition:
-    color 180ms ease,
-    transform 240ms cubic-bezier(0.2, 0, 0, 1);
-
-  isolation: isolate;
-  z-index: 0;
-}
-
-:where(#nav-links a, #contacto a)::before {
+:where(#contacto a)::before {
   content: '';
   position: absolute;
   inset: -6px -8px;
@@ -67,44 +41,10 @@
   z-index: -1;
 }
 
-:where(#nav-links a, #contacto a)::after {
+:where(#contacto a)::after {
   content: '';
   position: absolute;
   inset: -6px -8px;
-  border-radius: var(--nav-highlight-radius);
-  background: linear-gradient(
-    105deg,
-    transparent 24%,
-    var(--nav-highlight-shine) 46%,
-    transparent 68%
-  );
-  opacity: 0;
-  transform: translateX(-42%) scaleX(0.62) skewX(var(--nav-highlight-skew));
-  transform-origin: center;
-  z-index: -1;
-}
-
-#theme-toggle::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: var(--nav-highlight-radius);
-  background: var(--nav-highlight-bg);
-  box-shadow: var(--nav-highlight-shadow);
-  opacity: 0;
-  transform: translateY(var(--nav-highlight-lift)) scale(var(--nav-highlight-scale)) skewX(var(--nav-highlight-skew));
-  transform-origin: center;
-
-  transition:
-    opacity 170ms ease,
-    transform 260ms cubic-bezier(0.2, 0, 0, 1);
-  z-index: -1;
-}
-
-#theme-toggle::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
   border-radius: var(--nav-highlight-radius);
   background: linear-gradient(
     105deg,
@@ -119,12 +59,12 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  :where(#nav-links a, #theme-toggle, #contacto a):hover {
+  :where(#contacto a):hover {
     color: var(--color-bg);
     transform: translateY(-1px);
   }
 
-  :where(#nav-links a, #theme-toggle, #contacto a):hover::before {
+  :where(#contacto a):hover::before {
     opacity: 1;
     transform: translateY(0) scale(1) skewX(var(--nav-highlight-skew));
     transition:
@@ -132,17 +72,17 @@
       transform 280ms cubic-bezier(0.19, 1, 0.22, 1);
   }
 
-  :where(#nav-links a, #theme-toggle, #contacto a):hover::after {
+  :where(#contacto a):hover::after {
     animation: navHighlightGlint 560ms cubic-bezier(0.19, 1, 0.22, 1) both;
   }
 }
 
-:where(#nav-links a, #theme-toggle, #contacto a):focus-visible {
+:where(#contacto a):focus-visible {
   color: var(--color-bg);
   transform: translateY(-1px);
 }
 
-:where(#nav-links a, #theme-toggle, #contacto a):focus-visible::before {
+:where(#contacto a):focus-visible::before {
   opacity: 1;
   transform: translateY(0) scale(1) skewX(var(--nav-highlight-skew));
 }
@@ -206,103 +146,11 @@ html.dark #theme-toggle .moon-icon {
   filter: blur(0);
 }
 
-#theme-toggle:active {
-  transition: none;
-  transform: translateY(0) scale(0.96);
-}
-
-/* Footer-specific: scope the button so footer styles don't interfere */
-footer #theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40px;
-  min-height: 40px;
-  border-radius: 999px;
-  padding: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  position: relative;
-  isolation: isolate;
-  color: inherit;
-  transition:
-    color 180ms ease,
-    transform 240ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-footer #theme-toggle::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: var(--nav-highlight-bg);
-  box-shadow: var(--nav-highlight-shadow);
-  opacity: 0;
-  transform: translateY(var(--nav-highlight-lift)) scale(var(--nav-highlight-scale)) skewX(var(--nav-highlight-skew));
-  transform-origin: center;
-
-  transition:
-    opacity 170ms ease,
-    transform 260ms cubic-bezier(0.2, 0, 0, 1);
-  z-index: -1;
-}
-
-footer #theme-toggle::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: linear-gradient(
-    105deg,
-    transparent 24%,
-    var(--nav-highlight-shine) 46%,
-    transparent 68%
-  );
-  opacity: 0;
-  transform: translateX(-42%) scaleX(0.62) skewX(var(--nav-highlight-skew));
-  transform-origin: center;
-  z-index: -1;
-}
-
-footer #theme-toggle:hover {
-  color: var(--color-bg);
-}
-
-footer #theme-toggle:hover::before {
-  opacity: 1;
-  transform: translateY(0) scale(1) skewX(var(--nav-highlight-skew));
-  transition:
-    opacity 150ms ease-out,
-    transform 280ms cubic-bezier(0.19, 1, 0.22, 1);
-}
-
-footer #theme-toggle:hover::after {
-  animation: navHighlightGlint 560ms cubic-bezier(0.19, 1, 0.22, 1) both;
-}
-
-footer #theme-toggle:focus-visible {
-  color: var(--color-bg);
-  outline: none;
-}
-
-footer #theme-toggle:focus-visible::before {
-  opacity: 1;
-  transform: translateY(0) scale(1) skewX(var(--nav-highlight-skew));
-}
-
-footer #theme-toggle:active {
-  transition: none;
-  transform: scale(0.96);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  :where(#nav-links a, #theme-toggle, #contacto a),
-  :where(#nav-links a, #theme-toggle, #contacto a)::before,
-  :where(#nav-links a, #theme-toggle, #contacto a)::after,
-  footer #theme-toggle,
-  footer #theme-toggle::before,
-  footer #theme-toggle::after {
+  :where(#contacto a),
+  :where(#contacto a)::before,
+  :where(#contacto a)::after,
+  #theme-toggle .theme-toggle__icon {
     animation: none;
     transition: none;
   }
@@ -322,4 +170,10 @@ footer #theme-toggle:active {
     opacity: 0;
     transform: translateX(42%) scaleX(0.86) skewX(var(--nav-highlight-skew));
   }
+}
+
+/* skryensya/ui buttons: fully rounded */
+#nav-links .sk-button,
+#theme-toggle.sk-button {
+  --sk-button-radius: var(--radius-pill);
 }

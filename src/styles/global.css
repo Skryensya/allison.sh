@@ -1,4 +1,11 @@
 @import "tailwindcss";
+@import "@skryensya/core/tokens.css";
+@import "@skryensya/core/patterns/icon.css";
+@import "@skryensya/core/patterns/state-layer.css";
+@import "@skryensya/core/patterns/visually-hidden.css";
+@import "@skryensya/core/components/button.css";
+@import "@skryensya/core/components/loader.css";
+@import "@skryensya/core/components/lightbox.css";
 
 @custom-variant is-flying (&.is-flying);
 
