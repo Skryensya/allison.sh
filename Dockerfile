@@ -5,6 +5,8 @@ WORKDIR /app
 ARG PUBLIC_SITE_URL
 
 COPY package*.json ./
+# file: dependencies (@skryensya/*) resolve to these tarballs, so they must exist before npm ci
+COPY vendor ./vendor
 RUN npm ci
 
 COPY . .
