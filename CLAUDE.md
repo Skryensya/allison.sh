@@ -108,10 +108,23 @@ npm run preview
 src/
 ├── components/          # Astro components (Avatar, SpeechBubble, etc.)
 ├── content/
-│   └── proyectos/     # Project markdown files
+│   ├── proyectos/     # Project markdown files (Spanish)
+│   └── projects/      # Same slugs, English
 ├── data/               # Static data (avatar sprite config)
+├── i18n/               # Locales, URL helpers, UI strings (messages.ts), avatar phrases
 ├── layouts/            # Page layouts (Base, Project)
-├── pages/              # Route pages (index, proyectos/[slug])
+├── pages/              # Spanish routes at the root, English under /en (thin wrappers)
+├── templates/          # Shared page bodies (HomePage, ProjectPage, NotFoundPage) taking a `locale`
 ├── scripts/            # Client-side scripts (avatar-client)
 └── styles/             # Global styles
 ```
+
+## Internationalization (es / en)
+
+- Spanish is the default locale at the root (`/`, `/proyectos/<slug>`); English lives under `/en` (`/en/`, `/en/projects/<slug>`).
+- Route components in `src/pages` only pick a locale and render a template from `src/templates`.
+- UI copy lives in `src/i18n/messages.ts` (both locales must keep the same shape). Components get the locale from the URL (`getLocaleFromUrl`) and read `messages[locale]`.
+- Project content: each project exists in both `src/content/proyectos/<slug>.mdx` and `src/content/projects/<slug>.mdx` (same slug, same `order`, translated prose). Internal links in English MDX use `/en/projects/<slug>`.
+- Client scripts read copy from the page (`<html lang>` or `data-*` attributes) instead of bundling dictionaries; avatar phrases are in `src/i18n/phrases.ts`.
+- Social images are generated per locale (`public/og/en/…`, `public/twitter/en/…`) by `npm run generate:og`.
+- Language choice is stored in `localStorage` (`allison.sh:lang`). The first visit to a Spanish page from a non-Spanish browser redirects to its English twin; the footer switcher always overrides it. Anchor ids (`#proyectos`, `#sobre-mi`, `#contacto`) are shared by both locales because CSS targets them.

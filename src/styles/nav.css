@@ -174,6 +174,7 @@ html.dark #theme-toggle .moon-icon {
 
 /* skryensya/ui buttons: fully rounded */
 #nav-links .sk-button,
-#theme-toggle.sk-button {
+#theme-toggle.sk-button,
+[data-lang-switch].sk-button {
   --sk-button-radius: var(--radius-pill);
 }

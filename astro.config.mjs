@@ -14,8 +14,15 @@ export default defineConfig({
   devToolbar: {
     enabled: false,
   },
+  // Spanish is the default locale and lives at the root; English lives under /en.
+  i18n: {
+    defaultLocale: 'es',
+    locales: ['es', 'en'],
+    routing: { prefixDefaultLocale: false },
+  },
   redirects: {
     '/proyectos': '/#proyectos',
+    '/en/projects': '/en/#proyectos',
   },
   vite: {
     plugins: [tailwindcss()],

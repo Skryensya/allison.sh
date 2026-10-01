@@ -5,6 +5,8 @@ import clientModules from '@/generated/client-modules.json';
 import clashGrotesk400 from '@/assets/fonts/clash-grotesk-400.woff2';
 import satoshi400 from '@/assets/fonts/satoshi-400.woff2';
 import satoshi500 from '@/assets/fonts/satoshi-500.woff2';
+import { alternatePath, getLocaleFromUrl, LANG_STORAGE_KEY, LOCALE_META, LOCALES, type Locale } from '@/i18n';
+import { messages } from '@/i18n/messages';
 import {
   DEFAULT_OG_IMAGE,
   DEFAULT_TWITTER_IMAGE,
@@ -12,8 +14,6 @@ import {
   OG_IMAGE_HEIGHT,
   OG_IMAGE_WIDTH,
   SITE_AUTHOR,
-  SITE_DESCRIPTION,
-  SITE_LOCALE,
   SITE_NAME,
   SITE_URL,
   TWITTER_IMAGE_HEIGHT,
@@ -39,9 +39,12 @@ interface Props {
   structuredData?: StructuredData | StructuredData[];
 }
 
+const locale: Locale = getLocaleFromUrl(Astro.url);
+const t = messages[locale];
+
 const {
   title,
-  description = SITE_DESCRIPTION,
+  description = t.site.description,
   image = DEFAULT_OG_IMAGE,
   imageAlt = title,
   twitterImage = DEFAULT_TWITTER_IMAGE,
@@ -63,12 +66,22 @@ const twitterImageType = getSocialImageType(twitterImage);
 const robotsContent = noindex
   ? 'noindex, nofollow'
   : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+// Every indexable page declares its counterpart in the other locale (plus x-default = Spanish).
+const pagePath = canonical || Astro.url.pathname;
+const alternates = noindex
+  ? []
+  : LOCALES.map((target) => ({
+      locale: target,
+      hreflang: LOCALE_META[target].lang,
+      href: new URL(alternatePath(pagePath, target), siteBase).toString(),
+    }));
+const otherLocales = LOCALES.filter((target) => target !== locale);
 const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData : [structuredData]) : [];
 ---
 
 <!doctype html>
 <html
-  lang="es"
+  lang={LOCALE_META[locale].lang}
   class="scroll-smooth"
   data-base-client-url={clientModules['base-client']}
   data-folder-shapes-client-url={clientModules['folder-shapes-client']}
@@ -90,11 +103,14 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
     <meta itemprop="description" content={description} />
     <meta itemprop="image" content={ogImageUrl} />
     <link rel="canonical" href={canonicalUrl} />
+    {alternates.map((alt) => <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />)}
+    {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={alternates[0].href} />}
     <link rel="image_src" href={ogImageUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta property="og:site_name" content={SITE_NAME} />
-    <meta property="og:locale" content={SITE_LOCALE} />
+    <meta property="og:locale" content={LOCALE_META[locale].ogLocale} />
+    {!noindex && otherLocales.map((other) => <meta property="og:locale:alternate" content={LOCALE_META[other].ogLocale} />)}
     <meta property="og:type" content={type} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -136,6 +152,24 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
         });
       }
     </script>
+    <!-- First visit only: send non-Spanish browsers from the default (Spanish) page to its English twin.
+         The choice is stored, so the footer switcher always wins afterwards. Crawlers are left alone. -->
+    {alternates.length > 0 && (
+      <script is:inline define:vars={{ key: LANG_STORAGE_KEY, locale }}>
+        (function () {
+          try {
+            if (localStorage.getItem(key)) return;
+            if (/bot|crawl|spider|slurp|lighthouse|headless/i.test(navigator.userAgent) || navigator.webdriver) return;
+            if (locale === 'en') { localStorage.setItem(key, 'en'); return; }
+            var first = String((navigator.languages && navigator.languages[0]) || navigator.language || 'es').toLowerCase();
+            if (first.indexOf('es') === 0) { localStorage.setItem(key, 'es'); return; }
+            localStorage.setItem(key, 'en');
+            var twin = document.querySelector('link[rel="alternate"][hreflang="en"]');
+            if (twin && twin.href) location.replace(new URL(twin.href).pathname + location.search + location.hash);
+          } catch (e) {}
+        })();
+      </script>
+    )}
     <!-- Prevent FOUC: apply theme before render -->
     <script is:inline>
       (function() {
@@ -156,7 +190,7 @@ const schemas = structuredData ? (Array.isArray(structuredData) ? structuredData
   <body class="text-text antialiased min-h-screen bg-bg relative z-0">
     <!-- Skip to main content link for keyboard users -->
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-bg focus:text-text focus:px-4 focus:py-2 focus:outline-none focus:ring-2 focus:ring-border">
-      Saltar al contenido principal
+      {t.a11y.skipToContent}
     </a>
 
     <!-- Luz tenue desde arriba a la derecha -->

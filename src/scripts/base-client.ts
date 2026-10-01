@@ -1,3 +1,5 @@
+import { LANG_STORAGE_KEY } from '@/i18n';
+
 type GlobalWindow = Window & typeof globalThis & {
   __baseClientInit?: boolean;
   __baseClientCleanup?: () => void;
@@ -38,7 +40,8 @@ function setupBaseClient() {
     if (!toggle) return;
 
     const isDark = document.documentElement.classList.contains('dark');
-    const currentThemeLabel = isDark ? 'Tema oscuro activo' : 'Tema claro activo';
+    // Labels are rendered per locale by the footer; the script only picks the active one.
+    const currentThemeLabel = (isDark ? toggle.dataset.labelDark : toggle.dataset.labelLight) ?? '';
     toggle.setAttribute('aria-pressed', String(isDark));
     toggle.setAttribute('aria-label', currentThemeLabel);
     toggle.setAttribute('title', currentThemeLabel);
@@ -252,10 +255,29 @@ function setupBaseClient() {
         });
       } else {
         mobileBtn.addEventListener('click', () => {
-          window.location.href = '/';
+          window.location.href = document.documentElement.lang === 'en' ? '/en/' : '/';
         });
       }
     }
+  }
+
+  let languageSwitchBound = false;
+
+  /** The footer switcher is the one explicit language choice: remember it so the first-visit redirect never overrides it. */
+  function bindLanguageSwitch() {
+    if (languageSwitchBound) return;
+    languageSwitchBound = true;
+
+    document.addEventListener('click', (event) => {
+      const link = (event.target as Element | null)?.closest<HTMLElement>('[data-lang-switch]');
+      const target = link?.dataset.langSwitch;
+      if (!target) return;
+      try {
+        localStorage.setItem(LANG_STORAGE_KEY, target);
+      } catch {
+        /* storage unavailable: the switch still navigates */
+      }
+    });
   }
 
   function bindThemeToggle() {
@@ -294,6 +316,7 @@ function setupBaseClient() {
     initNavbarScroll();
     initGlitch();
     bindThemeToggle();
+    bindLanguageSwitch();
     bindContactLinks();
   }
 

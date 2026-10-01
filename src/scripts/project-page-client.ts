@@ -123,6 +123,11 @@ function initProjectGlow(signal: AbortSignal) {
 }
 
 function prepareProjectFigures(signal: AbortSignal) {
+  // Copy is rendered per locale on the page shell; `{name}` is replaced with the image's title.
+  const shell = document.querySelector<HTMLElement>('[data-project-page-shell]');
+  const enlargeLabel = shell?.dataset.labelEnlarge ?? 'Enlarge image';
+  const enlargeNamedLabel = shell?.dataset.labelEnlargeNamed ?? `${enlargeLabel}: {name}`;
+  const fallbackName = shell?.dataset.labelImage ?? 'image';
   const figures = document.querySelectorAll<HTMLElement>('[data-figure-root]');
 
   figures.forEach((fig, i) => {
@@ -132,13 +137,13 @@ function prepareProjectFigures(signal: AbortSignal) {
     fig.dataset.side ||= i % 2 === 0 ? 'right' : 'left';
     frame.style.transitionDelay ||= `${i * 150}ms`;
     if (frame instanceof HTMLAnchorElement) {
-      frame.setAttribute('aria-label', `Ampliar imagen: ${frame.getAttribute('data-lightbox-title') || 'imagen'}`);
+      frame.setAttribute('aria-label', enlargeNamedLabel.replace('{name}', frame.getAttribute('data-lightbox-title') || fallbackName));
       return;
     }
 
     frame.setAttribute('tabindex', '0');
     frame.setAttribute('role', 'button');
-    frame.setAttribute('aria-label', 'Ampliar imagen');
+    frame.setAttribute('aria-label', enlargeLabel);
   });
 }
 

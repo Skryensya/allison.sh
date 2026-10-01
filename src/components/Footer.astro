@@ -1,16 +1,24 @@
 ---
+import { alternatePath, getLocaleFromUrl, LOCALE_META, LOCALES } from '@/i18n';
+import { messages } from '@/i18n/messages';
+
 interface Props {
   tone?: 'page' | 'home';
 }
 
 const { tone = 'page' } = Astro.props;
+const locale = getLocaleFromUrl(Astro.url);
+const t = messages[locale];
+const otherLocale = LOCALES.find((l) => l !== locale)!;
+const otherMeta = LOCALE_META[otherLocale];
+const switchHref = alternatePath(Astro.url.pathname, otherLocale);
 const emailLinkMarkup = `<!--email_off--><a href="mailto:contacto@allison.sh" class="footer-contact-link font-sans text-xl md:text-2xl leading-tight">contacto@allison.sh</a><!--/email_off-->`;
 const colorClass = tone === 'home' ? 'text-home' : 'text-text';
 ---
 
 <section id="contacto" aria-labelledby="contacto-heading" class={`relative z-[60] ${colorClass} pt-12 pb-24 md:pt-16 md:pb-32`}>
-    <h2 id="contacto-heading" class="sr-only">Contacto</h2>
-    <p class="font-mono text-[0.82rem] tracking-[0.16em] uppercase mb-8 md:mb-10">Contacto</p>
+    <h2 id="contacto-heading" class="sr-only">{t.footer.contact}</h2>
+    <p class="font-mono text-[0.82rem] tracking-[0.16em] uppercase mb-8 md:mb-10">{t.footer.contact}</p>
     <ul class="space-y-3 -mx-1 md:-mx-2 max-w-[34rem]">
       <li set:html={emailLinkMarkup}></li>
       <li>
@@ -39,8 +47,21 @@ const colorClass = tone === 'home' ? 'text-home' : 'text-text';
 <footer class={`relative z-[60] ${colorClass} font-mono text-xs tracking-wide flex items-center justify-between gap-4 py-10 md:py-12`}>
     <div class="flex items-center gap-3 tabular-nums">
       <p>© 2026 Allison Peña</p>
-      <span aria-label="Versión del sitio">v2.0</span>
+      <span aria-label={t.footer.siteVersion}>v2.0</span>
     </div>
+    <div class="flex items-center gap-2">
+    <a
+      href={switchHref}
+      hreflang={otherMeta.lang}
+      lang={otherMeta.lang}
+      class="sk-button sk-interactive pointer-events-auto"
+      data-appearance="tactile"
+      data-size="sm"
+      data-lang-switch={otherLocale}
+      data-astro-reload
+      aria-label={t.footer.switchLanguage}
+      title={t.footer.switchLanguage}
+    >{otherMeta.short}</a>
     <button
       id="theme-toggle"
       type="button"
@@ -48,8 +69,10 @@ const colorClass = tone === 'home' ? 'text-home' : 'text-text';
       data-appearance="tactile"
       data-size="sm"
       data-icon-only=""
-      aria-label="Cambiar tema"
-      title="Cambiar tema"
+      data-label-dark={t.footer.themeDark}
+      data-label-light={t.footer.themeLight}
+      aria-label={t.footer.changeTheme}
+      title={t.footer.changeTheme}
     >
       <span class="theme-toggle__icons" aria-hidden="true">
         <svg class="theme-toggle__icon sun-icon w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -60,4 +83,5 @@ const colorClass = tone === 'home' ? 'text-home' : 'text-text';
         </svg>
       </span>
     </button>
+    </div>
 </footer>

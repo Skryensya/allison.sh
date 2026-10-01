@@ -9,7 +9,13 @@ export const SOCIAL_JPEG_QUALITY = 86;
 export const ROOT_DIR = process.cwd();
 export const OG_OUTPUT_DIR = path.join(ROOT_DIR, 'public', 'og');
 export const TWITTER_OUTPUT_DIR = path.join(ROOT_DIR, 'public', 'twitter');
-export const PROJECTS_DIR = path.join(ROOT_DIR, 'src', 'content', 'proyectos');
+export type OgLocale = 'es' | 'en';
+export const OG_LOCALES: OgLocale[] = ['es', 'en'];
+/** Spanish projects live in `proyectos`, English ones in `projects`. */
+export const PROJECTS_DIRS: Record<OgLocale, string> = {
+  es: path.join(ROOT_DIR, 'src', 'content', 'proyectos'),
+  en: path.join(ROOT_DIR, 'src', 'content', 'projects'),
+};
 export const FONT_REGULAR_PATH = path.join(ROOT_DIR, 'src', 'assets', 'fonts', 'satoshi-400.ttf');
 export const FONT_BOLD_PATH = path.join(ROOT_DIR, 'src', 'assets', 'fonts', 'satoshi-700.ttf');
 

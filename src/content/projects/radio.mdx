@@ -1,0 +1,45 @@
+---
+title: "Radio"
+description: "A personal radio: hand-curated stations and the same song playing for everyone at the same time, with no next button and no server coordinating anything, just each person's clock."
+year: "2024 – present"
+order: 3
+links:
+  - label: "https://radio.allison.sh"
+    url: "https://radio.allison.sh"
+---
+
+import radio1 from '@/assets/projects/radio-1.png';
+import radio2 from '@/assets/projects/radio-2.png';
+import radio3 from '@/assets/projects/radio-3.png';
+
+## The problem
+
+I wanted a radio. Turn something on, let it play, no next button. The problem was that I had to build it.
+
+{/* <ImageFigure src={radio1} alt="Radio's main interface with a generative shader background and station controls." priority /> */}
+
+## The solution
+
+Several stations with manually curated playlists. What makes them a radio, and not a player with shuffle, is that the position in the playlist is deterministic: it's computed from the clock.
+
+Everyone listening at the same moment gets the same song at the same second, without any server coordinating anything. The server hands over the playlist metadata once; the client resolves the rest by computing against its local clock.
+
+The background is an animated GLSL shader with colors extracted from each track's artwork. It doesn't react to the audio in real time. It's an animation parameterized by palette and by the station's mood, but it changes character with each track and feels integrated with what's playing.
+
+## Technical decisions
+
+The synchronization: seconds since midnight plus a per-station offset, modulo the playlist's total duration. That gives the track index and the exact second within it. When someone opens the app mid-song, the player seeks to the right second as soon as the audio loads its metadata. A loop runs every 200ms and corrects if the drift exceeds 2.5 seconds.
+
+{/* <ImageFigure src={radio2} alt="Stations view and shader with a palette extracted from the artwork." /> */}
+
+The audio uses two alternating `<audio>` elements. Transitions between stations crossfade with `requestAnimationFrame`: the outgoing one fades down while the incoming one fades up, both pointing at the spot in the playlist where it should be at that moment. Cuts between tracks within the same station are direct: the index changes, seek to 0, and the next one starts with no silence.
+
+The stack is simple: Hono on Node.js, PostgreSQL with Drizzle ORM, React on the client. Audio and files on R2.
+
+## The hard part
+
+Having the idea clear didn't simplify the build. The radio has to work exactly as the concept describes it: same song, same second, no coordination. Every part of the audio flow has to behave that way or the illusion breaks.
+
+{/* <ImageFigure src={radio3} alt="Radio's mobile view." /> */}
+
+It's a personal project. It has no users and no metrics. It exists because I wanted that object, and building it without product compromises was part of the point.

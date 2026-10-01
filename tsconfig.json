@@ -10,6 +10,9 @@
     "paths": {
       "@/components/*": ["src/components/*"],
       "@/data/*": ["src/data/*"],
+      "@/i18n": ["src/i18n/index.ts"],
+      "@/i18n/*": ["src/i18n/*"],
+      "@/templates/*": ["src/templates/*"],
       "@/layouts/*": ["src/layouts/*"],
       "@/scripts/*": ["src/scripts/*"],
       "@/lib/*": ["src/lib/*"],

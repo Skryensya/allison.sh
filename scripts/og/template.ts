@@ -126,6 +126,7 @@ export async function renderSocialSvg(
   slug: string,
   fonts: Array<{ name: string; data: ArrayBuffer; weight: 400 | 700; style: 'normal' }>,
   variant: SocialVariant,
+  locale: 'es' | 'en' = 'es',
 ): Promise<string> {
   const layout = VARIANT_LAYOUT[variant];
   const safeTitle = truncateText(title, layout.titleMax);
@@ -133,9 +134,14 @@ export async function renderSocialSvg(
   const avatarSvg = await createAvatarSvg();
   const isHome = slug === 'index';
   const pageUrlBase = 'Allison.sh';
-  const pageUrlSuffix = isHome ? '' : `/proyectos/${slug}`;
-  const eyebrow = isHome ? 'Portfolio personal' : 'Proyecto seleccionado';
-  const ctaLabel = isHome ? 'Ver proyectos →' : 'Leer proyecto →';
+  const isEn = locale === 'en';
+  const pageUrlSuffix = isHome ? (isEn ? '/en' : '') : isEn ? `/en/projects/${slug}` : `/proyectos/${slug}`;
+  const eyebrow = isHome
+    ? (isEn ? 'Personal portfolio' : 'Portfolio personal')
+    : (isEn ? 'Selected project' : 'Proyecto seleccionado');
+  const ctaLabel = isHome
+    ? (isEn ? 'View projects →' : 'Ver proyectos →')
+    : (isEn ? 'Read project →' : 'Leer proyecto →');
   const baseFolderGeometry = createFolderGeometry(safeTitle);
   const folderGeometry = {
     ...baseFolderGeometry,

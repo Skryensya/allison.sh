@@ -1,13 +1,19 @@
 ---
+import { getLocaleFromUrl, homeAnchor, homePath } from '@/i18n';
+import { messages } from '@/i18n/messages';
+
 const currentPath = Astro.url.pathname;
-const isHome = currentPath === '/' || currentPath === '';
+const locale = getLocaleFromUrl(Astro.url);
+const t = messages[locale];
+const home = homePath(locale);
+const isHome = currentPath === home || currentPath === home.replace(/\/$/, '') || currentPath === '';
 ---
 
 <header id="site-header" class="w-full sticky top-0 z-[200] pointer-events-none">
-  <nav id="site-nav" aria-label="Navegación principal" class="max-w-[42rem] mx-auto px-3 md:px-8 flex justify-between items-center pt-3 pb-4 md:py-8 pointer-events-none">
+  <nav id="site-nav" aria-label={t.a11y.mainNavigation} class="max-w-[42rem] mx-auto px-3 md:px-8 flex justify-between items-center pt-3 pb-4 md:py-8 pointer-events-none">
     <div id="nav-logo" class="font-sans text-xl font-normal tracking-tight shrink-0">
       <!-- Desktop: link with hover effect -->
-      <a href="/" class="hidden md:block text-text pointer-events-auto">
+      <a href={home} class="hidden md:block text-text pointer-events-auto">
         <span class="name-wrapper">
           <span class="name-normal">Allison Peña</span>
           <span class="name-hover" id="hover-name">
@@ -31,9 +37,9 @@ const isHome = currentPath === '/' || currentPath === '';
       </button>
     </div>
     <div id="nav-links" class="flex items-center gap-4 md:gap-6 pointer-events-auto">
-      <a href={isHome ? '#proyectos' : '/#proyectos'} class="sk-button sk-interactive hidden md:inline-flex" data-variant="ghost">work</a>
-      <a href="/#sobre-mi" class="sk-button sk-interactive hidden md:inline-flex" data-variant="ghost">about</a>
-      <a href="/#contacto" class="sk-button sk-interactive hidden md:inline-flex" data-variant="ghost">contact</a>
+      <a href={isHome ? '#proyectos' : homeAnchor(locale, 'projects')} class="sk-button sk-interactive hidden md:inline-flex" data-variant="ghost">{t.nav.work}</a>
+      <a href={homeAnchor(locale, 'about')} class="sk-button sk-interactive hidden md:inline-flex" data-variant="ghost">{t.nav.about}</a>
+      <a href={homeAnchor(locale, 'contact')} class="sk-button sk-interactive hidden md:inline-flex" data-variant="ghost">{t.nav.contact}</a>
     </div>
   </nav>
 </header>

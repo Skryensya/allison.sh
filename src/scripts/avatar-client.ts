@@ -1,52 +1,13 @@
 import { avatarHats, avatarOutfits, avatarSpecialConfigs } from '@/data/avatarSprite';
 import { setUseTarget } from './avatar/sprite';
 
-type PhraseCategory = 'short' | 'mid' | 'long';
+import { getPhraseSet, type AvatarPhrase } from '@/i18n/phrases';
 
-type AvatarPhrase = { text: string; category: PhraseCategory };
-
-/** Siempre primero, en este orden (clics 1 y 2 de la visita). */
-const GREETING_PHRASES: AvatarPhrase[] = [
-  { text: 'Hola, soy Allison', category: 'short' },
-  { text: 'Bienvenido/a a mi web', category: 'short' },
-];
-
-const SPECIAL_PHRASES = {
-  birthday: [
-    { text: '¡Hoy es mi cumpleaños!', category: 'short' as const },
-    { text: 'Se aceptan regalos ;)', category: 'short' as const },
-  ],
-  laborDay: [
-    { text: '¡Feliz dia del trabajador!', category: 'mid' as const },
-    { text: '¿Que haces trabajando hoy?', category: 'mid' as const },
-  ],
-  programmerDay: [
-    { text: '¡Feliz día del programador!', category: 'mid' as const },
-    { text: 'Hoy es el dia 256 del año, nada más y nada menos', category: 'long' as const },
-  ],
-  christmas: [
-    { text: '¡Feliz Navidad!', category: 'short' as const },
-    { text: 'Que el Viejito Pascuero te de algo bueno', category: 'long' as const },
-  ],
-  newYearsEve: [
-    { text: '¡Feliz nochevieja!', category: 'short' as const },
-    { text: 'Lo vemos el año que vien', category: 'mid' as const },
-  ],
-  newYear: [
-    { text: '¡Feliz año nuevo!', category: 'short' as const },
-    { text: 'El año empieza de verdad en marzo', category: 'mid' as const },
-  ],
-} satisfies Record<string, AvatarPhrase[]>;
-
-/** Bolsa general: orden aleatorio tras los saludos y las del día; excluir textos que choquen con especiales del día. */
-const GENERAL_PHRASES: AvatarPhrase[] = [
-  { text: 'Esa reunión pudo ser un email', category: 'mid' },
-  { text: 'Si funcionaba en mi máquina™', category: 'mid' },
-  { text: 'Llevo rato ajustando este espaciado', category: 'mid' },
-  { text: 'Diseñar es decidir qué sobra', category: 'mid' },
-  { text: 'Agile es cuando el caos tiene post-its', category: 'long' },
-  { text: 'No es deuda técnica, es deuda emocional', category: 'mid' },
-];
+// Copy depends on the page language; the footer switcher reloads the page, so this is stable per visit.
+const phraseSet = getPhraseSet(document.documentElement.lang);
+const GREETING_PHRASES = phraseSet.greetings;
+const SPECIAL_PHRASES = phraseSet.special;
+const GENERAL_PHRASES = phraseSet.general;
 
 function isLeapYear(year: number): boolean {
   return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;

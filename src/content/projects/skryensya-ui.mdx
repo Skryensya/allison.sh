@@ -1,0 +1,49 @@
+---
+title: "Skryensya/ui"
+description: "A design system in progress where every component is governed by a contract: an explicit foundation to document, validate and project interfaces into Figma, a visual editor or agent tooling."
+year: "2026 – present"
+order: 1.5
+links:
+  - label: "ui.skryensya.dev"
+    url: "https://ui.skryensya.dev"
+---
+
+import anatomiaAccordion from "@/assets/projects/skryensya-ui-anatomia-accordion-en.png";
+import anatomiaCommentThread from "@/assets/projects/skryensya-ui-anatomia-comment-thread-en.png";
+import anatomiaButton from "@/assets/projects/skryensya-ui-anatomia-button-en.png";
+import componentes from "@/assets/projects/skryensya-ui-componentes-en.png";
+import buttonDoDont from "@/assets/projects/skryensya-ui-button-do-dont-en.png";
+import tagDoDont from "@/assets/projects/skryensya-ui-tag-do-dont-en.png";
+import ImageFigure from "@/components/ImageFigure.astro";
+
+## The idea
+
+<ImageFigure src={anatomiaAccordion} alt="Accordion anatomy: seven numbered parts over the specimen, with their class names." caption="Accordion anatomy — every part has a name and a class" priority />
+
+Skryensya/ui is a contract-first design system. Instead of treating components as pieces of CSS and JavaScript wrapped in an API, every component starts from a definition, called its contract: what parts it has, what options it accepts, what attributes it writes, what accessibility rules it must meet and which combinations make sense.
+
+<ImageFigure src={anatomiaCommentThread} alt="CommentThread anatomy: nine numbered parts over a comment with a reply, with their class names." caption="CommentThread anatomy — from the avatar to the replies" />
+
+The problem it tries to solve is a concrete one. In institutional systems, the usual way to tame the chaos is to define a single stack for all vendors. It makes sense: it reduces variation and makes it easier to keep a common line. But it also forces a technical decision on teams that don't always start from the same place, narrows the pool of possible vendors and raises the cost for the institution. I was interested in resolving that tension differently: allowing React, Vue or Vanilla without turning the system into three parallel implementations.
+
+The idea comes from what I learned creating and maintaining design systems in production: the <a href="/en/projects/kit-digital-uc" class="editorial-link">Kit Digital UC</a>, the Portal UC and a recent institutional project I still can't show. <a href="https://zagjs.com" class="editorial-link" target="_blank" rel="noopener noreferrer">Zag.js</a> was the technical way in: separating behavior from presentation, working with state machines and letting each runtime render the same logic without reinventing it.
+
+## What's interesting
+
+<ImageFigure src={componentes} alt="“Explore components” page with the catalog grouped by task." caption="The catalog, organized by the task each piece solves" />
+
+At <a href="https://ui.skryensya.dev" class="editorial-link" target="_blank" rel="noopener noreferrer">ui.skryensya.dev</a> there are more than a hundred documented components. Each page has its contract, its options, the accessibility notes and rendered examples. There are two implementations, React and Vanilla, that come from the same definition and have to produce the same result.
+
+<ImageFigure src={anatomiaButton} alt="Button anatomy: five numbered parts over the specimen." caption="Button anatomy — the box and its slots" />
+
+Accessibility was a starting condition, not a review at the end. If each component's contract already says what accessible name it needs, what states it announces and what minimum size its touch target has, those rules stop depending on every team remembering them. Several are checked by tests: the contrast of every variant and tone is measured at 4.5:1 in light and dark mode, and motion respects the reduced-motion preference. In an institutional context, where very different teams use the same system, a rule that can be forgotten isn't a rule.
+
+<ImageFigure src={buttonDoDont} alt="Do/Don't pair for Button: one primary action per region." caption="Button — one primary action per region" />
+
+The important part isn't just having many components. It's that the catalog can be queried as structure through an MCP server. From there you can ask which components exist, how they compose, which combinations are valid and what markup they should produce. The validations compare usage trees across bindings and turn "this should be consistent" into evidence.
+
+## Current state
+
+<ImageFigure src={tagDoDont} alt="Do/Don't pair for Tag: it's acted upon." caption="Tag — if it can be removed, it's a Tag; if it's only read, it's a Badge" />
+
+It's a big, deliberately ambitious WIP, but it already has a working base: Core as the source of truth, public documentation, React and Vanilla implementations, and gates that check consistency. Next is using that same structure for things that are usually built separately: a Figma plugin, a visual editor and an MCP that validates interfaces programmatically.

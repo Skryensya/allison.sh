@@ -312,7 +312,7 @@ function setupProjectFolderStacks() {
 
         link.addEventListener('click', () => {
           const href = link.getAttribute('href') || '';
-          const projectSlug = href.replace('/proyectos/', '').replace(/\/$/, '');
+          const projectSlug = href.replace(/\/$/, '').split('/').pop() ?? '';
           const isNextProject = Boolean(stack.closest('.next-folder-stack'));
           if (isNextProject) {
             window.posthog?.capture('next_project_clicked', { project_slug: projectSlug });

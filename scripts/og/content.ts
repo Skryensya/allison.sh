@@ -2,16 +2,18 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Dirent } from 'node:fs';
 
-import { PROJECTS_DIR, ROOT_DIR, type PageEntry } from './config';
+import { messages } from '../../src/i18n/messages';
+import { PROJECTS_DIRS, ROOT_DIR, type OgLocale, type PageEntry } from './config';
 import { parseFrontmatter } from './utils';
 
-export async function getProjectPages(): Promise<PageEntry[]> {
-  const entries = await readdir(PROJECTS_DIR, { withFileTypes: true });
+export async function getProjectPages(locale: OgLocale): Promise<PageEntry[]> {
+  const projectsDir = PROJECTS_DIRS[locale];
+  const entries = await readdir(projectsDir, { withFileTypes: true });
   const files = entries.filter((entry: Dirent) => entry.isFile() && entry.name.endsWith('.mdx'));
 
   const pages = await Promise.all(
     files.map(async (file: Dirent) => {
-      const filePath = path.join(PROJECTS_DIR, file.name);
+      const filePath = path.join(projectsDir, file.name);
       const source = await readFile(filePath, 'utf8');
       const frontmatter = parseFrontmatter(source);
       const title = frontmatter.title;
@@ -32,14 +34,13 @@ export async function getProjectPages(): Promise<PageEntry[]> {
   return pages.sort((a: PageEntry, b: PageEntry) => a.slug.localeCompare(b.slug));
 }
 
-export async function getAllOgPages(): Promise<PageEntry[]> {
+export async function getAllOgPages(locale: OgLocale): Promise<PageEntry[]> {
   return [
     {
       title: 'Allison Peña',
-      description:
-        'Diseño y desarrollo interfaces web claras, accesibles y rápidas. Me interesan los sistemas y las decisiones que hacen útil una experiencia.',
+      description: messages[locale].site.description,
       slug: 'index',
     },
-    ...(await getProjectPages()),
+    ...(await getProjectPages(locale)),
   ];
 }

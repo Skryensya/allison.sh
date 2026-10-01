@@ -1,0 +1,72 @@
+---
+title: "Kit Digital UC"
+description: "At UC, dozens of teams build sites on a shared base. I was part of the evolution of the Kit Digital UC, focusing on improving accessibility, performance and consistency at scale."
+cover: ../../assets/projects/kit-digital-uc/00.png
+previewImages:
+  - ../../assets/projects/kit-digital-uc/00.png
+  - ../../assets/projects/kit-digital-uc/01.png
+  - ../../assets/projects/kit-digital-uc/03.png
+year: "2022 – present"
+order: 1
+employer: "Asimov Consultores"
+links:
+  - label: "https://kitdigital.uc.cl"
+    url: "https://kitdigital.uc.cl/"
+  - label: "Repository"
+    url: "https://bitbucket.org/asimovers/uc-kitdigital/src/main/"
+---
+
+import kitDigitalUc1 from "@/assets/projects/kit-digital-uc/00.png";
+import kitDigitalUc2 from "@/assets/projects/kit-digital-uc/01.png";
+import kitDigitalUc3 from "@/assets/projects/kit-digital-uc/03.png";
+import ImageFigure from "@/components/ImageFigure.astro";
+
+## Context
+
+The Kit Digital UC was my first real exposure to a design system in production. When I joined in 2022 it wasn't a project under construction but a consolidated base: a component library integrated into more than 100 of the university's institutional sites that had made it possible to standardize interfaces and speed up development.
+
+That reach was no small thing. In the Chilean context, the Kit Digital UC has become a reference for institutional design systems. Not only because of its adoption, but because it solves a concrete problem: how to keep visual and technical coherence at scale in organizations with multiple teams and misaligned development cycles. In that sense, later systems draw direct or indirect lessons from this model.
+
+<ImageFigure src={kitDigitalUc1} alt="Homepage of the Kit Digital UC documentation site at kitdigital.uc.cl" caption="Kit Digital UC documentation site — kitdigital.uc.cl" priority />
+
+## The problem
+
+That same level of adoption meant any problem stopped being local. The system wasn't badly designed, but it had grown faster than its own quality criteria. Accessibility issues showed up in base components used everywhere, so any failure was replicated across the whole system. There was a single bundle that forced loading unnecessary code even on simple sites, and implementation patterns that made it hard to evolve without side effects.
+
+All of this under a critical constraint: the Kit was distributed via CDN, prioritizing adoption and centralized updates, but with no version control on the consumers' side. Every change propagated straight to production without us knowing in what context it was being used. A tweak to a base component could break navigation, styles or interaction on sites we couldn't audit beforehand.
+
+There was no room for rewrites or coordinated migrations. Improving the system meant working on something alive, where breaking compatibility wasn't an option.
+
+## What we changed
+
+The strategy was incremental. Every change had to integrate without friction, coexist with existing implementations and solve real problems without introducing new ones.
+
+On accessibility, we fixed decisions that affected semantics in widely used components. For example, we replaced `background-image` with `<img>` plus `alt`, giving visibility back to screen readers and search engines. We also normalized interaction patterns, avoiding incorrect uses of buttons and links, which improved keyboard navigation.
+
+On performance, we moved from a single bundle to modular loading driven by the DOM. A loader inspects the page at runtime and loads only the components it needs. This adds more requests but reduces the initial weight. On average, load times dropped ~500 ms.
+
+<ImageFigure src={kitDigitalUc2} alt="uc.cl home, one of the sites built on the Kit Digital UC" caption="uc.cl home" />
+
+## How we did it without breaking things
+
+Given the level of risk, every change was validated against real Kit implementations. Representative scenarios were reviewed before integrating them.
+
+Decisions were guided by simple rules: backward compatibility by default, small cumulative changes, and avoiding solutions that depended on context.
+
+<ImageFigure src={kitDigitalUc3} alt="uc.cl footer, a component that is part of the Kit Digital UC" caption="uc.cl footer" />
+
+## My role
+
+My role evolved from implementation toward system decisions. I took part in defining accessibility criteria, the modularization strategy and the impact assessment of changes.
+
+The focus shifted from solving isolated problems to introducing improvements without compromising stability, in an environment where we don't control how what we build is used.
+
+## Result and learning
+
+The system is now more consistent, more accessible and lighter. It went from loading everything by default to loading only what's needed, and from inconsistent patterns to more predictable behavior. It supports more than 100 sites and exceeds 2.1 million monthly visits.
+
+The most important lesson was going back to basics. Working on the Kit forced me to understand HTML, CSS and JavaScript as a system: real semantics for accessibility, and code loading for performance.
+
+It was also my first experience building a library consumed in multiple contexts. That's where I understood CJS vs ESM in practice, the role of bundlers and how these decisions directly affect execution in production.
+
+Building the Kit taught me that a library is not just components, but stable contracts and decisions that have to work in contexts you don't control. In shared systems, quality lies in how well the system can evolve without breaking.

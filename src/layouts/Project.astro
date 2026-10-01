@@ -6,7 +6,8 @@ import { Lightbox } from '@skryensya/react/lightbox';
 // Only project pages open the lightbox; keep its CSS (and the Loader it uses) off every other page.
 import '@skryensya/core/components/loader.css';
 import '@skryensya/core/components/lightbox.css';
-import { getOgImagePath, getTwitterImagePath } from '@/lib/seo';
+import { getLocaleFromUrl, homePath } from '@/i18n';
+import { messages } from '@/i18n/messages';
 
 interface StructuredData {
   [key: string]: unknown;
@@ -21,6 +22,9 @@ interface Props {
   title: string;
   description: string;
   slug: string;
+  canonical: string;
+  image: string;
+  twitterImage: string;
   year?: string;
   links?: ProjectLink[];
   employer?: string;
@@ -28,8 +32,10 @@ interface Props {
   structuredData?: StructuredData | StructuredData[];
 }
 
-const { title, description, slug, year, links, employer, accent = 'var(--color-link)', structuredData } = Astro.props;
-const originLabel = employer || 'Proyecto personal';
+const { title, description, canonical, image, twitterImage, year, links, employer, accent = 'var(--color-link)', structuredData } = Astro.props;
+const locale = getLocaleFromUrl(Astro.url);
+const t = messages[locale];
+const originLabel = employer || t.project.personal;
 const publishedTime = year ? `${year}-01-01` : undefined;
 const mainStyle = `--project-page-accent:${accent}`;
 ---
@@ -37,11 +43,11 @@ const mainStyle = `--project-page-accent:${accent}`;
 <Base
   title={`${title} | Allison Peña`}
   description={description}
-  image={getOgImagePath(slug)}
-  imageAlt={`Vista previa del proyecto ${title}`}
-  twitterImage={getTwitterImagePath(slug)}
-  twitterImageAlt={`Vista previa en X del proyecto ${title}`}
-  canonical={`/proyectos/${slug}`}
+  image={image}
+  imageAlt={t.project.ogImageAlt(title)}
+  twitterImage={twitterImage}
+  twitterImageAlt={t.project.twitterImageAlt(title)}
+  canonical={canonical}
   type="article"
   publishedTime={publishedTime}
   structuredData={structuredData}
@@ -53,6 +59,9 @@ const mainStyle = `--project-page-accent:${accent}`;
       class="project-page-shell relative pb-0"
       style={mainStyle}
       data-project-page-shell
+      data-label-enlarge={t.project.enlargeImage}
+      data-label-enlarge-named={t.project.enlargeImageNamed('{name}')}
+      data-label-image={t.project.imageFallbackName}
     >
       <div class="project-page-glow" data-project-page-glow aria-hidden="true">
         <span class="project-page-glow__lick project-page-glow__lick--a"></span>
@@ -61,13 +70,13 @@ const mainStyle = `--project-page-accent:${accent}`;
       </div>
 
       <div class="project-page-intro relative z-30 max-w-[42rem] mx-auto px-3 md:px-8">
-        <a href="/" class="project-home-button" aria-label="Volver al inicio" title="Volver al inicio">
+        <a href={homePath(locale)} class="project-home-button" aria-label={t.project.backToHome} title={t.project.backToHome}>
           <span class="project-home-button__icon-wrap" aria-hidden="true">
             <svg class="project-home-button__icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256">
               <path d="M236,144a68.07,68.07,0,0,1-68,68H80a12,12,0,0,1,0-24h88a44,44,0,0,0,0-88H61l27.52,27.51a12,12,0,0,1-17,17l-48-48a12,12,0,0,1,0-17l48-48a12,12,0,1,1,17,17L61,76H168A68.08,68.08,0,0,1,236,144Z"/>
             </svg>
           </span>
-          <span class="project-home-button__label">volver</span>
+          <span class="project-home-button__label">{t.project.back}</span>
         </a>
 
         <header class="project-header relative">
@@ -114,15 +123,15 @@ const mainStyle = `--project-page-accent:${accent}`;
 
     <Lightbox
       id="project-lightbox"
-      label="Visor de imágenes"
-      closeLabel="Cerrar"
-      previousLabel="Imagen anterior"
-      nextLabel="Imagen siguiente"
-      zoomInLabel="Acercar"
-      zoomOutLabel="Alejar"
-      resetZoomLabel="Restablecer zoom"
-      errorLabel="No se pudo cargar."
-      counterLabel="Imagen {index} de {count}"
+      label={t.lightbox.label}
+      closeLabel={t.lightbox.close}
+      previousLabel={t.lightbox.previous}
+      nextLabel={t.lightbox.next}
+      zoomInLabel={t.lightbox.zoomIn}
+      zoomOutLabel={t.lightbox.zoomOut}
+      resetZoomLabel={t.lightbox.resetZoom}
+      errorLabel={t.lightbox.error}
+      counterLabel={t.lightbox.counter}
       data-sk-lightbox=""
       loop
     />

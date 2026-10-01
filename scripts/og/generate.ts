@@ -11,6 +11,7 @@ import {
   SOCIAL_JPEG_QUALITY,
   TWITTER_OUTPUT_DIR,
   TWITTER_WIDTH,
+  type OgLocale,
   type SocialVariant,
 } from './config';
 import { loadFonts } from './fonts';
@@ -31,13 +32,14 @@ export async function generateSocialImage(
   description: string,
   slug: string,
   variant: SocialVariant,
+  locale: OgLocale = 'es',
 ): Promise<void> {
   const safeSlug = slug.replace(/^\/+|\/+$/g, '') || 'index';
-  const outputDir = VARIANT_OUTPUT_DIR[variant];
+  const outputDir = locale === 'es' ? VARIANT_OUTPUT_DIR[variant] : path.join(VARIANT_OUTPUT_DIR[variant], locale);
   const outputPath = path.join(outputDir, `${safeSlug}.${SOCIAL_IMAGE_EXTENSION}`);
   const legacyPngPath = path.join(outputDir, `${safeSlug}.png`);
   const fonts = await loadFonts();
-  const svg = await renderSocialSvg(title, description, safeSlug, fonts, variant);
+  const svg = await renderSocialSvg(title, description, safeSlug, fonts, variant, locale);
 
   const png = new Resvg(svg, {
     fitTo: {
@@ -64,10 +66,10 @@ export async function generateSocialImage(
   ]);
 }
 
-export function generateOgImage(title: string, description: string, slug: string) {
-  return generateSocialImage(title, description, slug, 'og');
+export function generateOgImage(title: string, description: string, slug: string, locale: OgLocale = 'es') {
+  return generateSocialImage(title, description, slug, 'og', locale);
 }
 
-export function generateTwitterImage(title: string, description: string, slug: string) {
-  return generateSocialImage(title, description, slug, 'twitter');
+export function generateTwitterImage(title: string, description: string, slug: string, locale: OgLocale = 'es') {
+  return generateSocialImage(title, description, slug, 'twitter', locale);
 }
