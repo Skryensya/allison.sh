@@ -8,9 +8,21 @@ links:
     url: "https://ui.skryensya.dev"
 ---
 
+import anatomiaAccordion from "@/assets/projects/skryensya-ui-anatomia-accordion.png";
+import anatomiaCommentThread from "@/assets/projects/skryensya-ui-anatomia-comment-thread.png";
+import anatomiaButton from "@/assets/projects/skryensya-ui-anatomia-button.png";
+import componentes from "@/assets/projects/skryensya-ui-componentes.png";
+import buttonDoDont from "@/assets/projects/skryensya-ui-button-do-dont.png";
+import tagDoDont from "@/assets/projects/skryensya-ui-tag-do-dont.png";
+import ImageFigure from "@/components/ImageFigure.astro";
+
 ## La idea
 
+<ImageFigure src={anatomiaAccordion} alt="Anatomía de Accordion: siete partes numeradas sobre el espécimen, con su clase." caption="Anatomía de Accordion — cada parte tiene nombre y clase" priority />
+
 Skryensya/ui es un sistema de diseño contract-first. En vez de tratar los componentes como piezas de CSS y JavaScript envueltas en una API, cada componente parte de una definición, llamada su contrato: qué partes tiene, qué opciones acepta, qué atributos escribe, qué reglas de accesibilidad debe cumplir y qué combinaciones tienen sentido.
+
+<ImageFigure src={anatomiaCommentThread} alt="Anatomía de CommentThread: nueve partes numeradas sobre un comentario con respuesta, con su clase." caption="Anatomía de CommentThread — del avatar a las respuestas" />
 
 El problema que intenta resolver es concreto. En sistemas institucionales, lo normal es ordenar el caos definiendo un stack único para todos los proveedores. Tiene sentido: baja la variación y facilita mantener una línea común. Pero también fuerza una decisión técnica sobre equipos que no siempre parten desde el mismo lugar, reduce el grupo de proveedores posibles y sube el costo para la institución. A mí me interesaba resolver esa tensión de otra forma: permitir React, Vue o Vanilla sin convertir el sistema en tres implementaciones paralelas.
 
@@ -18,10 +30,21 @@ La idea viene de lo que aprendí creando y manteniendo sistemas de diseño en pr
 
 ## Lo interesante
 
-En <a href="https://ui.skryensya.dev" class="editorial-link" target="_blank" rel="noopener noreferrer">ui.skryensya.dev</a> ya hay 100+ componentes documentados desde esa idea. Cada página muestra el contrato, las opciones, las notas de accesibilidad y ejemplos renderizados. React y Vanilla no existen como promesa futura: ya son dos implementaciones que tienen que producir el mismo resultado a partir de la misma definición.
+<ImageFigure src={componentes} alt="Página «Explorar componentes» con el catálogo agrupado por tarea." caption="El catálogo, organizado por la tarea que resuelve cada pieza" />
+
+En <a href="https://ui.skryensya.dev" class="editorial-link" target="_blank" rel="noopener noreferrer">ui.skryensya.dev</a> hay más de cien componentes documentados. Cada página tiene su contrato, sus opciones, las notas de accesibilidad y ejemplos renderizados. Hay dos implementaciones, React y Vanilla, que salen de la misma definición y tienen que dar el mismo resultado.
+
+<ImageFigure src={anatomiaButton} alt="Anatomía de Button: cinco partes numeradas sobre el espécimen." caption="Anatomía de Button — la caja y sus slots" />
+
+La accesibilidad fue una condición de partida, no una revisión al final. Si el contrato de cada componente ya dice qué nombre accesible necesita, qué estados anuncia y qué tamaño mínimo tiene su área de toque, esas reglas dejan de depender de que cada equipo se acuerde de ellas. Varias se comprueban con tests: el contraste de cada variante y tono se mide a 4.5:1 en modo claro y oscuro, y el movimiento respeta la preferencia de reducir animaciones. En un contexto institucional, donde el mismo sistema lo usan equipos muy distintos, una regla que se puede olvidar no es una regla.
+
+<ImageFigure src={buttonDoDont} alt="Par Hazlo/Evítalo de Button: una acción principal por región." caption="Button — una acción principal por región" />
 
 La parte importante no es solo tener muchos componentes. Es que el catálogo se puede consultar como estructura mediante un MCP server. Desde ahí se puede preguntar qué componentes existen, cómo se componen, qué combinaciones son válidas y qué markup deberían producir. Las validaciones comparan árboles de uso entre bindings y convierten “esto debería ser consistente” en evidencia.
 
 ## Estado actual
 
+<ImageFigure src={tagDoDont} alt="Par Hazlo/Evítalo de Tag: se actúa sobre él." caption="Tag — si se quita, es un Tag; si solo se lee, un Badge" />
+
 Es un WIP grande y deliberadamente ambicioso, pero ya tiene una base funcionando: Core como fuente de verdad, documentación pública, implementaciones en React y Vanilla, y gates que revisan consistencia. Lo siguiente es aprovechar esa misma estructura para cosas que normalmente se construyen aparte: un plugin para Figma, un editor visual y un MCP que valide interfaces de manera programática.
+
