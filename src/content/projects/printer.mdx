@@ -1,12 +1,20 @@
 ---
 title: "Printer"
 description: "Anyone can send me a message and watch it print, instantly, on the thermal printer on my desk. It started with a question: what if anything on the internet could print there?"
+cover: ../../assets/projects/printer-1-en.webp
+previewImages:
+  - ../../assets/projects/printer-1-en.webp
+  - ../../assets/projects/printer-2-en.webp
 year: "2026 – present"
 order: 4
 links:
   - label: "https://ping.allison.sh"
     url: "https://ping.allison.sh"
 ---
+
+import printer1 from "@/assets/projects/printer-1-en.webp";
+import printer2 from "@/assets/projects/printer-2-en.webp";
+import ImageFigure from "@/components/ImageFigure.astro";
 
 ## The problem
 
@@ -16,7 +24,11 @@ I had a cheap thermal receipt printer gathering dust on my desk. It occurred to 
 
 Underneath, it's an API. You send it a POST with whatever you want to print (text, a card, a list, a QR code, an image) and it lands in a queue. A tiny agent, running on the machine connected to the printer, listens to that queue over WebSocket and drives the printer over USB with the ESC/POS protocol. On top there's a dashboard to watch the queue live, compose prints by hand and hand out access keys.
 
+<ImageFigure src={printer1} alt="Ping in light mode: a light background with the title “Send me a Ping”, an optional name field, a typed message and the limit of one ping every 30 minutes." caption="Light mode: one message, one send every 30 minutes" />
+
 The first consumer of that API is Ping, the public part. It lives at <a href="https://ping.allison.sh" class="editorial-link" target="_blank" rel="noopener noreferrer">ping.allison.sh<svg class="editorial-link__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" /></svg></a>, asks for no account or key, and internally calls the same endpoint as any other consumer. It has its own key, its own usage limit, reCAPTCHA and a per-IP cooldown to stop bots. The API doesn't know Ping exists: to it, Ping is just another consumer.
+
+<ImageFigure src={printer2} alt="Ping in dark mode: the same form on a dark background, with the typed message and the send button." caption="Dark mode, same form: by day or by night, what you send comes out as a receipt" />
 
 ## Technical decisions
 

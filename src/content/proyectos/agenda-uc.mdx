@@ -1,13 +1,23 @@
 ---
 title: "Agenda UC"
 description: "La UC tenía actividades de sobra y ninguna forma clara de encontrarlas. Participé en una agenda propia, con una API para que más de 50 unidades muestren sus eventos en sus propios sitios."
+cover: ../../assets/projects/agenda-uc-home.webp
+previewImages:
+  - ../../assets/projects/agenda-uc-home.webp
+  - ../../assets/projects/agenda-uc-evento.webp
+  - ../../assets/projects/agenda-uc-actividad.webp
 year: "2024"
-order: 5
+order: 6
 employer: "Asimov Consultores"
 links:
   - label: "https://agenda.uc.cl"
     url: "https://agenda.uc.cl"
 ---
+
+import agendaUcHome from "@/assets/projects/agenda-uc-home.webp";
+import agendaUcEvento from "@/assets/projects/agenda-uc-evento.webp";
+import agendaUcActividad from "@/assets/projects/agenda-uc-actividad.webp";
+import ImageFigure from "@/components/ImageFigure.astro";
 
 ## El problema
 
@@ -25,13 +35,19 @@ Replanteamos la Agenda como un sistema independiente, con tres pilares:
 
 Hoy soporta más de 4.300 actividades y se integra con más de 50 unidades a través del [Kit Digital UC](/proyectos/kit-digital-uc).
 
+<ImageFigure src={agendaUcHome} alt="Portada de Agenda UC en uc.cl/agenda: banner con el texto «Te presentamos los eventos y actividades disponibles tanto para la Comunidad UC como para público externo», buscador y filtros Gratuito, Online y Mostrar filtros." caption="Agenda UC hoy: buscador y filtros sobre el catálogo de actividades" />
+
 ## Modelar la complejidad real
 
 Los eventos de la UC no son simples: tienen varias fechas, horarios, ubicaciones y relaciones entre sí. Estructuramos el dominio en dos niveles:
 
 **Actividades:** la unidad base. Cada actividad ocurre dentro de un mismo día y puede tener uno o más horarios, pensados para casos como la apertura de un museo con pausas.
 
+<ImageFigure src={agendaUcActividad} alt="Página de una actividad en Agenda UC: «Exposición: Más allá del aplauso», con público al que va dirigida, afiche, fechas, horario, lugar y valor." caption="Una actividad: un día, un lugar, un horario" />
+
 **Eventos:** un contenedor que agrupa actividades bajo una misma temática. Las actividades relacionadas se distribuyen en el tiempo a lo largo del evento.
+
+<ImageFigure src={agendaUcEvento} alt="Página de un evento en Agenda UC: «Ciclo internacional de charlas sobre IA», con afiche, botón de inscripción, acceso a sus actividades, fechas, ubicación, audiencia y precio." caption="Un evento: el contenedor que agrupa sus actividades" />
 
 Con esta separación pudimos:
 

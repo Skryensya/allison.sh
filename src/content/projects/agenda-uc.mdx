@@ -1,13 +1,23 @@
 ---
 title: "Agenda UC"
 description: "UC had activities to spare and no clear way to find them. I took part in building an agenda of its own, with an API so more than 50 units can show their events on their own sites."
+cover: ../../assets/projects/agenda-uc-home.webp
+previewImages:
+  - ../../assets/projects/agenda-uc-home.webp
+  - ../../assets/projects/agenda-uc-evento.webp
+  - ../../assets/projects/agenda-uc-actividad.webp
 year: "2024"
-order: 5
+order: 6
 employer: "Asimov Consultores"
 links:
   - label: "https://agenda.uc.cl"
     url: "https://agenda.uc.cl"
 ---
+
+import agendaUcHome from "@/assets/projects/agenda-uc-home.webp";
+import agendaUcEvento from "@/assets/projects/agenda-uc-evento.webp";
+import agendaUcActividad from "@/assets/projects/agenda-uc-actividad.webp";
+import ImageFigure from "@/components/ImageFigure.astro";
 
 ## The problem
 
@@ -25,13 +35,19 @@ We rethought the Agenda as an independent system with three pillars:
 
 Today it supports more than 4,300 activities and integrates with more than 50 units through the [Kit Digital UC](/en/projects/kit-digital-uc).
 
+<ImageFigure src={agendaUcHome} alt="Agenda UC home at uc.cl/agenda: a banner reading “We present the events and activities available for the UC community and the general public”, a search bar and the Free, Online and Show filters buttons." caption="Agenda UC today: search and filters over the activity catalog" />
+
 ## Modeling real complexity
 
 UC events aren't simple: they have several dates, times, locations and relationships to each other. We structured the domain in two levels:
 
 **Activities:** the base unit. Each activity happens within a single day and can have one or more time slots, designed for cases like a museum opening with breaks.
 
+<ImageFigure src={agendaUcActividad} alt="An activity page on Agenda UC: “Exposición: Más allá del aplauso”, with its audiences, poster, dates, time, place and price." caption="An activity: one day, one place, one time slot" />
+
 **Events:** a container that groups activities under the same theme. Related activities are spread over time across the event.
+
+<ImageFigure src={agendaUcEvento} alt="An event page on Agenda UC: “Ciclo internacional de charlas sobre IA”, with its poster, sign-up button, link to its activities, dates, location, audience and price." caption="An event: the container that groups its activities" />
 
 With this separation we could:
 

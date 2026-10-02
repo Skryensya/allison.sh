@@ -1,43 +1,61 @@
 ---
 title: "Radio"
 description: "A radio with hand-curated stations where everyone hears the same song at the same second. There's no next button and no server coordinating: each client works out the position from its own clock."
+cover: ../../assets/projects/radio-1-en.webp
+previewImages:
+  - ../../assets/projects/radio-1-en.webp
+  - ../../assets/projects/radio-2-en.webp
+  - ../../assets/projects/radio-3-en.webp
 year: "2024 – present"
-order: 3
+order: 2
 links:
   - label: "https://radio.allison.sh"
     url: "https://radio.allison.sh"
 ---
 
-import radio1 from '@/assets/projects/radio-1.png';
-import radio2 from '@/assets/projects/radio-2.png';
-import radio3 from '@/assets/projects/radio-3.png';
+import radio1 from "@/assets/projects/radio-1-en.webp";
+import radio2 from "@/assets/projects/radio-2-en.webp";
+import radio3 from "@/assets/projects/radio-3-en.webp";
+import radio4 from "@/assets/projects/radio-4-en.webp";
+import radio5 from "@/assets/projects/radio-5-en.webp";
+import radio6 from "@/assets/projects/radio-6-en.webp";
+import radio7 from "@/assets/projects/radio-7-en.webp";
+import ImageFigure from "@/components/ImageFigure.astro";
 
 ## The problem
 
-I wanted a radio: turn something on, let it play, no next button. The problem was that I had to build it.
+<ImageFigure src={radio1} alt="“Alt Sounds” playing in Radio: artwork, controls and a shader background drawn from the artwork's colors." caption="The background is a shader that takes its palette from the artwork" priority />
 
-{/* <ImageFigure src={radio1} alt="Radio's main interface with a generative shader background and station controls." priority /> */}
+I wanted a radio: turn something on, let it play, no next button. The problem was that I had to build it.
 
 ## The solution
 
+<ImageFigure src={radio2} alt="The “Luna Stereo” station in Radio: the same player, with the shader tinted by a different cover." caption="Another station, another palette: the background changes with every track" />
+
 Several stations with hand-curated playlists. What makes them a radio, and not a player with shuffle, is that the position in the playlist is deterministic: it comes from the clock. Everyone listening at the same moment gets the same song at the same second, without any server coordinating anything. The server hands over the playlist metadata once and the client works out the rest against its local clock.
+
+<ImageFigure src={radio4} alt="“Melancoly time” in Radio: the shader in grayscale, drawn from a black-and-white cover." caption="A station with no color: the shader goes quiet too" />
 
 The background is an animated GLSL shader with colors extracted from each track's artwork. It doesn't react to the audio in real time: it's an animation parameterized by the station's palette and mood, but it changes character with each track and feels like part of what's playing.
 
 ## Technical decisions
 
+<ImageFigure src={radio5} alt="“Unapologetically Pop!” in Radio: the shader in pinks and purples, drawn from the cover." caption="And one in pink and purple" />
+
 The synchronization is seconds since midnight plus a per-station offset, modulo the playlist's total duration. That gives the track index and the exact second within it. When someone opens the app mid-song, the player seeks to that second as soon as the audio loads its metadata. A loop runs every 200 ms and corrects if the drift exceeds 2.5 seconds.
 
-{/* <ImageFigure src={radio2} alt="Stations view and shader with a palette extracted from the artwork." /> */}
+<ImageFigure src={radio6} alt="The lyrics panel in Radio: the song’s lyrics over the shader, with the current line highlighted." caption="The lyrics, over the same background" />
 
 The audio uses two `<audio>` elements that take turns. Between stations there's a crossfade with `requestAnimationFrame`: the outgoing one fades down while the incoming one fades up, both pointing at the spot in the playlist where it should be at that moment. Between tracks in the same station the cut is direct: the index changes, seek to 0, and the next one starts with no silence.
+
+<ImageFigure src={radio7} alt="Likes in Radio: four songs saved from different stations, with the shader tinted by the latest cover." caption="The songs you save, from every station" />
 
 The stack is simple: Hono on Node.js, PostgreSQL with Drizzle ORM and React on the client. Audio and files on R2.
 
 ## The hard part
 
-Having the idea clear didn't simplify the build. The radio has to work exactly as the concept describes it: same song, same second, no coordination. Every part of the audio flow has to behave that way or the illusion breaks.
+<ImageFigure src={radio3} alt="Radio on a phone: the player in a single column over a shader background." caption="On a phone, the same player in a single column" />
 
-{/* <ImageFigure src={radio3} alt="Radio's mobile view." /> */}
+Having the idea clear didn't simplify the build. The radio has to work exactly as the concept describes it: same song, same second, no coordination. Every part of the audio flow has to behave that way or the illusion breaks.
 
 It's a personal project, with no users and no metrics. It exists because I wanted that object, and building it without product compromises was part of the point.

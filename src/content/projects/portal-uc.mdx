@@ -1,13 +1,21 @@
 ---
 title: "Portal UC.cl"
 description: "UC's digital front door: more than 33,000 students, 3,500 faculty members and thousands of staff. I work on new sections, maintenance and accessibility."
+cover: ../../assets/projects/portal-uc-home.webp
+previewImages:
+  - ../../assets/projects/portal-uc-home.webp
+  - ../../assets/projects/portal-uc-noticia.webp
 year: "2023 – present"
-order: 7
+order: 8
 employer: "Asimov Consultores"
 links:
   - label: "https://uc.cl"
     url: "https://uc.cl"
 ---
+
+import portalUcHome from "@/assets/projects/portal-uc-home.webp";
+import portalUcNoticia from "@/assets/projects/portal-uc-noticia.webp";
+import ImageFigure from "@/components/ImageFigure.astro";
 
 ## The problem
 
@@ -19,9 +27,13 @@ Being that entry point means every improvement has a real impact. It also means 
 
 I work in three areas: new sections and redesigns, operational maintenance and accessibility. Everything is coordinated with the Kit Digital UC so that changes also benefit the rest of the institutional web ecosystem.
 
+<ImageFigure src={portalUcHome} alt="uc.cl home: header with search and main menu, and a featured story about the Futuro UC 2026 campaign." caption="uc.cl: the front door, with the main menu and the featured story" />
+
 ## Technical decisions
 
 The Portal uses the Kit Digital UC as the base of components shared with the ecosystem, but it has its own set in Vue for the more complex behavior. Those components keep the same visual style and differ where the Portal, as the main site, needs it.
+
+<ImageFigure src={portalUcNoticia} alt="A news story on uc.cl: “UC lidera tecnología chilena para mejorar la precisión en el estudio del origen del Universo”, with its lead, date and an information panel with unit and strategic axis." caption="A Portal news story: headline, lead and information panel" />
 
 Stack: PHP with an existing CMS, CSS/SCSS, Vanilla JS and Vue.
 

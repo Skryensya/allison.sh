@@ -1,13 +1,21 @@
 ---
 title: "Portal UC.cl"
 description: "La puerta de entrada digital de la UC: más de 33.000 estudiantes, 3.500 docentes y miles de funcionarios. Trabajo en nuevas secciones, mantenimiento y accesibilidad."
+cover: ../../assets/projects/portal-uc-home.webp
+previewImages:
+  - ../../assets/projects/portal-uc-home.webp
+  - ../../assets/projects/portal-uc-noticia.webp
 year: "2023 – presente"
-order: 7
+order: 8
 employer: "Asimov Consultores"
 links:
   - label: "https://uc.cl"
     url: "https://uc.cl"
 ---
+
+import portalUcHome from "@/assets/projects/portal-uc-home.webp";
+import portalUcNoticia from "@/assets/projects/portal-uc-noticia.webp";
+import ImageFigure from "@/components/ImageFigure.astro";
 
 ## El problema
 
@@ -19,9 +27,13 @@ Ser esa puerta de entrada hace que cada mejora tenga un impacto real. También s
 
 Trabajo en tres áreas: nuevas secciones y rediseños, mantenimiento operativo y accesibilidad. Todo se coordina con el Kit Digital UC para que los cambios beneficien también al resto del ecosistema web institucional.
 
+<ImageFigure src={portalUcHome} alt="Home de uc.cl: header con buscador y menú principal, y una noticia destacada sobre la campaña Futuro UC 2026." caption="uc.cl: la puerta de entrada, con el menú principal y la noticia destacada" />
+
 ## Decisiones técnicas
 
 El Portal usa el Kit Digital UC como base de componentes compartidos con el ecosistema, pero tiene su propio set en Vue para los comportamientos más complejos. Esos componentes mantienen el mismo estilo visual y se diferencian donde el Portal, como sitio principal, lo necesita.
+
+<ImageFigure src={portalUcNoticia} alt="Una noticia en uc.cl: «UC lidera tecnología chilena para mejorar la precisión en el estudio del origen del Universo», con su bajada, fecha y panel de información con unidad y eje estratégico." caption="Una noticia del Portal: título, bajada y ficha de información" />
 
 Stack: PHP con un CMS existente, CSS/SCSS, Vanilla JS y Vue.
 

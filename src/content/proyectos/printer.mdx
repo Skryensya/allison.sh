@@ -1,12 +1,20 @@
 ---
 title: "Printer"
 description: "Cualquiera puede mandarme un mensaje y verlo salir impreso, al instante, en la impresora térmica de mi escritorio. Empezó con una pregunta: ¿y si cualquier cosa de internet pudiera imprimir ahí?"
+cover: ../../assets/projects/printer-1.webp
+previewImages:
+  - ../../assets/projects/printer-1.webp
+  - ../../assets/projects/printer-2.webp
 year: "2026 – presente"
 order: 4
 links:
   - label: "https://ping.allison.sh"
     url: "https://ping.allison.sh"
 ---
+
+import printer1 from "@/assets/projects/printer-1.webp";
+import printer2 from "@/assets/projects/printer-2.webp";
+import ImageFigure from "@/components/ImageFigure.astro";
 
 ## El problema
 
@@ -16,7 +24,11 @@ Tenía una impresora térmica de recibos, de las baratas, juntando polvo en el e
 
 En el fondo es una API. Le mandas un POST con lo que quieras imprimir (texto, una tarjeta, una lista, un QR, una imagen) y queda en una cola. Un agente chiquito, corriendo en la máquina conectada a la impresora, escucha esa cola por WebSocket y maneja la impresora por USB con el protocolo ESC/POS. Arriba hay un panel para ver la cola en vivo, componer impresiones a mano y repartir llaves de acceso.
 
+<ImageFigure src={printer1} alt="Ping en modo claro: fondo claro con el título «Mándame un Ping», un campo de nombre opcional, un mensaje escrito y el límite de un ping cada 30 minutos." caption="Modo claro: un mensaje, un envío cada 30 minutos" />
+
 El primer consumidor de esa API es Ping, la parte pública. Vive en <a href="https://ping.allison.sh" class="editorial-link" target="_blank" rel="noopener noreferrer">ping.allison.sh<svg class="editorial-link__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" /></svg></a>, no pide cuenta ni llave y por dentro llama al mismo endpoint que cualquier otro consumidor. Tiene su propia llave, su propio límite de uso, reCAPTCHA y un cooldown por IP para frenar bots. La API no sabe que Ping existe: para ella es un consumidor más.
+
+<ImageFigure src={printer2} alt="Ping en modo oscuro: el mismo formulario sobre fondo oscuro, con el mensaje escrito y el botón de envío." caption="Modo oscuro, mismo formulario: de día o de noche, lo que mandas sale como boleta" />
 
 ## Decisiones técnicas
 

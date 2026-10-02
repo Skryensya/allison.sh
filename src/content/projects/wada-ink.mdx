@@ -1,14 +1,26 @@
 ---
 title: "Wada.ink"
 description: "Sanzo Wada's dictionary of color combinations, made to be explored by name, similar color or photo. WIP: on hold while I work on Skryensya/ui."
+cover: ../../assets/projects/wada-ink-1-en.webp
+previewImages:
+  - ../../assets/projects/wada-ink-1-en.webp
+  - ../../assets/projects/wada-ink-2-en.webp
+  - ../../assets/projects/wada-ink-3-en.webp
 year: "2026 – present"
-order: 2
+order: 3
 links:
   - label: "https://wada.ink"
     url: "https://wada.ink"
 ---
 
+import wadaink1 from "@/assets/projects/wada-ink-1-en.webp";
+import wadaink2 from "@/assets/projects/wada-ink-2-en.webp";
+import wadaink3 from "@/assets/projects/wada-ink-3-en.webp";
+import ImageFigure from "@/components/ImageFigure.astro";
+
 ## Context
+
+<ImageFigure src={wadaink1} alt="Wada.ink home: “A living catalog of color”, with the fan of palette plates." caption="Home: 586 colors and 581 combinations to explore" priority />
 
 Wada.ink is an interactive catalog of Sanzo Wada's color combinations, made to be easy to browse and to discover new things in.
 
@@ -18,7 +30,11 @@ Several versions of that catalog already existed online, and they were fine: the
 
 ## The solution
 
+<ImageFigure src={wadaink2} alt="The Turquoise Green color page with its HEX, RGB, CMYK and LAB values and the 22 combinations it appears in." caption="Every color has its own page, with its values and its combinations" />
+
 Finding a color no longer depends on remembering a plate number. You can search by name, pick a swatch and see which colors in the catalog look most like it, or upload a photo so the site pulls out its dominant palette and compares it with the dictionary. Each color also has its own page, with its values and the combinations where it appears.
+
+<ImageFigure src={wadaink3} alt="Palette no. 223 from Volume I: three color stripes at full screen." caption="One of Wada's combinations, seen full screen" />
 
 Wada's catalog has a fixed number of combinations: the ones he documented almost a century ago. That's why I'm adding a community layer. With Google or GitHub accounts, anyone can put together their own combinations from those same colors, and every color or palette has comments so the conversation stays right there.
 

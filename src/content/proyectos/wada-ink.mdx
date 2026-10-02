@@ -1,14 +1,26 @@
 ---
 title: "Wada.ink"
 description: "El diccionario de combinaciones de color de Sanzo Wada, hecho para explorarse por nombre, color parecido o foto. WIP: en pausa mientras avanzo Skryensya/ui."
+cover: ../../assets/projects/wada-ink-1.webp
+previewImages:
+  - ../../assets/projects/wada-ink-1.webp
+  - ../../assets/projects/wada-ink-2.webp
+  - ../../assets/projects/wada-ink-3.webp
 year: "2026 – presente"
-order: 2
+order: 3
 links:
   - label: "https://wada.ink"
     url: "https://wada.ink"
 ---
 
+import wadaink1 from "@/assets/projects/wada-ink-1.webp";
+import wadaink2 from "@/assets/projects/wada-ink-2.webp";
+import wadaink3 from "@/assets/projects/wada-ink-3.webp";
+import ImageFigure from "@/components/ImageFigure.astro";
+
 ## Contexto
+
+<ImageFigure src={wadaink1} alt="Inicio de Wada.ink: «Un catálogo vivo de color», con el abanico de láminas de paletas." caption="Inicio: 586 colores y 581 combinaciones para recorrer" priority />
 
 Wada.ink es un catálogo interactivo de las combinaciones de color de Sanzo Wada, pensado para recorrerlo con facilidad y descubrir cosas nuevas.
 
@@ -18,7 +30,11 @@ Ya existían varias versiones online de ese catálogo, y estaban bien: mostraban
 
 ## La solución
 
+<ImageFigure src={wadaink2} alt="Página del color Turquoise Green con sus valores HEX, RGB, CMYK y LAB y las 22 combinaciones donde aparece." caption="Cada color tiene su página, con sus valores y sus combinaciones" />
+
 Encontrar un color ya no depende de acordarse de un número de lámina. Se puede buscar por nombre, elegir un swatch y ver qué colores del catálogo se le parecen, o subir una foto para que el sitio saque su paleta dominante y la compare con el diccionario. Cada color tiene además su propia página, con sus valores y las combinaciones donde aparece.
+
+<ImageFigure src={wadaink3} alt="Paleta n.º 223 del Volumen I: tres franjas de color a pantalla completa." caption="Una combinación de Wada, vista a pantalla completa" />
 
 El catálogo de Wada tiene un número fijo de combinaciones: las que él documentó hace casi un siglo. Por eso estoy sumando una capa de comunidad. Con cuentas de Google o GitHub, cualquiera puede armar sus propias combinaciones con esos mismos colores, y cada color o paleta tiene comentarios para que la conversación quede ahí mismo.
 
