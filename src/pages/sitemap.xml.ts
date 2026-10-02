@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { homePath, LOCALE_META, LOCALES, projectPath, type Locale } from '@/i18n';
+import { getProjects } from '@/lib/projects';
 import { SITE_URL } from '@/lib/seo';
 
 function escapeXml(value: string) {
@@ -19,7 +19,7 @@ export const GET: APIRoute = async ({ site }) => {
   const abs = (path: string) => escapeXml(new URL(path, base).toString());
 
   // Slugs are shared across locales, so the Spanish collection drives the list.
-  const proyectos = await getCollection('proyectos');
+  const proyectos = await getProjects('es');
   const pages: Page[] = [
     { es: homePath('es'), en: homePath('en') },
     ...proyectos.map((entry) => ({

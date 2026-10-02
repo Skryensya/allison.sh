@@ -1,9 +1,9 @@
 ---
-import { getCollection } from 'astro:content';
+import { getProjects } from '@/lib/projects';
 import ProjectPage from '@/templates/ProjectPage.astro';
 
 export async function getStaticPaths() {
-  const entries = await getCollection('proyectos');
+  const entries = await getProjects('es');
   return entries.map((entry) => ({
     params: { slug: entry.id },
     props: { entry },

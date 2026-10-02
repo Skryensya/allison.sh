@@ -1,9 +1,12 @@
 import { getCollection } from 'astro:content';
 import { PROJECTS_COLLECTION, type Locale } from '@/i18n';
 
-/** Projects of a locale, in display order. The entry id is the slug, identical across locales. */
+/**
+ * Published projects of a locale, in display order. The entry id is the slug, identical across
+ * locales. Entries with `draft: true` are skipped everywhere.
+ */
 export async function getProjects(locale: Locale) {
-  const entries = await getCollection(PROJECTS_COLLECTION[locale]);
+  const entries = await getCollection(PROJECTS_COLLECTION[locale], ({ data }) => !data.draft);
   return entries.sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
 }
 

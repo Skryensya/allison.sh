@@ -16,6 +16,7 @@ export async function getProjectPages(locale: OgLocale): Promise<PageEntry[]> {
       const filePath = path.join(projectsDir, file.name);
       const source = await readFile(filePath, 'utf8');
       const frontmatter = parseFrontmatter(source);
+      if (frontmatter.draft === 'true') return null;
       const title = frontmatter.title;
       const description = frontmatter.description;
 
@@ -31,7 +32,9 @@ export async function getProjectPages(locale: OgLocale): Promise<PageEntry[]> {
     }),
   );
 
-  return pages.sort((a: PageEntry, b: PageEntry) => a.slug.localeCompare(b.slug));
+  return pages
+    .filter((page): page is PageEntry => page !== null)
+    .sort((a: PageEntry, b: PageEntry) => a.slug.localeCompare(b.slug));
 }
 
 export async function getAllOgPages(locale: OgLocale): Promise<PageEntry[]> {

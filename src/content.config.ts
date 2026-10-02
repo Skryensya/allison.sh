@@ -14,6 +14,8 @@ const projectSchema = ({ image }: SchemaContext) =>
     tech: z.array(z.string()).optional(),
     links: z.array(z.object({ label: z.string(), url: z.string().url() })).optional(),
     employer: z.string().optional(),
+    // Unpublished: kept in the repo but left out of pages, navigation, sitemap and social images.
+    draft: z.boolean().default(false),
   });
 
 // One collection per locale, same slugs in both: Spanish in `proyectos`, English in `projects`.
