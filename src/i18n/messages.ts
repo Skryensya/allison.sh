@@ -16,9 +16,10 @@ const es = {
     title: 'Allison Peña — Interfaces web claras, rápidas y accesibles',
     imageAlt: 'Allison.sh — Interfaces con intención',
     twitterImageAlt: 'Allison.sh — Vista previa para X',
-    heroTitle: 'Construyo interfaces que se sienten bien.',
+    // The accent word is rendered in its own element so it can be styled or animated on its own.
+    heroTitle: { before: 'Construyo cosas que se ', accent: 'sienten', after: ' obvias.' },
     heroLead:
-      'Me gusta construir cosas para la web, prototipar e iterar hasta que las ideas queden bien resueltas, poniendo atención en los detalles y buscando soluciones simples a problemas complejos.',
+      'Trabajo en design systems y plataformas institucionales, y construyo herramientas propias por curiosidad. Me importan los casos borde y la accesibilidad desde el inicio, no como algo que se agrega al final.',
     projectsHeading: 'Proyectos',
     aboutHeading: 'Sobre mí',
     aboutLead:
@@ -85,9 +86,9 @@ const en: typeof es = {
     title: 'Allison Peña — Clear, fast and accessible web interfaces',
     imageAlt: 'Allison.sh — Interfaces with intent',
     twitterImageAlt: 'Allison.sh — Preview for X',
-    heroTitle: 'I build interfaces that feel good.',
+    heroTitle: { before: 'I build things that ', accent: 'feel', after: ' obvious.' },
     heroLead:
-      'I like building things for the web, prototyping and iterating until ideas are well resolved, paying attention to the details and looking for simple solutions to complex problems.',
+      'I work on design systems and institutional platforms, and build tools of my own out of curiosity. I care about edge cases and accessibility from the start, not as something added at the end.',
     projectsHeading: 'Projects',
     aboutHeading: 'About me',
     aboutLead:
