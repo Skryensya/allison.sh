@@ -1,6 +1,6 @@
 ---
 title: "Printer"
-description: "Printer is a site where anyone can send me a short message that prints instantly on the thermal printer on my desk. It came from a question that wouldn't leave me alone: what if anything on the internet could print on it?"
+description: "Anyone can send me a message and watch it print, instantly, on the thermal printer on my desk. It started with a question: what if anything on the internet could print there?"
 year: "2026 – present"
 order: 4
 links:
@@ -10,20 +10,20 @@ links:
 
 ## The problem
 
-I had a cheap thermal receipt printer gathering dust on my desk. It occurred to me it would be fun to connect it to the internet, for no practical reason at all. A build that finishes throws me a receipt, the grocery list comes out on paper before I leave the house, a friend writes me something and it shows up, physical, on my desk, without me lifting a finger. This project came out of that idea.
+I had a cheap thermal receipt printer gathering dust on my desk. It occurred to me it would be fun to connect it to the internet, for no practical reason: a build that finishes throws me a receipt, the grocery list comes out on paper before I leave the house, a friend writes me something and it shows up, physical, on my desk, without me lifting a finger. This project came out of that.
 
 ## The solution
 
-What I built underneath is an API. You send it a POST with whatever you want to print (text, a card, a list, a QR code, an image) and it lands in a queue. A tiny agent, running on the machine connected to the printer, listens to that queue over WebSocket and drives the printer over USB using the ESC/POS protocol. On top of that there's a dashboard to watch the queue live, compose prints by hand and hand out access keys.
+Underneath, it's an API. You send it a POST with whatever you want to print (text, a card, a list, a QR code, an image) and it lands in a queue. A tiny agent, running on the machine connected to the printer, listens to that queue over WebSocket and drives the printer over USB with the ESC/POS protocol. On top there's a dashboard to watch the queue live, compose prints by hand and hand out access keys.
 
-The first consumer of that API is Ping, the public part of the project. It lives at <a href="https://ping.allison.sh" class="editorial-link" target="_blank" rel="noopener noreferrer">ping.allison.sh<svg class="editorial-link__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" /></svg></a>, asks for no account or key, and internally calls the same endpoint as any other consumer. It has its own key, its own usage limit, reCAPTCHA and a per-IP cooldown to stop bots. The API doesn't know Ping exists. To it, it's just another consumer.
+The first consumer of that API is Ping, the public part. It lives at <a href="https://ping.allison.sh" class="editorial-link" target="_blank" rel="noopener noreferrer">ping.allison.sh<svg class="editorial-link__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" /></svg></a>, asks for no account or key, and internally calls the same endpoint as any other consumer. It has its own key, its own usage limit, reCAPTCHA and a per-IP cooldown to stop bots. The API doesn't know Ping exists: to it, Ping is just another consumer.
 
 ## Technical decisions
 
-The most entertaining part was the odd moments between the pieces. A printer has no undo. Once the paper is out, it's out. Almost all of the design went into the edge cases, like what happens if I unplug the printer halfway through a job (it goes back to the queue, no penalty) or if two agents fight over the same cable (they take turns with a kernel lock, nobody cuts a receipt in half).
+The most entertaining part was the odd moments between the pieces. A printer has no undo: once the paper is out, it's out. Almost all of the design went into the edge cases. What happens if I unplug the printer halfway through a job? It goes back to the queue, no penalty. And if two agents fight over the same cable? They take turns with a kernel lock and nobody cuts a receipt in half.
 
-Each of those questions was a puzzle with a physical reward. If I solved it right, the printer sang. It's one of the few projects where the bug shows up on paper, and so does the success. It all runs on Bun and Postgres.
+Every question was a puzzle with a physical prize: if I solved it right, the printer sang. It's one of the few projects where the bug shows up on paper, and so does the success. It all runs on Bun and Postgres.
 
 ## Send me something
 
-This is the best part. You can try it right now, with no account and nothing to install. Go to Ping, where every tap and every send has its own sound, more like a game than a form, write something, and within seconds you have it on paper, on my desk. It's the most direct way to say hi. As soon as it prints, I read it.
+This is the best part: you can try it right now, with no account and nothing to install. Go to Ping, where every tap and every send has its own sound (it's more like a game than a form), write something and within seconds you have it on paper, on my desk. It's the most direct way to say hi. As soon as it prints, I read it.

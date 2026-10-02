@@ -1,6 +1,6 @@
 ---
 title: "Agenda UC"
-description: "At UC there was never a shortage of activities, but finding them meant knowing where to look. I was part of building the institutional agenda designed to change that and make them visible, accessible and easy to explore."
+description: "UC had activities to spare and no clear way to find them. I took part in building an agenda of its own, with an API so more than 50 units can show their events on their own sites."
 year: "2024"
 order: 5
 employer: "Asimov Consultores"
@@ -11,9 +11,9 @@ links:
 
 ## The problem
 
-Agenda UC lived inside uc.cl, with no autonomy and no model ready to scale. Publishing events depended on the main site's editorial flow, which limited their visibility and distribution.
+Agenda UC lived inside uc.cl, with no autonomy and no model ready to grow. Publishing an event depended on the main site's editorial flow, which limited its visibility and distribution.
 
-It wasn't a lack of activity. It was a lack of a clear way to centralize it and amplify it.
+There was no shortage of activities. What was missing was a clear way to centralize them and amplify them.
 
 ## The solution
 
@@ -21,49 +21,45 @@ We rethought the Agenda as an independent system with three pillars:
 
 - **Autonomy:** its own backoffice to manage events
 - **Flexibility:** a model able to represent complex events
-- **Distribution:** an API to replicate content across multiple sites
+- **Distribution:** an API to replicate the content on other sites
 
-Today it supports more than 4,300 activities and integrates with 50+ units through the [Kit Digital UC](/en/projects/kit-digital-uc).
+Today it supports more than 4,300 activities and integrates with more than 50 units through the [Kit Digital UC](/en/projects/kit-digital-uc).
 
 ## Modeling real complexity
 
-UC events aren't simple: multiple dates, times, locations and relationships.
+UC events aren't simple: they have several dates, times, locations and relationships to each other. We structured the domain in two levels:
 
-We structured the domain in two levels:
+**Activities:** the base unit. Each activity happens within a single day and can have one or more time slots, designed for cases like a museum opening with breaks.
 
-**Activities:** the base unit. Each activity happens within a single day and can have one or more time slots (instances in time), designed for cases like museum openings with breaks.
+**Events:** a container that groups activities under the same theme. Related activities are spread over time across the event.
 
-**Events:** a logical container that groups activities under the same theme. Related activities are spread over time across the event.
-
-This separation allowed us to:
+With this separation we could:
 
 - model recurrences and variations without duplicating information
 - keep related sessions coherent
-- offer more precise filters at the activity or event level
+- offer more precise filters, by activity or by event
 
 ## Backend
 
 We designed an API in Strapi (TypeScript) that lets us:
 
 - model that complexity without rigidity
-- filter by multiple dimensions
-- scale without degrading performance
+- filter by several dimensions
+- scale without losing performance
 
 ## Frontend
 
 I built the frontend in React + Next.js, focused on:
 
-- efficient event exploration
-- real-time sync with React Query
+- exploring events efficiently
+- syncing in real time with React Query
 - fast load times
-
-The interface doesn't just show content: it makes it navigable, up to date and responsive.
 
 ## Impact
 
 The key change was going from a closed system to a distributed one:
 
-- 50+ units embed events on their own sites
+- more than 50 units embed events on their own sites
 - the information stays consistent
 - visibility grows without depending on a single entry point
 
@@ -71,12 +67,12 @@ The Agenda stopped being a destination and became a source of information.
 
 ## My role
 
-I worked with the technical team on defining the architecture and with design on the structure of the information, and I built the frontend end to end, turning a complex model into a clear experience.
+I worked with the technical team on the architecture and with design on the structure of the information, and I built the frontend end to end, turning a complex model into a clear experience.
 
 ## The hard part
 
-The hard work wasn't writing down dates: it was modeling the domain *over time*, when the rules collide with real life.
+The hard part wasn't writing down dates: it was modeling the domain *over time*, when the rules collide with real life.
 
-In practice assumptions break fast: the switch between summer and winter time throws off what looked stable on paper; some recurrences don't fit into templates; some activities stretch for months and don't behave like a classic "event".
+In practice assumptions break fast. The switch between summer and winter time throws off what looked stable on paper, some recurrences don't fit into templates, and some activities stretch for months and don't behave like a classic "event".
 
-That's where I stopped looking for the perfect schema and started prioritizing one that could withstand those exceptions without lying or falling apart. The tension wasn't in writing code, but in representing that behavior without the system breaking exactly where people needed it most.
+That's where I stopped looking for the perfect schema and started prioritizing one that could withstand those exceptions without lying or breaking. The tension wasn't in writing code, but in representing that behavior without the system failing exactly where it was needed most.

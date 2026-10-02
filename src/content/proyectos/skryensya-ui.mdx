@@ -1,6 +1,6 @@
 ---
 title: "Skryensya/ui"
-description: "Un sistema de diseño en progreso donde cada componente está normado por contrato: una base explícita para documentar, validar y proyectar interfaces hacia Figma, un editor visual o herramientas para agentes."
+description: "Un sistema de diseño donde cada componente parte de un contrato. De ahí salen la documentación, las validaciones y las implementaciones en React y Vanilla."
 year: "2026 – presente"
 order: 1.5
 links:
@@ -20,13 +20,13 @@ import ImageFigure from "@/components/ImageFigure.astro";
 
 <ImageFigure src={anatomiaAccordion} alt="Anatomía de Accordion: siete partes numeradas sobre el espécimen, con su clase." caption="Anatomía de Accordion — cada parte tiene nombre y clase" priority />
 
-Skryensya/ui es un sistema de diseño contract-first. En vez de tratar los componentes como piezas de CSS y JavaScript envueltas en una API, cada componente parte de una definición, llamada su contrato: qué partes tiene, qué opciones acepta, qué atributos escribe, qué reglas de accesibilidad debe cumplir y qué combinaciones tienen sentido.
+Skryensya/ui es un sistema de diseño contract-first: cada componente parte de una definición, su contrato, y no de CSS y JavaScript envueltos en una API. El contrato dice qué partes tiene, qué opciones acepta, qué atributos escribe, qué reglas de accesibilidad debe cumplir y qué combinaciones tienen sentido.
 
 <ImageFigure src={anatomiaCommentThread} alt="Anatomía de CommentThread: nueve partes numeradas sobre un comentario con respuesta, con su clase." caption="Anatomía de CommentThread — del avatar a las respuestas" />
 
-El problema que intenta resolver es concreto. En sistemas institucionales, lo normal es ordenar el caos definiendo un stack único para todos los proveedores. Tiene sentido: baja la variación y facilita mantener una línea común. Pero también fuerza una decisión técnica sobre equipos que no siempre parten desde el mismo lugar, reduce el grupo de proveedores posibles y sube el costo para la institución. A mí me interesaba resolver esa tensión de otra forma: permitir React, Vue o Vanilla sin convertir el sistema en tres implementaciones paralelas.
+En los sistemas institucionales lo habitual es ordenar el caos con un stack único para todos los proveedores. Tiene lógica: baja la variación y mantiene una línea común. Pero obliga a equipos que no siempre parten del mismo lugar a tomar la misma decisión técnica, reduce el grupo de proveedores posibles y sube el costo para la institución. Yo quería resolver esa tensión de otra forma: permitir React, Vue o Vanilla sin terminar con tres implementaciones paralelas.
 
-La idea viene de lo que aprendí creando y manteniendo sistemas de diseño en producción: el <a href="/proyectos/kit-digital-uc" class="editorial-link">Kit Digital UC</a>, el Portal UC y un proyecto institucional reciente que todavía no puedo mostrar. <a href="https://zagjs.com" class="editorial-link" target="_blank" rel="noopener noreferrer">Zag.js</a> fue la puerta de entrada técnica: separar comportamiento de presentación, trabajar con máquinas de estado y dejar que cada runtime pinte la misma lógica sin reinventarla.
+La idea viene de lo que aprendí creando y manteniendo sistemas de diseño en producción: el <a href="/proyectos/kit-digital-uc" class="editorial-link">Kit Digital UC</a>, el Portal UC y un proyecto institucional reciente que todavía no puedo mostrar. <a href="https://zagjs.com" class="editorial-link" target="_blank" rel="noopener noreferrer">Zag.js</a> fue la puerta de entrada técnica: separar el comportamiento de la presentación, usar máquinas de estado y dejar que cada runtime pinte la misma lógica sin reinventarla.
 
 ## Lo interesante
 
@@ -36,15 +36,14 @@ En <a href="https://ui.skryensya.dev" class="editorial-link" target="_blank" rel
 
 <ImageFigure src={anatomiaButton} alt="Anatomía de Button: cinco partes numeradas sobre el espécimen." caption="Anatomía de Button — la caja y sus slots" />
 
-La accesibilidad fue una condición de partida, no una revisión al final. Si el contrato de cada componente ya dice qué nombre accesible necesita, qué estados anuncia y qué tamaño mínimo tiene su área de toque, esas reglas dejan de depender de que cada equipo se acuerde de ellas. Varias se comprueban con tests: el contraste de cada variante y tono se mide a 4.5:1 en modo claro y oscuro, y el movimiento respeta la preferencia de reducir animaciones. En un contexto institucional, donde el mismo sistema lo usan equipos muy distintos, una regla que se puede olvidar no es una regla.
+Decidí que la accesibilidad fuera parte del contrato desde el primer día. Cada componente declara qué nombre accesible necesita, qué estados anuncia y qué tamaño mínimo tiene su área de toque, así que esas reglas no dependen de que cada equipo se acuerde de ellas. Varias se prueban con tests: el contraste de cada variante y tono se mide a 4,5:1 en modo claro y oscuro, y el movimiento respeta la preferencia de reducir animaciones. Con un sistema que usan equipos tan distintos, no quería depender de la memoria de nadie.
 
 <ImageFigure src={buttonDoDont} alt="Par Hazlo/Evítalo de Button: una acción principal por región." caption="Button — una acción principal por región" />
 
-La parte importante no es solo tener muchos componentes. Es que el catálogo se puede consultar como estructura mediante un MCP server. Desde ahí se puede preguntar qué componentes existen, cómo se componen, qué combinaciones son válidas y qué markup deberían producir. Las validaciones comparan árboles de uso entre bindings y convierten “esto debería ser consistente” en evidencia.
+El catálogo también se puede consultar como estructura mediante un MCP server. Desde ahí se puede preguntar qué componentes existen, cómo se componen, qué combinaciones son válidas y qué markup deberían producir. Las validaciones comparan árboles de uso entre bindings y convierten el "esto debería ser consistente" en evidencia.
 
 ## Estado actual
 
 <ImageFigure src={tagDoDont} alt="Par Hazlo/Evítalo de Tag: se actúa sobre él." caption="Tag — si se quita, es un Tag; si solo se lee, un Badge" />
 
-Es un WIP grande y deliberadamente ambicioso, pero ya tiene una base funcionando: Core como fuente de verdad, documentación pública, implementaciones en React y Vanilla, y gates que revisan consistencia. Lo siguiente es aprovechar esa misma estructura para cosas que normalmente se construyen aparte: un plugin para Figma, un editor visual y un MCP que valide interfaces de manera programática.
-
+Es un WIP grande y deliberadamente ambicioso, pero ya tiene una base que funciona: Core como fuente de verdad, documentación pública, implementaciones en React y Vanilla, y gates que revisan la consistencia. Lo siguiente es usar esa misma estructura para cosas que normalmente se construyen aparte: un plugin para Figma, un editor visual y un MCP que valide interfaces de forma programática.

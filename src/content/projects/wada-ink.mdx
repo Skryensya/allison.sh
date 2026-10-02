@@ -1,6 +1,6 @@
 ---
 title: "Wada.ink"
-description: "An interactive catalog of Sanzo Wada's color combinations, made for browsing and discovering, not just looking at plates. Other versions already existed, but I thought the interface could be better."
+description: "Sanzo Wada's dictionary of color combinations, made to be explored: search by name, by similar color or with a photo. Other versions already existed; I wanted one with a better interface."
 year: "2026 – present"
 order: 2
 links:
@@ -12,22 +12,22 @@ links:
 
 Wada.ink is an interactive catalog of Sanzo Wada's color combinations, made to be easy to browse and to discover new things in.
 
-<a href="https://en.wikipedia.org/wiki/Sanzo_Wada" class="editorial-link" target="_blank" rel="noopener noreferrer">Sanzo Wada<svg class="editorial-link__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" /></svg></a> was a Japanese painter who founded the Japan Standard Color Association in 1927. Between 1933 and 1934 he published "Haishoku Soukan", six folios with more than a thousand color combinations, always conceived in pairs, never as isolated tones. In 2010 the publisher Seigensha gathered a selection of those folios into two volumes under the title "A Dictionary of Color Combinations": 348 combinations in the first, 233 in the second. That collection, not the original folios from the thirties, is the one that circulates among designers today and the one that feeds almost every digital catalog of Wada, mine included.
+<a href="https://en.wikipedia.org/wiki/Sanzo_Wada" class="editorial-link" target="_blank" rel="noopener noreferrer">Sanzo Wada<svg class="editorial-link__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z" /></svg></a> was a Japanese painter who founded the Japan Standard Color Association in 1927. Between 1933 and 1934 he published "Haishoku Soukan", six folios with more than a thousand color combinations, always conceived in pairs, never as isolated tones. In 2010 the publisher Seigensha gathered a selection into two volumes under the title "A Dictionary of Color Combinations": 348 combinations in the first and 233 in the second. That collection, and not the original folios from the thirties, is the one that circulates among designers today and the one that feeds almost every digital catalog of Wada, mine included.
 
-Several versions of that catalog already existed online, and they were fine. They showed the combinations, had each color's values, did their job. But while looking at them I kept thinking their interface could be better. The individual color stayed a loose piece of data inside the palette, with no name or page of its own, and searching was almost always by plate number, never by color. Thinking that the experience of using it had room to improve is what led me to make my own catalog.
+Several versions of that catalog already existed online, and they were fine: they showed the combinations, had each color's values and did their job. But their interface could be better. The individual color was a loose piece of data inside the palette, with no name or page of its own, and you searched almost always by plate number, never by color. That led me to make my own catalog.
 
 ## The solution
 
-Finding a color no longer depends on remembering a plate number: you can search by name, pick a swatch and see which colors in the catalog look most like it, or upload a photo so the site pulls out its dominant palette and matches it against the dictionary. Each color also has its own page, with its values and the combinations where it appears.
+Finding a color no longer depends on remembering a plate number. You can search by name, pick a swatch and see which colors in the catalog look most like it, or upload a photo so the site pulls out its dominant palette and compares it with the dictionary. Each color also has its own page, with its values and the combinations where it appears.
 
-Wada's catalog has a fixed number of combinations, the ones he documented almost a century ago. That's why I'm adding a community layer: accounts with Google or GitHub so anyone can put together their own combinations from those same colors, adding to what already existed instead of settling for the original, plus comments on every color or palette so the conversation stays right there, not scattered somewhere else.
+Wada's catalog has a fixed number of combinations: the ones he documented almost a century ago. That's why I'm adding a community layer. With Google or GitHub accounts, anyone can put together their own combinations from those same colors, and every color or palette has comments so the conversation stays right there.
 
 ## Technical decisions
 
-It started as a static site in Astro. When I decided to add user accounts and palettes, it had to move to server mode, with its own Postgres running in the same place where I already have everything else. For login I used Better Auth, which runs inside the same Astro process and avoids bringing in a separate service for something this small.
+It started as a static site in Astro. When I added user accounts and palettes it had to move to server mode, with its own Postgres in the same place where I already have everything else. For login I used Better Auth, which runs inside the same Astro process and avoids a separate service for something this small.
 
-The rest of the decisions went the same way. I preferred a single framework for the whole site instead of splitting frontend and backend into separate projects, and I ruled out any external service that did what I can already solve myself with what I have running. Nothing here depends on a third party that one day decides to change its pricing or shut down.
+The rest of the decisions followed that line: a single framework for the whole site instead of frontend and backend in separate projects, and no external service that does something I can already solve with what I have running. Nothing here depends on a third party that one day decides to change its pricing or shut down.
 
 ## For fun
 
-I'm not doing it to sell it or with any particular user in mind, I do it because I want to. I like Wada's dictionary, I wanted my own version, my way, and I care more about it being pleasant to use than about anything else. Thinking through rules like "what happens if two people put together the same combination without knowing" is simply entertaining when nobody is waiting on the result, and the site keeps growing like that, little by little, when I feel like it.
+I'm not doing it to sell it or with any particular user in mind. I like Wada's dictionary, I wanted my own version, my way, and I care more about it being pleasant to use than about anything else. Thinking through rules like "what happens if two people put together the same combination without knowing" is entertaining when nobody is waiting on the result, and the site keeps growing like that, little by little, when I feel like it.

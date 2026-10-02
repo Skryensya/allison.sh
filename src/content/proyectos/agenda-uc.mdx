@@ -1,6 +1,6 @@
 ---
 title: "Agenda UC"
-description: "En la UC, las actividades nunca faltaron, pero descubrirlas requería saber dónde buscar. Formé parte del desarrollo de la agenda institucional pensada para cambiar eso y hacerlas visibles, accesibles y fáciles de explorar."
+description: "La UC tenía actividades de sobra y ninguna forma clara de encontrarlas. Participé en una agenda propia, con una API para que más de 50 unidades muestren sus eventos en sus propios sitios."
 year: "2024"
 order: 5
 employer: "Asimov Consultores"
@@ -11,72 +11,68 @@ links:
 
 ## El problema
 
-La Agenda UC existía como parte de uc.cl, sin autonomía ni un modelo preparado para escalar. Publicar eventos dependía del flujo editorial del sitio principal, lo que limitaba su visibilidad y distribución.
+La Agenda UC vivía dentro de uc.cl, sin autonomía y sin un modelo preparado para crecer. Publicar un evento dependía del flujo editorial del sitio principal, lo que limitaba su visibilidad y su distribución.
 
-No era falta de actividad. Era falta de una forma clara de centralizarla y amplificarla.
+Actividades había de sobra. Faltaba una forma clara de centralizarlas y amplificarlas.
 
 ## La solución
 
-Replanteamos la Agenda como un sistema independiente con tres pilares:
+Replanteamos la Agenda como un sistema independiente, con tres pilares:
 
 - **Autonomía:** backoffice propio para gestionar eventos
-- **Flexibilidad:** modelo capaz de representar eventos complejos
-- **Distribución:** API para replicar contenido en múltiples sitios
+- **Flexibilidad:** un modelo capaz de representar eventos complejos
+- **Distribución:** una API para replicar el contenido en otros sitios
 
-Hoy soporta más de 4.300 actividades y se integra con 50+ unidades a través del [Kit Digital UC](/proyectos/kit-digital-uc).
+Hoy soporta más de 4.300 actividades y se integra con más de 50 unidades a través del [Kit Digital UC](/proyectos/kit-digital-uc).
 
 ## Modelar la complejidad real
 
-Los eventos UC no son simples: múltiples fechas, horarios, ubicaciones y relaciones.
+Los eventos de la UC no son simples: tienen varias fechas, horarios, ubicaciones y relaciones entre sí. Estructuramos el dominio en dos niveles:
 
-Estructuramos el dominio en dos niveles:
+**Actividades:** la unidad base. Cada actividad ocurre dentro de un mismo día y puede tener uno o más horarios, pensados para casos como la apertura de un museo con pausas.
 
-**Actividades:** la unidad base. Cada actividad ocurre dentro de un mismo día y puede tener uno o más horarios (instancias en el tiempo), pensados para casos como aperturas de museos con pausas.
+**Eventos:** un contenedor que agrupa actividades bajo una misma temática. Las actividades relacionadas se distribuyen en el tiempo a lo largo del evento.
 
-**Eventos:** un contenedor lógico que agrupa actividades bajo una misma temática. Las actividades relacionadas se distribuyen en el tiempo a través del evento.
-
-Esta separación permitió:
+Con esta separación pudimos:
 
 - modelar recurrencias y variaciones sin duplicar información
-- mantener coherencia entre sesiones relacionadas
-- ofrecer filtros más precisos a nivel de actividad o evento
+- mantener la coherencia entre sesiones relacionadas
+- ofrecer filtros más precisos, por actividad o por evento
 
 ## Backend
 
-Diseñamos una API en Strapi (TypeScript) que permite:
+Diseñamos una API en Strapi (TypeScript) que nos permite:
 
 - modelar esa complejidad sin rigidez
-- filtrar por múltiples dimensiones
-- escalar sin degradar performance
+- filtrar por varias dimensiones
+- escalar sin perder rendimiento
 
 ## Frontend
 
-Desarrollé el frontend en React + Next.js, con foco en:
+Hice el frontend en React + Next.js, con foco en:
 
-- exploración eficiente de eventos
-- sincronización en tiempo real con React Query
+- explorar eventos de forma eficiente
+- sincronizar en tiempo real con React Query
 - tiempos de carga rápidos
-
-La interfaz no solo muestra contenido: lo hace navegable, actualizado y ágil.
 
 ## Impacto
 
 El cambio clave fue pasar de un sistema cerrado a uno distribuido:
 
-- 50+ unidades integran eventos en sus propios sitios
+- más de 50 unidades integran eventos en sus propios sitios
 - la información se mantiene consistente
-- la visibilidad aumenta sin depender de un único punto de entrada
+- la visibilidad crece sin depender de una única puerta de entrada
 
 La Agenda dejó de ser un destino y pasó a ser una fuente de información.
 
 ## Mi rol
 
-Colaboré con el equipo técnico en la definición de la arquitectura y con diseño en la estructura de la información, además de desarrollar el frontend end-to-end, traduciendo un modelo complejo en una experiencia clara.
+Trabajé con el equipo técnico en la arquitectura y con diseño en la estructura de la información, y desarrollé el frontend de punta a punta, traduciendo un modelo complejo en una experiencia clara.
 
 ## Lo difícil
 
-El trabajo duro no fue anotar fechas: fue modelar el dominio *en el tiempo*, cuando las reglas chocan con la vida real.
+Lo difícil no fue anotar fechas: fue modelar el dominio *en el tiempo*, cuando las reglas chocan con la vida real.
 
-En la práctica los supuestos se caen rápido: el salto de horario de verano a invierno desalinea lo que en papel parecía estable; hay recurrencias que no entran en plantillas; hay actividades que se estiran meses y no se comportan como “un evento” clásico.
+En la práctica los supuestos se caen rápido. El cambio de horario entre verano e invierno desalinea lo que en papel parecía estable, hay recurrencias que no caben en plantillas y hay actividades que se estiran por meses y no se comportan como un «evento» clásico.
 
-Ahí dejé de buscar el esquema perfecto y pasé a priorizar uno que aguantara esas excepciones sin mentir ni partirse. La tensión no estaba en escribir código, sino en representar ese comportamiento sin que el sistema se rompiera justo donde más lo necesitaban.
+Ahí dejé de buscar el esquema perfecto y empecé a priorizar uno que aguantara esas excepciones sin mentir ni romperse. La tensión no estaba en escribir código, sino en representar ese comportamiento sin que el sistema fallara justo donde más se necesitaba.
