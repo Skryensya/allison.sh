@@ -37,9 +37,9 @@ const isHome = currentPath === home || currentPath === home.replace(/\/$/, '') |
       </button>
     </div>
     <div id="nav-links" class="flex items-center gap-4 md:gap-6 pointer-events-auto">
-      <a href={isHome ? '#proyectos' : homeAnchor(locale, 'projects')} class="sk-button sk-interactive hidden md:inline-flex" data-variant="ghost">{t.nav.work}</a>
-      <a href={homeAnchor(locale, 'about')} class="sk-button sk-interactive hidden md:inline-flex" data-variant="ghost">{t.nav.about}</a>
-      <a href={homeAnchor(locale, 'contact')} class="sk-button sk-interactive hidden md:inline-flex" data-variant="ghost">{t.nav.contact}</a>
+      <a href={isHome ? '#proyectos' : homeAnchor(locale, 'projects')} class="hidden md:inline-flex font-sans text-[0.98rem] font-normal tracking-[0.01em] text-muted">{t.nav.work}</a>
+      <a href={homeAnchor(locale, 'about')} class="hidden md:inline-flex font-sans text-[0.98rem] font-normal tracking-[0.01em] text-muted">{t.nav.about}</a>
+      <a href={homeAnchor(locale, 'contact')} class="hidden md:inline-flex font-sans text-[0.98rem] font-normal tracking-[0.01em] text-muted">{t.nav.contact}</a>
     </div>
   </nav>
 </header>

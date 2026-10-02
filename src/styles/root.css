@@ -7,6 +7,13 @@
   --font-sans: "Satoshi";
   --font-mono: "Spline Sans Mono";
   --folder-pad-x: 12px;
+  /* ui tokens use light-dark(), which reads color-scheme. The site themes with the `.dark` class,
+     so tell the browser which scheme is active or ui follows the OS instead of the toggle. */
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 @media (min-width: 768px) {

@@ -1,5 +1,5 @@
 /* Shared interaction highlight for nav, contact, and footer controls. */
-:where(#contacto a) {
+:where(#nav-links a, #contacto a) {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -24,7 +24,7 @@
   z-index: 0;
 }
 
-:where(#contacto a)::before {
+:where(#nav-links a, #contacto a)::before {
   content: '';
   position: absolute;
   inset: -6px -8px;
@@ -41,7 +41,7 @@
   z-index: -1;
 }
 
-:where(#contacto a)::after {
+:where(#nav-links a, #contacto a)::after {
   content: '';
   position: absolute;
   inset: -6px -8px;
@@ -59,12 +59,12 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  :where(#contacto a):hover {
+  :where(#nav-links a, #contacto a):hover {
     color: var(--color-bg);
     transform: translateY(-1px);
   }
 
-  :where(#contacto a):hover::before {
+  :where(#nav-links a, #contacto a):hover::before {
     opacity: 1;
     transform: translateY(0) scale(1) skewX(var(--nav-highlight-skew));
     transition:
@@ -72,17 +72,17 @@
       transform 280ms cubic-bezier(0.19, 1, 0.22, 1);
   }
 
-  :where(#contacto a):hover::after {
+  :where(#nav-links a, #contacto a):hover::after {
     animation: navHighlightGlint 560ms cubic-bezier(0.19, 1, 0.22, 1) both;
   }
 }
 
-:where(#contacto a):focus-visible {
+:where(#nav-links a, #contacto a):focus-visible {
   color: var(--color-bg);
   transform: translateY(-1px);
 }
 
-:where(#contacto a):focus-visible::before {
+:where(#nav-links a, #contacto a):focus-visible::before {
   opacity: 1;
   transform: translateY(0) scale(1) skewX(var(--nav-highlight-skew));
 }
@@ -147,9 +147,9 @@ html.dark #theme-toggle .moon-icon {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :where(#contacto a),
-  :where(#contacto a)::before,
-  :where(#contacto a)::after,
+  :where(#nav-links a, #contacto a),
+  :where(#nav-links a, #contacto a)::before,
+  :where(#nav-links a, #contacto a)::after,
   #theme-toggle .theme-toggle__icon {
     animation: none;
     transition: none;
@@ -173,8 +173,21 @@ html.dark #theme-toggle .moon-icon {
 }
 
 /* skryensya/ui buttons: fully rounded */
-#nav-links .sk-button,
 #theme-toggle.sk-button,
 [data-lang-switch].sk-button {
   --sk-button-radius: var(--radius-pill);
+}
+
+/* ui buttons paint from ui's own stone palette. Feed them the site's Flexoki tokens instead, so the
+ * ink follows light and dark mode with the rest of the page. The footer language switch uses
+ * currentColor to follow the footer tone (home vs page). The ui state layer tints hover and press from currentColor, so those stay on Flexoki as well. */
+[data-lang-switch].sk-button[data-variant="ghost"] {
+  --sk-button-fg: currentColor;
+}
+
+/* In dark mode the ES/EN label reads ~3px above the theme toggle's icon. Nudge the label only, with
+ * padding rather than translate: ui uses translate for press feedback and the hover pill must keep
+ * the toggle's 32px height. Light mode is left as it was. */
+html.dark [data-lang-switch].sk-button {
+  padding-block: 6px 0;
 }
