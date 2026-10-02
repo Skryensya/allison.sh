@@ -1,6 +1,6 @@
 ---
 title: "Wada.ink"
-description: "Sanzo Wada's dictionary of color combinations, made to be explored: search by name, by similar color or with a photo. Other versions already existed; I wanted one with a better interface."
+description: "Sanzo Wada's dictionary of color combinations, made to be explored by name, similar color or photo. WIP: on hold while I work on Skryensya/ui."
 year: "2026 – present"
 order: 2
 links:
@@ -27,6 +27,10 @@ Wada's catalog has a fixed number of combinations: the ones he documented almost
 It started as a static site in Astro. When I added user accounts and palettes it had to move to server mode, with its own Postgres in the same place where I already have everything else. For login I used Better Auth, which runs inside the same Astro process and avoids a separate service for something this small.
 
 The rest of the decisions followed that line: a single framework for the whole site instead of frontend and backend in separate projects, and no external service that does something I can already solve with what I have running. Nothing here depends on a third party that one day decides to change its pricing or shut down.
+
+## Current state
+
+Wada.ink is a WIP and is on hold for now: my time is going into [Skryensya/ui](/en/projects/skryensya-ui). The next goal is to re-implement the interface using my own design system.
 
 ## For fun
 
